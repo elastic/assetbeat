@@ -40,6 +40,7 @@ import (
 	types_ec2 "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	types_eks "github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
 func Plugin() input.Plugin {
@@ -62,7 +63,7 @@ func configure(cfg *conf.C) (stateless.Input, error) {
 }
 
 func newAssetsAWS(config config) (*assetsAWS, error) {
-	return &assetsAWS{config}, nil
+	return &assetsAWS{config: config}, nil
 }
 
 type Config struct {
@@ -87,6 +88,7 @@ func defaultConfig() config {
 
 type assetsAWS struct {
 	config
+	accountID string
 }
 
 type config struct {
@@ -114,43 +116,62 @@ func (s *assetsAWS) Run(inputCtx input.Context, publisher stateless.Publisher) e
 		},
 	}
 
-	ticker := time.NewTicker(s.config.Config.Period)
+	cfg, err := aws_config.LoadDefaultConfig(
+		ctx,
+		aws_config.WithCredentialsProvider(credentialsProvider),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create AWS config: %w", err)
+	}
+
+	s.accountID, err = getAccountID(ctx, cfg)
+	if err != nil {
+        // not a fatal error - just leave the account ID blank
+		log.Errorf("could not get account ID - it will not be set in reported assets")
+	}
+
+	// run an initial collection right away
 	select {
 	case <-ctx.Done():
 		return nil
 	default:
-		collectAWSAssets(ctx, regions, log, credentialsProvider, publisher)
+		s.collectAWSAssets(ctx, cfg, regions, log, publisher)
 	}
+
+	// followed by subsequent collections based on configured period
+	ticker := time.NewTicker(s.config.Config.Period)
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case <-ticker.C:
-			collectAWSAssets(ctx, regions, log, credentialsProvider, publisher)
+			s.collectAWSAssets(ctx, cfg, regions, log, publisher)
 		}
 	}
 }
 
-func collectAWSAssets(ctx context.Context, regions []string, log *logp.Logger, credentialsProvider aws.CredentialsProvider, publisher stateless.Publisher) {
+func getAccountID(ctx context.Context, cfg aws.Config) (string, error) {
+	stsClient := sts.NewFromConfig(cfg)
+	callerID, err := stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
+	if err != nil || callerID.Account == nil {
+		return "", err
+	}
+	return *callerID.Account, nil
+}
+
+func (s *assetsAWS) collectAWSAssets(ctx context.Context, cfgWithCredentials aws.Config, regions []string, log *logp.Logger, publisher stateless.Publisher) {
 	for _, region := range regions {
-		cfg, err := aws_config.LoadDefaultConfig(
-			ctx,
-			aws_config.WithRegion(region),
-			aws_config.WithCredentialsProvider(credentialsProvider),
-		)
-		if err != nil {
-			log.Errorf("failed to create AWS config for %s: %v", region, err)
-			continue
-		}
+		cfg := cfgWithCredentials.Copy()
+		cfg.Region = region
 
-		go collectEKSAssets(ctx, cfg, log, publisher)
-		go collectEC2Assets(ctx, cfg, log, publisher)
-		go collectVPCAssets(ctx, cfg, log, publisher)
-		go collectSubnetAssets(ctx, cfg, log, publisher)
+		go s.collectEKSAssets(ctx, cfg, log, publisher)
+		go s.collectEC2Assets(ctx, cfg, log, publisher)
+		go s.collectVPCAssets(ctx, cfg, log, publisher)
+		go s.collectSubnetAssets(ctx, cfg, log, publisher)
 	}
 }
 
-func collectEC2Assets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) {
+func (s *assetsAWS) collectEC2Assets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) {
 	client := ec2.NewFromConfig(cfg)
 	instances, err := describeEC2Instances(ctx, client)
 	if err != nil {
@@ -163,14 +184,14 @@ func collectEC2Assets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 		if instance.SubnetId != nil {
 			parents = []string{*instance.SubnetId}
 		}
-		publishAWSAsset(publisher, cfg.Region, "aws.ec2.instance", *instance.InstanceId, parents, nil, mapstr.M{
+		s.publishAWSAsset(publisher, cfg.Region, "aws.ec2.instance", *instance.InstanceId, parents, nil, mapstr.M{
 			"tags":  instance.Tags,
 			"state": string(instance.State.Name),
 		})
 	}
 }
 
-func collectVPCAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) {
+func (s *assetsAWS) collectVPCAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) {
 	client := ec2.NewFromConfig(cfg)
 	vpcs, err := describeVPCs(ctx, client)
 	if err != nil {
@@ -179,14 +200,14 @@ func collectVPCAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 	}
 
 	for _, vpc := range vpcs {
-		publishAWSAsset(publisher, cfg.Region, "aws.vpc", *vpc.VpcId, nil, nil, mapstr.M{
+		s.publishAWSAsset(publisher, cfg.Region, "aws.vpc", *vpc.VpcId, nil, nil, mapstr.M{
 			"tags":      vpc.Tags,
 			"isDefault": vpc.IsDefault,
 		})
 	}
 }
 
-func collectSubnetAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) {
+func (s *assetsAWS) collectSubnetAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) {
 	client := ec2.NewFromConfig(cfg)
 	subnets, err := describeSubnets(ctx, client)
 	if err != nil {
@@ -195,14 +216,14 @@ func collectSubnetAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, 
 	}
 
 	for _, subnet := range subnets {
-		publishAWSAsset(publisher, cfg.Region, "aws.subnet", *subnet.SubnetId, []string{*subnet.VpcId}, nil, mapstr.M{
+		s.publishAWSAsset(publisher, cfg.Region, "aws.subnet", *subnet.SubnetId, []string{*subnet.VpcId}, nil, mapstr.M{
 			"tags":  subnet.Tags,
 			"state": string(subnet.State),
 		})
 	}
 }
 
-func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) {
+func (s *assetsAWS) collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) {
 	client := eks.NewFromConfig(cfg)
 	clusters, err := listEKSClusters(ctx, client)
 	if err != nil {
@@ -216,7 +237,7 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 			if clusterDetail.ResourcesVpcConfig.VpcId != nil {
 				parents = []string{*clusterDetail.ResourcesVpcConfig.VpcId}
 			}
-			publishAWSAsset(publisher, cfg.Region, "k8s.cluster", *clusterDetail.Arn, parents, nil, mapstr.M{
+			s.publishAWSAsset(publisher, cfg.Region, "k8s.cluster", *clusterDetail.Arn, parents, nil, mapstr.M{
 				"tags":   clusterDetail.Tags,
 				"status": clusterDetail.Status,
 			})
@@ -303,10 +324,11 @@ func listEKSClusters(ctx context.Context, client *eks.Client) ([]string, error) 
 	return clusters, nil
 }
 
-func publishAWSAsset(publisher stateless.Publisher, region, assetType, assetId string, parents, children []string, metadata mapstr.M) {
+func (s *assetsAWS) publishAWSAsset(publisher stateless.Publisher, region, assetType, assetId string, parents, children []string, metadata mapstr.M) {
 	asset := mapstr.M{
 		"cloud.provider": "aws",
 		"cloud.region":   region,
+        "cloud.account.id": s.accountID,
 
 		"asset.type": assetType,
 		"asset.id":   assetId,
