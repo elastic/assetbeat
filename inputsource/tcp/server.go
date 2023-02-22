@@ -24,9 +24,9 @@ import (
 
 	"golang.org/x/net/netutil"
 
+	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
 	"github.com/elastic/inputrunner/inputsource"
 	"github.com/elastic/inputrunner/inputsource/common/streaming"
-	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
 )
 
 // Server represent a TCP server

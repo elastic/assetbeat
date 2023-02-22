@@ -29,12 +29,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/elastic/beats/v7/libbeat/beat" // TODO: Replace with sync/atomic when go1.19 is supported.
+	"github.com/elastic/beats/v7/libbeat/feature"
 	input "github.com/elastic/inputrunner/input/v2"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 	"github.com/elastic/inputrunner/inputsource"
 	"github.com/elastic/inputrunner/inputsource/udp"
-	"github.com/elastic/beats/v7/libbeat/beat" // TODO: Replace with sync/atomic when go1.19 is supported.
-	"github.com/elastic/beats/v7/libbeat/feature"
 	//"github.com/elastic/beats/v7/libbeat/monitoring/inputmon"
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"

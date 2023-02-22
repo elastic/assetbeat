@@ -23,8 +23,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/elastic/inputrunner/inputsource"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/inputrunner/inputsource"
 )
 
 // HandlerFactory returns a ConnectionHandler func

@@ -26,13 +26,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	v2 "github.com/elastic/inputrunner/input/v2"
-	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/common/atomic"
 	pubtest "github.com/elastic/beats/v7/libbeat/publisher/testing"
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/mapstr"
+	v2 "github.com/elastic/inputrunner/input/v2"
+	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 )
 
 type fakeStatelessInput struct {

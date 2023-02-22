@@ -25,9 +25,9 @@ import (
 	"github.com/elastic/go-concert/ctxtool"
 	"github.com/elastic/go-concert/unison"
 
-	"github.com/elastic/inputrunner/inputsource"
 	"github.com/elastic/beats/v7/libbeat/common/cfgtype"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/inputrunner/inputsource"
 )
 
 const windowErrBuffer = "A message sent on a datagram socket was larger than the internal message" +

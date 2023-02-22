@@ -21,8 +21,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/elastic/inputrunner/inputsource/common/streaming"
 	"github.com/elastic/beats/v7/libbeat/common/cfgtype"
+	"github.com/elastic/inputrunner/inputsource/common/streaming"
 )
 
 type SocketType uint8

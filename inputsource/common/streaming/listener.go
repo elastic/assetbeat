@@ -28,10 +28,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/elastic/inputrunner/inputsource"
 	"github.com/elastic/beats/v7/libbeat/common/atomic"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/go-concert/ctxtool"
+	"github.com/elastic/inputrunner/inputsource"
 )
 
 // ListenerFactory returns a net.Listener

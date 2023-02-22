@@ -27,9 +27,9 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/logp"
 
+	conf "github.com/elastic/elastic-agent-libs/config"
 	v2 "github.com/elastic/inputrunner/input/v2"
 	"github.com/elastic/inputrunner/input/v2/internal/inputest"
-	conf "github.com/elastic/elastic-agent-libs/config"
 )
 
 func TestRunnerFactory_CheckConfig(t *testing.T) {

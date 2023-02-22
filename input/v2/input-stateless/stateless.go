@@ -23,9 +23,9 @@ import (
 
 	"github.com/elastic/go-concert/unison"
 
-	v2 "github.com/elastic/inputrunner/input/v2"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	conf "github.com/elastic/elastic-agent-libs/config"
+	v2 "github.com/elastic/inputrunner/input/v2"
 )
 
 // InputManager provides an InputManager for transient inputs, that do not store

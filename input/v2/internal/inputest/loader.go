@@ -20,9 +20,9 @@ package inputest
 import (
 	"testing"
 
-	v2 "github.com/elastic/inputrunner/input/v2"
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
+	v2 "github.com/elastic/inputrunner/input/v2"
 )
 
 // Loader wraps the input Loader in order to provide additional methods for reuse in tests.

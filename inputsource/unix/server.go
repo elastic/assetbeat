@@ -24,10 +24,10 @@ import (
 
 	"golang.org/x/net/netutil"
 
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/inputrunner/inputsource"
 	"github.com/elastic/inputrunner/inputsource/common/dgram"
 	"github.com/elastic/inputrunner/inputsource/common/streaming"
-	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 // Server is run by the input.

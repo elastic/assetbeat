@@ -30,8 +30,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	input "github.com/elastic/inputrunner/input/v2"
-	v2 "github.com/elastic/inputrunner/input/v2"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	pubtest "github.com/elastic/beats/v7/libbeat/publisher/testing"
 	"github.com/elastic/beats/v7/libbeat/tests/resources"
@@ -39,6 +37,8 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/go-concert/unison"
+	input "github.com/elastic/inputrunner/input/v2"
+	v2 "github.com/elastic/inputrunner/input/v2"
 )
 
 type fakeTestInput struct {

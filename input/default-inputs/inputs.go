@@ -18,14 +18,14 @@
 package inputs
 
 import (
+	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/inputrunner/beater"
 	"github.com/elastic/inputrunner/input/assets_aws"
 	"github.com/elastic/inputrunner/input/exec"
 	"github.com/elastic/inputrunner/input/udp"
 	"github.com/elastic/inputrunner/input/unix"
 	v2 "github.com/elastic/inputrunner/input/v2"
-	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 func Init(info beat.Info, log *logp.Logger, components beater.StateStore) []v2.Plugin {

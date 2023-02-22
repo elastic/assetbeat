@@ -22,8 +22,8 @@ import (
 	"crypto/x509"
 	"net"
 
-	"github.com/elastic/inputrunner/inputsource"
 	"github.com/elastic/elastic-agent-libs/transport/tlscommon"
+	"github.com/elastic/inputrunner/inputsource"
 )
 
 // MetadataCallback returns common metadata about a tcp connection

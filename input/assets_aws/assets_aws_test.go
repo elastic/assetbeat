@@ -20,6 +20,6 @@ func TestAssetsAWS_publishAWSAsset_includesRequiredFields(t *testing.T) {
 		"asset.id":         "i-1234",
 		"asset.ean":        "aws.ec2.instance:i-1234",
 	}
-    publisher.EXPECT().Publish(beat.Event{Fields: expectedAsset})
+	publisher.EXPECT().Publish(beat.Event{Fields: expectedAsset})
 	publishAWSAsset(publisher, "eu-west-1", "1234", "aws.ec2.instance", "i-1234", nil, nil, nil)
 }

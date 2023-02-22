@@ -29,10 +29,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/elastic/inputrunner/inputsource"
-	"github.com/elastic/inputrunner/inputsource/common/streaming"
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/inputrunner/inputsource"
+	"github.com/elastic/inputrunner/inputsource/common/streaming"
 )
 
 var defaultConfig = Config{

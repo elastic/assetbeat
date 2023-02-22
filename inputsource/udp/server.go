@@ -21,9 +21,9 @@ import (
 	"github.com/dustin/go-humanize"
 	"net"
 
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/inputrunner/inputsource"
 	"github.com/elastic/inputrunner/inputsource/common/dgram"
-	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 // Name is the human readable name and identifier.
