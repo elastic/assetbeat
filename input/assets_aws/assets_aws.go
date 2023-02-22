@@ -20,6 +20,7 @@ package assets_aws
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -48,6 +49,7 @@ type EC2Instance struct {
 	InstanceID string
 	OwnerID    string
 	SubnetID   string
+	Tags       []types_ec2.Tag
 	Metadata   mapstr.M
 }
 
@@ -172,6 +174,17 @@ func collectEC2Assets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 		if instance.SubnetID != "" {
 			parents = []string{instance.SubnetID}
 		}
+
+		for _, tag := range instance.Tags {
+			if strings.HasPrefix(*tag.Key, "kubernetes.io/cluster/") && *tag.Value == "owned" {
+				split := strings.Split(*tag.Key, "/")
+				clusterName := split[len(split)-1]
+				clusterARN := fmt.Sprintf("arn:aws:eks:%s:%s:cluster/%s", cfg.Region, instance.OwnerID, clusterName)
+				parents = append(parents, clusterARN)
+			}
+		}
+
+		instance.Metadata["tags"] = instance.Tags
 		publishAWSAsset(publisher, cfg.Region, instance.OwnerID, "aws.ec2.instance", instance.InstanceID, parents, nil, instance.Metadata)
 	}
 }
@@ -296,8 +309,8 @@ func describeEC2Instances(ctx context.Context, client *ec2.Client) ([]EC2Instanc
 				inst := EC2Instance{
 					InstanceID: *i.InstanceId,
 					OwnerID:    *reservation.OwnerId,
+					Tags:       i.Tags,
 					Metadata: mapstr.M{
-						"tags":  i.Tags,
 						"state": string(i.State.Name),
 					},
 				}
