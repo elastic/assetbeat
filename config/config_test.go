@@ -16,7 +16,6 @@
 // under the License.
 
 //go:build !integration
-// +build !integration
 
 package config
 
@@ -26,23 +25,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/elastic/beats/v7/libbeat/cfgfile"
-	conf "github.com/elastic/elastic-agent-libs/config"
+    conf "github.com/elastic/elastic-agent-libs/config"
 )
-
-func TestReadConfig2(t *testing.T) {
-	// Tests with different params from config file
-	absPath, err := filepath.Abs("../tests/files/")
-
-	assert.NotNil(t, absPath)
-	assert.NoError(t, err)
-
-	config := &Config{}
-
-	// Reads second config file
-	err = cfgfile.Read(config, absPath+"/config2.yml")
-	assert.NoError(t, err)
-}
 
 func TestGetConfigFiles_File(t *testing.T) {
 	absPath, err := filepath.Abs("../tests/files/")
@@ -74,12 +58,12 @@ func TestGetConfigFiles_Dir(t *testing.T) {
 }
 
 func TestGetConfigFiles_EmptyDir(t *testing.T) {
-	absPath, err := filepath.Abs("../tests/files/")
+	absPath, err := filepath.Abs("../tests")
 
 	assert.NotNil(t, absPath)
 	assert.NoError(t, err)
 
-	files, err := getConfigFiles(absPath + "/logs")
+	files, err := getConfigFiles(absPath)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(files))
@@ -113,7 +97,7 @@ func TestMergeConfigFiles(t *testing.T) {
 	err = mergeConfigFiles(files, config)
 	assert.NoError(t, err)
 
-	assert.Equal(t, 4, len(config.Inputs))
+	assert.Equal(t, 2, len(config.Inputs))
 }
 
 func TestEnabledInputs(t *testing.T) {

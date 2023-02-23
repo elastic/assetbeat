@@ -23,8 +23,8 @@ func Build() error {
 	return sh.RunV("go", "build", ".")
 }
 
-// Test runs all unit tests and writes an HTML coverage report to the build directory
-func Test() error {
+// UnitTest runs all unit tests and writes a HTML coverage report to the build directory
+func UnitTest() error {
 	err := sh.RunV("go", "test", "./...", "-coverprofile=coverage.out")
 	sh.RunV("go", "tool", "cover", "-html=coverage.out", "-o", "coverage.html")
 	return err
