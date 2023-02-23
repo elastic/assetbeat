@@ -115,38 +115,50 @@ func (s *assetsAWS) Run(inputCtx input.Context, publisher stateless.Publisher) e
 	log.Info("aws asset collector run started")
 	defer log.Info("aws asset collector run stopped")
 
-	regions := s.Config.Regions
-	credentialsProvider := credentials.StaticCredentialsProvider{
-		Value: aws.Credentials{
-			AccessKeyID: s.Config.AccessKeyId, SecretAccessKey: s.Config.SecretAccessKey, SessionToken: s.Config.SessionToken,
-			Source: "inputrunner configuration",
-		},
-	}
+	config := s.Config
+	regions := config.Regions
+	period := config.Period
 
-	ticker := time.NewTicker(s.config.Config.Period)
+	ticker := time.NewTicker(period)
 	select {
 	case <-ctx.Done():
 		return nil
 	default:
-		collectAWSAssets(ctx, regions, log, credentialsProvider, publisher)
+		collectAWSAssets(ctx, regions, log, config, publisher)
 	}
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case <-ticker.C:
-			collectAWSAssets(ctx, regions, log, credentialsProvider, publisher)
+			collectAWSAssets(ctx, regions, log, config, publisher)
 		}
 	}
 }
 
-func collectAWSAssets(ctx context.Context, regions []string, log *logp.Logger, credentialsProvider aws.CredentialsProvider, publisher stateless.Publisher) {
+func getConfigForRegion(ctx context.Context, config Config, region string) (aws.Config, error) {
+	var options []func(*aws_config.LoadOptions) error
+	if config.AccessKeyId != "" && config.SecretAccessKey != "" {
+		credentialsProvider := credentials.StaticCredentialsProvider{
+			Value: aws.Credentials{
+				AccessKeyID: config.AccessKeyId, SecretAccessKey: config.SecretAccessKey, SessionToken: config.SessionToken,
+				Source: "inputrunner configuration",
+			},
+		}
+		options = append(options, aws_config.WithCredentialsProvider(credentialsProvider))
+	}
+	options = append(options, aws_config.WithRegion(region))
+
+	cfg, err := aws_config.LoadDefaultConfig(
+		ctx,
+		options...,
+	)
+	return cfg, err
+}
+
+func collectAWSAssets(ctx context.Context, regions []string, log *logp.Logger, config Config, publisher stateless.Publisher) {
 	for _, region := range regions {
-		cfg, err := aws_config.LoadDefaultConfig(
-			ctx,
-			aws_config.WithRegion(region),
-			aws_config.WithCredentialsProvider(credentialsProvider),
-		)
+		cfg, err := getConfigForRegion(ctx, config, region)
 		if err != nil {
 			log.Errorf("failed to create AWS config for %s: %v", region, err)
 			continue
