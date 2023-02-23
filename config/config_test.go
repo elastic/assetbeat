@@ -58,12 +58,12 @@ func TestGetConfigFiles_Dir(t *testing.T) {
 }
 
 func TestGetConfigFiles_EmptyDir(t *testing.T) {
-	absPath, err := filepath.Abs("../tests/files/")
+	absPath, err := filepath.Abs("../tests")
 
 	assert.NotNil(t, absPath)
 	assert.NoError(t, err)
 
-	files, err := getConfigFiles(absPath + "/logs")
+	files, err := getConfigFiles(absPath)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(files))
