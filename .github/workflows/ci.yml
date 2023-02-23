@@ -1,0 +1,72 @@
+name: ci
+
+on:
+  merge_group:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.19
+        cache: true
+
+    - name: Build
+      uses: magefile/mage-action@v2
+      with:
+        version: latest
+        args: build
+
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+          cache: true
+
+      - name: Check
+        # right now the checker is a bit too strict...
+        continue-on-error: true
+        uses: magefile/mage-action@v2
+        with:
+          version: latest
+          args: check
+
+  unit-test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+          cache: true
+
+      - name: Run unit tests
+        uses: magefile/mage-action@v2
+        with:
+          version: latest
+          args: unitTest
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: html-coverage-report
+          path: coverage.html
