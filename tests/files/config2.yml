@@ -1,8 +1,5 @@
 inputrunner:
-    inputs:
-        -
-      paths:
-          - /var/log/*.log
-      input: log
-
-    spool_size:
+  inputs:
+    - type: udp
+      max_message_size: 10KiB
+      host: "localhost:8080"
