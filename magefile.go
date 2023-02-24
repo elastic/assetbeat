@@ -75,12 +75,12 @@ func isCoveragePercentageIsAboveThreshold(coverageFile string, thresholdPercent 
 	reportLines := strings.Split(report, "\n")
 	coverageSummary := strings.Fields(reportLines[len(reportLines)-1])
 	if len(coverageSummary) != 3 || !strings.HasSuffix(coverageSummary[2], "%") {
-		return false, fmt.Errorf("could not parse coverage report")
+		return false, fmt.Errorf("could not parse coverage report; summary line in unexpected format")
 	}
 
 	coverage, err := strconv.ParseInt(coverageSummary[2][:2], 10, 8)
 	if err != nil {
-		return false, fmt.Errorf("could not parse coverage report")
+		return false, fmt.Errorf("could not parse coverage report; summary percentage could not be converted to int")
 	}
 
 	return int(coverage) >= thresholdPercent, nil
