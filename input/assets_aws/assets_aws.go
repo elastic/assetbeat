@@ -35,8 +35,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
-	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	types_ec2 "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 )
 
 func Plugin() input.Plugin {
@@ -145,85 +143,6 @@ func collectAWSAssets(ctx context.Context, regions []string, log *logp.Logger, c
 		go collectVPCAssets(ctx, cfg, log, publisher)
 		go collectSubnetAssets(ctx, cfg, log, publisher)
 	}
-}
-
-func collectVPCAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) {
-	client := ec2.NewFromConfig(cfg)
-	vpcs, err := describeVPCs(ctx, client)
-	if err != nil {
-		log.Errorf("could not describe VPCs for %s: %v", cfg.Region, err)
-		return
-	}
-
-	for _, vpc := range vpcs {
-		publishAWSAsset(publisher,
-			cfg.Region,
-			*vpc.OwnerId,
-			"aws.vpc",
-			*vpc.VpcId,
-			nil,
-			nil,
-			flattenEC2Tags(vpc.Tags),
-			mapstr.M{
-				"isDefault": vpc.IsDefault,
-			},
-		)
-	}
-}
-
-func collectSubnetAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) {
-	client := ec2.NewFromConfig(cfg)
-	subnets, err := describeSubnets(ctx, client)
-	if err != nil {
-		log.Errorf("could not describe Subnets for %s: %v", cfg.Region, err)
-		return
-	}
-
-	for _, subnet := range subnets {
-		publishAWSAsset(
-			publisher,
-			cfg.Region,
-			*subnet.OwnerId,
-			"aws.subnet",
-			*subnet.SubnetId,
-			[]string{*subnet.VpcId},
-			nil,
-			flattenEC2Tags(subnet.Tags),
-			mapstr.M{
-				"state": string(subnet.State),
-			},
-		)
-	}
-}
-
-func describeVPCs(ctx context.Context, client *ec2.Client) ([]types_ec2.Vpc, error) {
-	vpcs := make([]types_ec2.Vpc, 0, 100)
-	paginator := ec2.NewDescribeVpcsPaginator(client, &ec2.DescribeVpcsInput{})
-	for paginator.HasMorePages() {
-		resp, err := paginator.NextPage(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		vpcs = append(vpcs, resp.Vpcs...)
-	}
-
-	return vpcs, nil
-}
-
-func describeSubnets(ctx context.Context, client *ec2.Client) ([]types_ec2.Subnet, error) {
-	subnets := make([]types_ec2.Subnet, 0, 100)
-	paginator := ec2.NewDescribeSubnetsPaginator(client, &ec2.DescribeSubnetsInput{})
-	for paginator.HasMorePages() {
-		resp, err := paginator.NextPage(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		subnets = append(subnets, resp.Subnets...)
-	}
-
-	return subnets, nil
 }
 
 func publishAWSAsset(publisher stateless.Publisher, region, account, assetType, assetId string, parents, children []string, tags map[string]string, metadata mapstr.M) {
