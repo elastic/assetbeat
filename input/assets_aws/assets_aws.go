@@ -20,12 +20,10 @@ package assets_aws
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	input "github.com/elastic/inputrunner/input/v2"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
-	"github.com/elastic/inputrunner/util"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/feature"
@@ -35,22 +33,11 @@ import (
 	"github.com/elastic/go-concert/ctxtool"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	types_ec2 "github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/aws/aws-sdk-go-v2/service/eks"
-	types_eks "github.com/aws/aws-sdk-go-v2/service/eks/types"
 )
-
-type EC2Instance struct {
-	InstanceID string
-	OwnerID    string
-	SubnetID   string
-	Tags       []types_ec2.Tag
-	Metadata   mapstr.M
-}
 
 func Plugin() input.Plugin {
 	return input.Plugin{
@@ -160,33 +147,6 @@ func collectAWSAssets(ctx context.Context, regions []string, log *logp.Logger, c
 	}
 }
 
-func collectEC2Assets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) {
-	client := ec2.NewFromConfig(cfg)
-	instances, err := describeEC2Instances(ctx, client)
-	if err != nil {
-		log.Errorf("could not describe EC2 instances for %s: %v", cfg.Region, err)
-		return
-	}
-
-	for _, instance := range instances {
-		var parents []string
-		if instance.SubnetID != "" {
-			parents = []string{instance.SubnetID}
-		}
-		publishAWSAsset(
-			publisher,
-			cfg.Region,
-			instance.OwnerID,
-			"aws.ec2.instance",
-			instance.InstanceID,
-			parents,
-			nil,
-			flattenEC2Tags(instance.Tags),
-			instance.Metadata,
-		)
-	}
-}
-
 func collectVPCAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) {
 	client := ec2.NewFromConfig(cfg)
 	vpcs, err := describeVPCs(ctx, client)
@@ -236,60 +196,6 @@ func collectSubnetAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, 
 	}
 }
 
-func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) {
-	client := eks.NewFromConfig(cfg)
-	clusters, err := listEKSClusters(ctx, client)
-	if err != nil {
-		log.Errorf("could not list EKS clusters for %s: %v", cfg.Region, err)
-		return
-	}
-
-	for _, clusterDetail := range describeEKSClusters(log, ctx, clusters, client) {
-		if clusterDetail != nil {
-			var parents []string
-			if clusterDetail.ResourcesVpcConfig.VpcId != nil {
-				parents = []string{*clusterDetail.ResourcesVpcConfig.VpcId}
-			}
-
-			clusterARN, _ := arn.Parse(*clusterDetail.Arn)
-			publishAWSAsset(
-				publisher,
-				cfg.Region,
-				clusterARN.AccountID,
-				"k8s.cluster",
-				*clusterDetail.Arn,
-				parents,
-				nil,
-				clusterDetail.Tags,
-				mapstr.M{
-					"status": clusterDetail.Status,
-				},
-			)
-		}
-	}
-}
-
-func describeEKSClusters(log *logp.Logger, ctx context.Context, clusters []string, client *eks.Client) []*types_eks.Cluster {
-	wg := &sync.WaitGroup{}
-	results := make([]*types_eks.Cluster, len(clusters))
-	for i, cluster := range clusters {
-		wg.Add(1)
-		go func(cluster string, idx int) {
-			defer wg.Done()
-
-			resp, err := client.DescribeCluster(ctx, &eks.DescribeClusterInput{Name: &cluster})
-			if err != nil {
-				log.Errorf("could not describe cluster '%s': %v", cluster, err)
-			}
-
-			results[idx] = resp.Cluster
-		}(cluster, i)
-	}
-	wg.Wait()
-
-	return results
-}
-
 func describeVPCs(ctx context.Context, client *ec2.Client) ([]types_ec2.Vpc, error) {
 	vpcs := make([]types_ec2.Vpc, 0, 100)
 	paginator := ec2.NewDescribeVpcsPaginator(client, &ec2.DescribeVpcsInput{})
@@ -318,56 +224,6 @@ func describeSubnets(ctx context.Context, client *ec2.Client) ([]types_ec2.Subne
 	}
 
 	return subnets, nil
-}
-
-func describeEC2Instances(ctx context.Context, client *ec2.Client) ([]EC2Instance, error) {
-	instances := make([]EC2Instance, 0, 100)
-	paginator := ec2.NewDescribeInstancesPaginator(client, &ec2.DescribeInstancesInput{})
-	for paginator.HasMorePages() {
-		resp, err := paginator.NextPage(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, reservation := range resp.Reservations {
-			instances = append(instances, util.Map(func(i types_ec2.Instance) EC2Instance {
-				inst := EC2Instance{
-					InstanceID: *i.InstanceId,
-					OwnerID:    *reservation.OwnerId,
-					Tags:       i.Tags,
-					Metadata: mapstr.M{
-						"state": string(i.State.Name),
-					},
-				}
-				if i.SubnetId != nil {
-					inst.SubnetID = *i.SubnetId
-				}
-				return inst
-			}, reservation.Instances)...)
-		}
-	}
-	return instances, nil
-}
-
-func listEKSClusters(ctx context.Context, client *eks.Client) ([]string, error) {
-	clusters := make([]string, 0, 100)
-	paginator := eks.NewListClustersPaginator(client, &eks.ListClustersInput{})
-	for paginator.HasMorePages() {
-		resp, err := paginator.NextPage(ctx)
-		if err != nil {
-			return nil, err
-		}
-		clusters = append(clusters, resp.Clusters...)
-	}
-	return clusters, nil
-}
-
-// flattenEC2Tags converts the EC2 tag format to a simple `map[string]string`
-func flattenEC2Tags(tags []types_ec2.Tag) map[string]string {
-	out := make(map[string]string)
-	for _, t := range tags {
-		out[*t.Key] = *t.Value
-	}
-	return out
 }
 
 func publishAWSAsset(publisher stateless.Publisher, region, account, assetType, assetId string, parents, children []string, tags map[string]string, metadata mapstr.M) {
