@@ -37,14 +37,21 @@ func UnitTest() error {
 	coverageFile := "coverage-unit-tests.out"
 	coverageThreshold := 50
 
-	err := sh.RunV("go", "test", "./...", "-coverprofile="+coverageFile)
+	fmt.Println("Running unit tests...")
+	if err := sh.RunV("go", "test", "./...", "-coverprofile="+coverageFile); err != nil {
+		return err
+	}
 
+	fmt.Println("Generating HTML coverage report...")
 	if err := generateHTMLCoverageReport(coverageFile, "coverage-unit-tests.html"); err != nil {
+		// not a fatal error
 		fmt.Fprintf(os.Stderr, "could not generate HTML coverage report")
 	}
 
+	fmt.Println("Checking coverage threshold...")
 	aboveThreshold, thresholdError := isCoveragePercentageIsAboveThreshold(coverageFile, coverageThreshold)
 	if thresholdError != nil {
+		// we need to be able to check the coverage for the build to succeed
 		return fmt.Errorf("could not check coverage against threshold: %w", thresholdError)
 	}
 
@@ -52,11 +59,10 @@ func UnitTest() error {
 		return fmt.Errorf("code coverage did not meet required threshold of %d%%", coverageThreshold)
 	}
 
-	return err
+	return nil
 }
 
 func generateHTMLCoverageReport(coverageFile, htmlFile string) error {
-	fmt.Println("Generating HTML coverage report...")
 	return sh.RunV("go", "tool", "cover", "-html="+coverageFile, "-o", htmlFile)
 }
 
