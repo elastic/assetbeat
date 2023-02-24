@@ -65,8 +65,8 @@ jobs:
           version: latest
           args: unitTest
 
-      - name: Upload coverage report
+      - name: Upload coverage reports
         uses: actions/upload-artifact@v3
         with:
-          name: html-coverage-report
-          path: coverage.html
+          name: coverage-reports
+          path: coverage*

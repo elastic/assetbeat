@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
+	"os"
 	"os/exec"
+	"strconv"
+	"strings"
 )
 
 // Format formats all source files with `go fmt`
@@ -23,17 +26,58 @@ func Build() error {
 	return sh.RunV("go", "build", ".")
 }
 
-// UnitTest runs all unit tests and writes a HTML coverage report to the build directory
-func UnitTest() error {
-	err := sh.RunV("go", "test", "./...", "-coverprofile=coverage.out")
-	sh.RunV("go", "tool", "cover", "-html=coverage.out", "-o", "coverage.html")
-	return err
-}
-
 // Check runs static analysis and security checks
 func Check() error {
 	mg.Deps(staticcheck, gosec)
 	return nil
+}
+
+// UnitTest runs all unit tests and writes a HTML coverage report to the build directory
+func UnitTest() error {
+	coverageFile := "coverage-unit-tests.out"
+	coverageThreshold := 50
+
+	err := sh.RunV("go", "test", "./...", "-coverprofile="+coverageFile)
+
+	if err := generateHTMLCoverageReport(coverageFile, "coverage-unit-tests.html"); err != nil {
+		fmt.Fprintf(os.Stderr, "could not generate HTML coverage report")
+	}
+
+	aboveThreshold, thresholdError := isCoveragePercentageIsAboveThreshold(coverageFile, coverageThreshold)
+	if thresholdError != nil {
+		return fmt.Errorf("could not check coverage against threshold: %w", thresholdError)
+	}
+
+	if !aboveThreshold {
+		return fmt.Errorf("code coverage did not meet required threshold of %d%%", coverageThreshold)
+	}
+
+	return err
+}
+
+func generateHTMLCoverageReport(coverageFile, htmlFile string) error {
+	fmt.Println("Generating HTML coverage report...")
+	return sh.RunV("go", "tool", "cover", "-html="+coverageFile, "-o", htmlFile)
+}
+
+func isCoveragePercentageIsAboveThreshold(coverageFile string, thresholdPercent int) (bool, error) {
+	report, err := sh.Output("go", "tool", "cover", "-func="+coverageFile)
+	if err != nil {
+		return false, err
+	}
+
+	reportLines := strings.Split(report, "\n")
+	coverageSummary := strings.Fields(reportLines[len(reportLines)-1])
+	if len(coverageSummary) != 3 || !strings.HasSuffix(coverageSummary[2], "%") {
+		return false, fmt.Errorf("could not parse coverage report")
+	}
+
+	coverage, err := strconv.ParseInt(coverageSummary[2][:2], 10, 8)
+	if err != nil {
+		return false, fmt.Errorf("could not parse coverage report")
+	}
+
+	return int(coverage) >= thresholdPercent, nil
 }
 
 func staticcheck() error {
@@ -60,7 +104,7 @@ func install(packageName, installURL string) (isInstalled bool) {
 		fmt.Printf("installing %v...\n", packageName)
 		err := sh.RunV("go", "install", installURL)
 		if err != nil {
-			fmt.Printf("Could not install %v, skipping...\n", packageName)
+			fmt.Fprintf(os.Stderr, "Could not install %v, skipping...\n", packageName)
 			return false
 		}
 		fmt.Printf("%v installed...\n", packageName)
