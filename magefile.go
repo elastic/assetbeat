@@ -49,10 +49,10 @@ func UnitTest() error {
 	}
 
 	fmt.Println("Checking coverage threshold...")
-	aboveThreshold, thresholdError := isCoveragePercentageIsAboveThreshold(coverageFile, coverageThreshold)
-	if thresholdError != nil {
+	aboveThreshold, err := isCoveragePercentageIsAboveThreshold(coverageFile, coverageThreshold)
+	if err != nil {
 		// we need to be able to check the coverage for the build to succeed
-		return fmt.Errorf("could not check coverage against threshold: %w", thresholdError)
+		return fmt.Errorf("could not check coverage against threshold: %w", err)
 	}
 
 	if !aboveThreshold {
