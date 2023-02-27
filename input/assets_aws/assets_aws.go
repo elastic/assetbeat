@@ -136,7 +136,7 @@ func (s *assetsAWS) Run(inputCtx input.Context, publisher stateless.Publisher) e
 	}
 }
 
-func getConfigForRegion(ctx context.Context, config Config, region string) (aws.Config, error) {
+func getAWSConfigForRegion(ctx context.Context, config Config, region string) (aws.Config, error) {
 	var options []func(*aws_config.LoadOptions) error
 	if config.AccessKeyId != "" && config.SecretAccessKey != "" {
 		credentialsProvider := credentials.StaticCredentialsProvider{
@@ -158,7 +158,7 @@ func getConfigForRegion(ctx context.Context, config Config, region string) (aws.
 
 func collectAWSAssets(ctx context.Context, regions []string, log *logp.Logger, config Config, publisher stateless.Publisher) {
 	for _, region := range regions {
-		cfg, err := getConfigForRegion(ctx, config, region)
+		cfg, err := getAWSConfigForRegion(ctx, config, region)
 		if err != nil {
 			log.Errorf("failed to create AWS config for %s: %v", region, err)
 			continue
