@@ -19,17 +19,14 @@ package assets_aws
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	input "github.com/elastic/inputrunner/input/v2"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 
-	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/feature"
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/go-concert/ctxtool"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -155,35 +152,4 @@ func collectAWSAssets(ctx context.Context, regions []string, log *logp.Logger, c
 		go collectVPCAssets(ctx, cfg, log, publisher)
 		go collectSubnetAssets(ctx, cfg, log, publisher)
 	}
-}
-
-func publishAWSAsset(publisher stateless.Publisher, region, account, assetType, assetId string, parents, children []string, tags map[string]string, metadata mapstr.M) {
-	asset := mapstr.M{
-		"cloud.provider":   "aws",
-		"cloud.region":     region,
-		"cloud.account.id": account,
-
-		"asset.type": assetType,
-		"asset.id":   assetId,
-		"asset.ean":  fmt.Sprintf("%s:%s", assetType, assetId),
-	}
-
-	if parents != nil {
-		asset["asset.parents"] = parents
-	}
-
-	if children != nil {
-		asset["asset.children"] = children
-	}
-
-	assetMetadata := mapstr.M{}
-	if tags != nil {
-		assetMetadata["tags"] = tags
-	}
-	assetMetadata.Update(metadata)
-	if len(assetMetadata) != 0 {
-		asset["asset.metadata"] = assetMetadata
-	}
-
-	publisher.Publish(beat.Event{Fields: asset})
 }
