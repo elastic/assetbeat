@@ -20,7 +20,7 @@ func Format() error {
 
 	// fails if there are changes
 	if err := sh.RunV("git", "diff", "--quiet"); err != nil {
-		return fmt.Errorf("There are unformatted files; run `mage format` locally to fix.")
+		return fmt.Errorf("There are unformatted files; run `mage format` and commit your changes to fix.")
 	}
 
 	return nil
