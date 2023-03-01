@@ -5,6 +5,10 @@ Inputrunner is a small binary for running stateless [Elastic Agent v2 inputs](ht
 It’s still a beat, for now.
 But the intention is that this is as lightweight as possible, until the day when standalone inputs can utilise the [Elastic Agent v2 shipper](https://github.com/elastic/elastic-agent-shipper).
 
+## Inputs
+
+Documentation for each input can be found in the releveant directory (e.g. input/assets_aws).
+
 ## Development
 
 Requirements:
