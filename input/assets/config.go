@@ -23,3 +23,17 @@ type BaseConfig struct {
 	Period     time.Duration `config:"period"`
 	AssetTypes []string      `config:"asset_types"`
 }
+
+func IsTypeEnabled(configuredTypes []string, currentType string) bool {
+	if configuredTypes == nil || len(configuredTypes) == 0 {
+		return true
+	}
+
+	for _, t := range configuredTypes {
+		if currentType == t {
+			return true
+		}
+	}
+
+	return false
+}

@@ -2,10 +2,11 @@ package aws
 
 import (
 	"context"
-	"github.com/elastic/inputrunner/input/assets"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/elastic/inputrunner/input/assets"
 
 	"github.com/stretchr/testify/assert"
 )

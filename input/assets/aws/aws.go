@@ -70,7 +70,7 @@ func defaultConfig() config {
 	return config{
 		BaseConfig: assets.BaseConfig{
 			Period:     time.Second * 600,
-			AssetTypes: []string{},
+			AssetTypes: nil,
 		},
 		Regions:         []string{"eu-west-2"},
 		AccessKeyId:     "",
@@ -97,7 +97,6 @@ func (s *assetsAWS) Run(inputCtx input.Context, publisher stateless.Publisher) e
 	defer log.Info("aws asset collector run stopped")
 
 	cfg := s.Config
-	regions := cfg.Regions
 	period := cfg.Period
 
 	ticker := time.NewTicker(period)
@@ -105,14 +104,14 @@ func (s *assetsAWS) Run(inputCtx input.Context, publisher stateless.Publisher) e
 	case <-ctx.Done():
 		return nil
 	default:
-		collectAWSAssets(ctx, regions, log, cfg, publisher)
+		collectAWSAssets(ctx, log, cfg, publisher)
 	}
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case <-ticker.C:
-			collectAWSAssets(ctx, regions, log, cfg, publisher)
+			collectAWSAssets(ctx, log, cfg, publisher)
 		}
 	}
 }
@@ -133,17 +132,25 @@ func getAWSConfigForRegion(ctx context.Context, cfg config, region string) (aws.
 	return aws_config.LoadDefaultConfig(ctx, options...)
 }
 
-func collectAWSAssets(ctx context.Context, regions []string, log *logp.Logger, cfg config, publisher stateless.Publisher) {
-	for _, region := range regions {
+func collectAWSAssets(ctx context.Context, log *logp.Logger, cfg config, publisher stateless.Publisher) {
+	for _, region := range cfg.Regions {
 		awsCfg, err := getAWSConfigForRegion(ctx, cfg, region)
 		if err != nil {
 			log.Errorf("failed to create AWS config for %s: %v", region, err)
 			continue
 		}
 
-		go collectEKSAssets(ctx, awsCfg, log, publisher)
-		go collectEC2Assets(ctx, awsCfg, log, publisher)
-		go collectVPCAssets(ctx, awsCfg, log, publisher)
-		go collectSubnetAssets(ctx, awsCfg, log, publisher)
+		// these strings need careful documentation
+		if assets.IsTypeEnabled(cfg.AssetTypes, "eks") {
+			go collectEKSAssets(ctx, awsCfg, log, publisher)
+		}
+		if assets.IsTypeEnabled(cfg.AssetTypes, "ec2") {
+			go collectEC2Assets(ctx, awsCfg, log, publisher)
+		}
+		if assets.IsTypeEnabled(cfg.AssetTypes, "vpc") {
+			// should these just go in the same function??
+			go collectVPCAssets(ctx, awsCfg, log, publisher)
+			go collectSubnetAssets(ctx, awsCfg, log, publisher)
+		}
 	}
 }
