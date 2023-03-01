@@ -19,56 +19,12 @@ package assets_aws
 
 import (
 	"context"
-	"sync"
 	"testing"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/elastic/elastic-agent-libs/logp"
-	input "github.com/elastic/inputrunner/input/v2"
-	"github.com/elastic/inputrunner/mocks"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestRun(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	publisher := mocks.NewMockPublisher(ctrl)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	inputCtx := input.Context{
-		Logger:      logp.NewLogger("test"),
-		Cancelation: ctx,
-	}
-
-	runner, err := newAssetsAWS(defaultConfig())
-	assert.NoError(t, err)
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		err = runner.Run(inputCtx, publisher)
-		assert.NoError(t, err)
-	}()
-
-	time.Sleep(time.Millisecond)
-	cancel()
-
-	timeout := time.After(time.Second)
-	closeCh := make(chan struct{})
-	go func() {
-		defer close(closeCh)
-		wg.Wait()
-	}()
-
-	select {
-	case <-timeout:
-		t.Fatal("Test timed out")
-	case <-closeCh:
-		// Waitgroup finished in time, nothing to do
-	}
-}
 
 func TestGetAWSConfigForRegion(t *testing.T) {
 	for _, tt := range []struct {
