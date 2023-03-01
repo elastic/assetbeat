@@ -55,7 +55,19 @@ func TestRun(t *testing.T) {
 	time.Sleep(time.Millisecond)
 	cancel()
 
-	wg.Wait()
+	timeout := time.After(time.Second)
+	closeCh := make(chan struct{})
+	go func() {
+		defer close(closeCh)
+		wg.Wait()
+	}()
+
+	select {
+	case <-timeout:
+		t.Fatal("Test timed out")
+	case <-closeCh:
+		// Waitgroup finished in time, nothing to do
+	}
 }
 
 func TestGetAWSConfigForRegion(t *testing.T) {
