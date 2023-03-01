@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestAssets_isTypeEnabled(t *testing.T) {
+func TestAssets_IsTypeEnabled(t *testing.T) {
 	for _, tt := range []struct {
 		name            string
 		shouldBeEnabled bool
