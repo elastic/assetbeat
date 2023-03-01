@@ -18,6 +18,7 @@ Requirements:
 Mage targets are self-explanitory and can be listed with `mage -l`.
 
 Build the inputrunner binary with `mage build`, and run it locally with `./inputrunner`.
+See `./inputrunner -h` for more detail on configuration options.
 
 PRs will fail CI checks unless formatted with `mage format`.
 
