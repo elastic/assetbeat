@@ -15,6 +15,11 @@ Mage targets are self-explanitory and can be listed with `mage -l`.
 
 Build the inputrunner binary with `mage build`, and run it locally with `./inputrunner`.
 
+PRs will fail CI checks unless formatted with `mage format`.
+
+Please aim for 100% unit test coverage on new code.
+You can view the HTML coverage report by running `mage unitTest && [xdg-]open ./coverage.html`.
+
 ### Requirements for inputs (WIP)
 
 - Compatible with [Elastic Agent v2 inputs](https://github.com/elastic/elastic-agent-inputs/issues/1)
