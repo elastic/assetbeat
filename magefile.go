@@ -14,7 +14,16 @@ import (
 
 // Format formats all source files with `go fmt`
 func Format() error {
-	return sh.RunV("go", "fmt", "./...")
+	if err := sh.RunV("go", "fmt", "./..."); err != nil {
+		return err
+	}
+
+	// fails if there are changes
+	if err := sh.RunV("git", "diff", "--quiet"); err != nil {
+		return fmt.Errorf("There are unformatted files; run `mage format` locally to fix.")
+	}
+
+	return nil
 }
 
 // Build downloads dependencies and builds the inputrunner binary
@@ -45,7 +54,7 @@ func UnitTest() error {
 	fmt.Println("Generating HTML coverage report...")
 	if err := generateHTMLCoverageReport(coverageFile, "coverage-unit-tests.html"); err != nil {
 		// not a fatal error
-		fmt.Fprintf(os.Stderr, "could not generate HTML coverage report")
+		fmt.Fprintf(os.Stderr, "could not generate HTML coverage report\n")
 	}
 
 	fmt.Println("Checking coverage threshold...")
