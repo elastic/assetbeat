@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package assets_aws
+package aws
 
 import (
 	"testing"

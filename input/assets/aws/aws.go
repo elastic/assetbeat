@@ -15,12 +15,13 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package assets_aws
+package aws
 
 import (
 	"context"
 	"time"
 
+	"github.com/elastic/inputrunner/input/assets"
 	input "github.com/elastic/inputrunner/input/v2"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 
@@ -44,45 +45,42 @@ func Plugin() input.Plugin {
 	}
 }
 
-func configure(cfg *conf.C) (stateless.Input, error) {
-	config := defaultConfig()
-	if err := cfg.Unpack(&config); err != nil {
+func configure(inputCfg *conf.C) (stateless.Input, error) {
+	cfg := defaultConfig()
+	if err := inputCfg.Unpack(&cfg); err != nil {
 		return nil, err
 	}
 
-	return newAssetsAWS(config)
+	return newAssetsAWS(cfg)
 }
 
-func newAssetsAWS(config config) (*assetsAWS, error) {
-	return &assetsAWS{config}, nil
+func newAssetsAWS(cfg config) (*assetsAWS, error) {
+	return &assetsAWS{cfg}, nil
 }
 
-type Config struct {
-	Regions         []string      `config:"regions"`
-	AccessKeyId     string        `config:"access_key_id"`
-	SecretAccessKey string        `config:"secret_access_key"`
-	SessionToken    string        `config:"session_token"`
-	Period          time.Duration `config:"period"`
+type config struct {
+	assets.BaseConfig `config:",inline"`
+	Regions           []string `config:"regions"`
+	AccessKeyId       string   `config:"access_key_id"`
+	SecretAccessKey   string   `config:"secret_access_key"`
+	SessionToken      string   `config:"session_token"`
 }
 
 func defaultConfig() config {
 	return config{
-		Config: Config{
-			Regions:         []string{"eu-west-2"},
-			AccessKeyId:     "",
-			SecretAccessKey: "",
-			SessionToken:    "",
-			Period:          time.Second * 600,
+		BaseConfig: assets.BaseConfig{
+			Period:     time.Second * 600,
+			AssetTypes: []string{},
 		},
+		Regions:         []string{"eu-west-2"},
+		AccessKeyId:     "",
+		SecretAccessKey: "",
+		SessionToken:    "",
 	}
 }
 
 type assetsAWS struct {
-	config
-}
-
-type config struct {
-	Config `config:",inline"`
+	Config config
 }
 
 func (s *assetsAWS) Name() string { return "assets_aws" }
@@ -98,33 +96,33 @@ func (s *assetsAWS) Run(inputCtx input.Context, publisher stateless.Publisher) e
 	log.Info("aws asset collector run started")
 	defer log.Info("aws asset collector run stopped")
 
-	config := s.Config
-	regions := config.Regions
-	period := config.Period
+	cfg := s.Config
+	regions := cfg.Regions
+	period := cfg.Period
 
 	ticker := time.NewTicker(period)
 	select {
 	case <-ctx.Done():
 		return nil
 	default:
-		collectAWSAssets(ctx, regions, log, config, publisher)
+		collectAWSAssets(ctx, regions, log, cfg, publisher)
 	}
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case <-ticker.C:
-			collectAWSAssets(ctx, regions, log, config, publisher)
+			collectAWSAssets(ctx, regions, log, cfg, publisher)
 		}
 	}
 }
 
-func getAWSConfigForRegion(ctx context.Context, config Config, region string) (aws.Config, error) {
+func getAWSConfigForRegion(ctx context.Context, cfg config, region string) (aws.Config, error) {
 	var options []func(*aws_config.LoadOptions) error
-	if config.AccessKeyId != "" && config.SecretAccessKey != "" {
+	if cfg.AccessKeyId != "" && cfg.SecretAccessKey != "" {
 		credentialsProvider := credentials.StaticCredentialsProvider{
 			Value: aws.Credentials{
-				AccessKeyID: config.AccessKeyId, SecretAccessKey: config.SecretAccessKey, SessionToken: config.SessionToken,
+				AccessKeyID: cfg.AccessKeyId, SecretAccessKey: cfg.SecretAccessKey, SessionToken: cfg.SessionToken,
 				Source: "inputrunner configuration",
 			},
 		}
@@ -132,24 +130,20 @@ func getAWSConfigForRegion(ctx context.Context, config Config, region string) (a
 	}
 	options = append(options, aws_config.WithRegion(region))
 
-	cfg, err := aws_config.LoadDefaultConfig(
-		ctx,
-		options...,
-	)
-	return cfg, err
+	return aws_config.LoadDefaultConfig(ctx, options...)
 }
 
-func collectAWSAssets(ctx context.Context, regions []string, log *logp.Logger, config Config, publisher stateless.Publisher) {
+func collectAWSAssets(ctx context.Context, regions []string, log *logp.Logger, cfg config, publisher stateless.Publisher) {
 	for _, region := range regions {
-		cfg, err := getAWSConfigForRegion(ctx, config, region)
+		awsCfg, err := getAWSConfigForRegion(ctx, cfg, region)
 		if err != nil {
 			log.Errorf("failed to create AWS config for %s: %v", region, err)
 			continue
 		}
 
-		go collectEKSAssets(ctx, cfg, log, publisher)
-		go collectEC2Assets(ctx, cfg, log, publisher)
-		go collectVPCAssets(ctx, cfg, log, publisher)
-		go collectSubnetAssets(ctx, cfg, log, publisher)
+		go collectEKSAssets(ctx, awsCfg, log, publisher)
+		go collectEC2Assets(ctx, awsCfg, log, publisher)
+		go collectVPCAssets(ctx, awsCfg, log, publisher)
+		go collectSubnetAssets(ctx, awsCfg, log, publisher)
 	}
 }

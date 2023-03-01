@@ -1,7 +1,8 @@
-package assets_aws
+package aws
 
 import (
 	"context"
+	"github.com/elastic/inputrunner/input/assets"
 	"os"
 	"testing"
 	"time"
@@ -11,12 +12,15 @@ import (
 
 func TestAssetAWS_getConfigForRegion_GivenExplicitCredsInConfig_CreatesCorrectAWSConfig(t *testing.T) {
 	ctx := context.Background()
-	inputCfg := Config{
+	inputCfg := config{
+		BaseConfig: assets.BaseConfig{
+			Period:     time.Second * 600,
+			AssetTypes: []string{},
+		},
 		Regions:         []string{"eu-west-2", "eu-west-1"},
 		AccessKeyId:     "accesskey123",
 		SecretAccessKey: "secretkey123",
 		SessionToken:    "token123",
-		Period:          time.Second * 600,
 	}
 	region := "eu-west-2"
 	awsCfg, err := getAWSConfigForRegion(ctx, inputCfg, region)
@@ -36,12 +40,15 @@ func TestAssetAWS_getConfigForRegion_GivenLocalCreds_CreatesCorrectAWSConfig(t *
 	secretKey := "EXAMPLE_SECRETE_KEY"
 	os.Setenv("AWS_ACCESS_KEY", accessKey)
 	os.Setenv("AWS_SECRET_ACCESS_KEY", secretKey)
-	inputCfg := Config{
+	inputCfg := config{
+		BaseConfig: assets.BaseConfig{
+			Period:     time.Second * 600,
+			AssetTypes: []string{},
+		},
 		Regions:         []string{"eu-west-2", "eu-west-1"},
 		AccessKeyId:     "",
 		SecretAccessKey: "",
 		SessionToken:    "",
-		Period:          time.Second * 600,
 	}
 	region := "eu-west-2"
 	awsCfg, err := getAWSConfigForRegion(ctx, inputCfg, region)
