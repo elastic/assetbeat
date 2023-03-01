@@ -139,30 +139,86 @@ func collectK8sAssets(ctx context.Context, kubeconfigPath string, log *logp.Logg
 		log.Errorf("unable to build kubernetes clientset: %w", err)
 	}
 	go collectK8sNodes(ctx, log, client, publisher)
+	go collectK8sPods(ctx, log, client, publisher)
 }
 
 // collect the kubernetes nodes
 func collectK8sNodes(ctx context.Context, log *logp.Logger, client kubernetes.Interface, publisher stateless.Publisher) error {
 
 	// collect the nodes using the client
-	nodes, _ := client.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
+	nodes, err := client.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
 
+	log.Info("Started collecting nodes information\n")
 	for _, node := range nodes.Items {
-		log.Infof("%s\n", node.Name)
-		assetId := node.Spec.ProviderID
-		publishK8sAsset(node.Name, "k8s.node", assetId, publisher)
+		assetProviderId := node.Spec.ProviderID
+		assetId := string(node.ObjectMeta.UID)
+		assetStartTime := node.ObjectMeta.CreationTimestamp.Time
+		assetParents := []string{}
+		assetChildren := []string{}
+
+		assetSpecificMap := map[string]interface{}{
+			"kubernetes.node.name":       node.Name,
+			"kubernetes.node.providerId": assetProviderId,
+			"kubernetes.node.start_time": assetStartTime,
+		}
+		publishK8sAsset(node.Name, "k8s.node", assetId, assetParents, assetChildren, publisher, assetSpecificMap)
 	}
 	return nil
 }
 
+func collectK8sPods(ctx context.Context, log *logp.Logger, client kubernetes.Interface, publisher stateless.Publisher) error {
+	pods, err := client.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+
+	log.Info("Started collecting pods information\n")
+
+	for _, pod := range pods.Items {
+		assetName := pod.Name
+		assetId := string(pod.UID)
+		assetStartTime := pod.Status.StartTime
+		namespace := pod.Namespace
+		node := pod.Spec.NodeName
+		nodeEan := fmt.Sprintf("%s.%s", "k8s.node", node)
+		assetParents := []string{nodeEan}
+		assetChildren := []string{}
+
+		assetSpecificMap := map[string]interface{}{
+			"kubernetes.pod.name":       assetName,
+			"kubernetes.pod.uid":        assetId,
+			"kubernetes.pod.start_time": assetStartTime,
+			"kubernetes.namespace":      namespace,
+		}
+		publishK8sAsset(assetName, "k8s.pod", assetId, assetParents, assetChildren, publisher, assetSpecificMap)
+	}
+
+	return nil
+}
+
 // publishes the kubernetes assets
-func publishK8sAsset(name string, assetType, assetId string, publisher stateless.Publisher) {
+func publishK8sAsset(assetName, assetType, assetId string, assetParents, assetChildren []string, publisher stateless.Publisher, assetSpecificMap map[string]interface{}) {
 
 	asset := mapstr.M{
-		"asset.name": name,
+		"asset.name": assetName,
 		"asset.type": assetType,
 		"asset.id":   assetId,
-		"asset.ean":  fmt.Sprintf("%s:%s", assetType, assetId),
+		"asset.ean":  fmt.Sprintf("%s.%s", assetType, assetName),
+	}
+
+	if assetParents != nil {
+		asset["asset.parents"] = assetParents
+	}
+
+	if assetChildren != nil {
+		asset["asset.children"] = assetChildren
+	}
+
+	for k, v := range assetSpecificMap {
+		asset[k] = v
 	}
 
 	publisher.Publish(beat.Event{Fields: asset})
