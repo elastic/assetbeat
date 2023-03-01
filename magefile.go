@@ -4,12 +4,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/magefile/mage/mg"
-	"github.com/magefile/mage/sh"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
+
+	"github.com/magefile/mage/mg"
+	"github.com/magefile/mage/sh"
 )
 
 // Format formats all source files with `go fmt`
@@ -69,6 +70,12 @@ func UnitTest() error {
 	}
 
 	return nil
+}
+
+// IntegrationTest runs all integration tests
+func IntegrationTest() error {
+	fmt.Println("Running integration tests...")
+	return sh.RunV("go", "test", "./...", "-tags=integration")
 }
 
 func generateHTMLCoverageReport(coverageFile, htmlFile string) error {
