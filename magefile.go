@@ -18,9 +18,11 @@ func Format() error {
 		return err
 	}
 
-	// fails if there are changes
-	if err := sh.RunV("git", "diff", "--quiet"); err != nil {
-		return fmt.Errorf("There are unformatted files; run `mage format` and commit your changes to fix.")
+	if os.Getenv("CI") == "true" {
+		// fails if there are changes
+		if err := sh.RunV("git", "diff", "--quiet"); err != nil {
+			return fmt.Errorf("There are unformatted files; run `mage format` locally and commit the changes to fix.")
+		}
 	}
 
 	return nil
