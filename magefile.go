@@ -46,7 +46,7 @@ func Check() error {
 // UnitTest runs all unit tests and writes a HTML coverage report to the build directory
 func UnitTest() error {
 	coverageFile := "coverage-unit-tests.out"
-	coverageThreshold := 40
+	coverageThreshold := 45
 
 	fmt.Println("Running unit tests...")
 	if err := sh.RunV("go", "test", "./...", "-coverprofile="+coverageFile); err != nil {
