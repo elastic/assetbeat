@@ -18,6 +18,6 @@ Build the inputrunner binary with `mage build`, and run it locally with `./input
 ### Requirements for inputs (WIP)
 
 - Compatible with [Elastic Agent v2 inputs](https://github.com/elastic/elastic-agent-inputs/issues/1)
-- No Cgo allowed
+- No [Cgo](https://pkg.go.dev/cmd/cgo) allowed
 - Stateless (including publisher)
 - Config must be compatible with Elastic Agent
