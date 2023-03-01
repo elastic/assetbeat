@@ -11,6 +11,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+          cache: true
+
+      - name: Check format
+        uses: magefile/mage-action@v2
+        with:
+          version: latest
+          args: format
+
   build:
     runs-on: ubuntu-latest
     steps:
