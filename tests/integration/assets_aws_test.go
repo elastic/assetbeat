@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-//go:builds integration
+//go:build integration
 
 package integration
 
@@ -35,7 +35,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRun(t *testing.T) {
+func TestAssetsAWS_Run_startsAndStopsTheInput(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	publisher := mocks.NewMockPublisher(ctrl)
 

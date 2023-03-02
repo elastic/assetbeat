@@ -75,7 +75,7 @@ func UnitTest() error {
 // IntegrationTest runs all integration tests
 func IntegrationTest() error {
 	fmt.Println("Running integration tests...")
-	return sh.RunV("go", "test", "./...", "-tags=integration")
+	return sh.RunV("go", "test", "github.com/elastic/inputrunner/tests/integration", "-tags=integration")
 }
 
 func generateHTMLCoverageReport(coverageFile, htmlFile string) error {
