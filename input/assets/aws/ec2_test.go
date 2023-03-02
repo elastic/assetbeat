@@ -1,4 +1,4 @@
-package assets_aws
+package aws
 
 import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"

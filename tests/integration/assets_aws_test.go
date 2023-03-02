@@ -15,19 +15,21 @@
 // specific language governing permissions and limitations
 // under the License.
 
-//go:build integration
-// +build integration
+//go:builds integration
 
-package assets_aws
+package integration
 
 import (
 	"context"
+	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
-	input "github.com/elastic/inputrunner/input/v2"
+	"github.com/elastic/inputrunner/input/assets/aws"
+	"github.com/elastic/inputrunner/input/v2"
 	"github.com/elastic/inputrunner/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -38,19 +40,19 @@ func TestRun(t *testing.T) {
 	publisher := mocks.NewMockPublisher(ctrl)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	inputCtx := input.Context{
+	inputCtx := v2.Context{
 		Logger:      logp.NewLogger("test"),
 		Cancelation: ctx,
 	}
 
-	runner, err := newAssetsAWS(defaultConfig())
+	input, err := aws.Plugin().Manager.(stateless.InputManager).Configure(config.NewConfig())
 	assert.NoError(t, err)
 
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		err = runner.Run(inputCtx, publisher)
+		err = input.Run(inputCtx, publisher)
 		assert.NoError(t, err)
 	}()
 
