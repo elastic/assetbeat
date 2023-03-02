@@ -57,6 +57,11 @@ jobs:
         with:
           go-version: ${{ env.DEFAULT_GO_VERSION }}
           cache: true
+      - name: Tools cache
+        uses: actions/cache@v3
+        with:
+          path: .tools
+          key: ${{ runner.os }}-tools-cache-${{ hashFiles('./internal/tools/**') }}
 
       - name: Check
         # right now the checker is a bit too strict...
