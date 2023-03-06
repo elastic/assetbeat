@@ -49,9 +49,7 @@ func collectComputeAssets(ctx context.Context, cfg config, publisher stateless.P
 
 	for _, instance := range instances {
 		var parents []string
-		for _, n := range instance.Networks {
-			parents = append(parents, n)
-		}
+		parents = append(parents, instance.Networks...)
 
 		publishAsset(
 			publisher,
