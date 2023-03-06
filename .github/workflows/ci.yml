@@ -89,7 +89,7 @@ jobs:
           name: coverage-reports
           path: coverage*
 
-  integration-test:
+  e2e-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -100,11 +100,11 @@ jobs:
           go-version: ${{ env.DEFAULT_GO_VERSION }}
           cache: true
 
-      - name: Run integration tests
+      - name: Run end-to-end tests
         uses: magefile/mage-action@v2
         with:
           version: latest
-          args: integrationTest
+          args: e2eTest
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v3

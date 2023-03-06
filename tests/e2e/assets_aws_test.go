@@ -15,9 +15,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-//go:build integration
+//go:build e2e
 
-package integration
+package e2e
 
 import (
 	"context"
