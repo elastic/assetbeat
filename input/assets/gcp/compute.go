@@ -31,6 +31,7 @@ type computeInstance struct {
 	ID       string
 	Region   string
 	Account  string
+	Networks []string
 	Tags     map[string]string
 	Metadata mapstr.M
 }
@@ -47,13 +48,18 @@ func collectComputeAssets(ctx context.Context, cfg config, publisher stateless.P
 	}
 
 	for _, instance := range instances {
+		var parents []string
+		for _, n := range instance.Networks {
+			parents = append(parents, n)
+		}
+
 		publishAsset(
 			publisher,
 			instance.Region,
 			instance.Account,
 			"gcp.compute.instance",
 			instance.ID,
-			nil,
+			parents,
 			nil,
 			instance.Tags,
 			instance.Metadata,
@@ -72,11 +78,17 @@ func getAllComputeInstances(ctx context.Context, cfg config, svc *compute.Servic
 		err := req.Pages(ctx, func(page *compute.InstanceAggregatedList) error {
 			for _, isl := range page.Items {
 				for _, i := range isl.Instances {
+					var networks []string
+					for _, ni := range i.NetworkInterfaces {
+						networks = append(networks, getResourceNameFromURL(ni.Network))
+					}
+
 					instances = append(instances, computeInstance{
-						ID:      strconv.FormatUint(i.Id, 10),
-						Region:  getRegionFromZoneURL(i.Zone),
-						Account: p,
-						Tags:    i.Labels,
+						ID:       strconv.FormatUint(i.Id, 10),
+						Region:   getRegionFromZoneURL(i.Zone),
+						Account:  p,
+						Networks: networks,
+						Tags:     i.Labels,
 						Metadata: mapstr.M{
 							"state": string(i.Status),
 						},
@@ -94,9 +106,13 @@ func getAllComputeInstances(ctx context.Context, cfg config, svc *compute.Servic
 	return instances, nil
 }
 
-func getRegionFromZoneURL(zone string) string {
-	s := strings.Split(zone, "/")
-	r := strings.Split(s[len(s)-1], "-")
+func getResourceNameFromURL(res string) string {
+	s := strings.Split(res, "/")
+	return s[len(s)-1]
+}
 
+func getRegionFromZoneURL(zone string) string {
+	z := getResourceNameFromURL(zone)
+	r := strings.Split(z, "-")
 	return strings.Join(r[:len(r)-1], "-")
 }

@@ -67,8 +67,13 @@ func TestGetAllComputeInstances(t *testing.T) {
 						"europe-central2-a": compute.InstancesScopedList{
 							Instances: []*compute.Instance{
 								&compute.Instance{
-									Id:     1,
-									Zone:   "https://www.googleapis.com/compute/v1/projects/my_project/zones/europe-west1-d",
+									Id:   1,
+									Zone: "https://www.googleapis.com/compute/v1/projects/my_project/zones/europe-west1-d",
+									NetworkInterfaces: []*compute.NetworkInterface{
+										&compute.NetworkInterface{
+											Network: "https://www.googleapis.com/compute/v1/projects/my_project/global/networks/my_network",
+										},
+									},
 									Status: "RUNNING",
 								},
 							},
@@ -79,9 +84,10 @@ func TestGetAllComputeInstances(t *testing.T) {
 
 			expectedInstances: []computeInstance{
 				computeInstance{
-					ID:      "1",
-					Region:  "europe-west1",
-					Account: "my_project",
+					ID:       "1",
+					Region:   "europe-west1",
+					Account:  "my_project",
+					Networks: []string{"my_network"},
 					Metadata: mapstr.M{
 						"state": "RUNNING",
 					},
@@ -169,6 +175,58 @@ func TestGetAllComputeInstances(t *testing.T) {
 			instances, err := getAllComputeInstances(tt.ctx, tt.cfg, svc)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedInstances, instances)
+		})
+	}
+}
+
+func TestGetResourceNameFromURL(t *testing.T) {
+	for _, tt := range []struct {
+		name string
+
+		URL          string
+		expectedName string
+	}{
+		{
+			name: "with an empty value",
+
+			URL:          "",
+			expectedName: "",
+		},
+		{
+			name: "with a valid URL",
+
+			URL:          "https://www.googleapis.com/compute/v1/projects/my_project/global/networks/my_network",
+			expectedName: "my_network",
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expectedName, getResourceNameFromURL(tt.URL))
+		})
+	}
+}
+
+func TestGetRegionFromZoneURL(t *testing.T) {
+	for _, tt := range []struct {
+		name string
+
+		URL          string
+		expectedName string
+	}{
+		{
+			name: "with an empty value",
+
+			URL:          "",
+			expectedName: "",
+		},
+		{
+			name: "with a valid URL",
+
+			URL:          "https://www.googleapis.com/compute/v1/projects/my_project/zones/europe-west1-d",
+			expectedName: "europe-west1",
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expectedName, getRegionFromZoneURL(tt.URL))
 		})
 	}
 }
