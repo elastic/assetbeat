@@ -27,6 +27,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/feature"
 	conf "github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 func Plugin() input.Plugin {
@@ -53,7 +54,8 @@ func newAssetsGCP(config config) (*assetsGCP, error) {
 }
 
 type Config struct {
-	Period time.Duration `config:"period"`
+	Projects []string      `config:"projects"`
+	Period   time.Duration `config:"period"`
 }
 
 func defaultConfig() config {
@@ -90,18 +92,31 @@ func (s *assetsGCP) Run(inputCtx input.Context, publisher stateless.Publisher) e
 	case <-ctx.Done():
 		return nil
 	default:
-		s.collectAll(ctx, publisher)
+		err := s.collectAll(ctx, log, publisher)
+		if err != nil {
+			log.Errorf("error collecting assets: %w", err)
+		}
 	}
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case <-ticker.C:
-			s.collectAll(ctx, publisher)
+			err := s.collectAll(ctx, log, publisher)
+			if err != nil {
+				log.Errorf("error collecting assets: %w", err)
+			}
 		}
 	}
 }
 
-func (s *assetsGCP) collectAll(ctx context.Context, publisher stateless.Publisher) error {
+func (s *assetsGCP) collectAll(ctx context.Context, log *logp.Logger, publisher stateless.Publisher) error {
+	go func() {
+		err := collectComputeAssets(ctx, s.config, publisher)
+		if err != nil {
+			log.Errorf("error collecting compute assets: %w", err)
+		}
+	}()
+
 	return nil
 }

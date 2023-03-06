@@ -78,10 +78,11 @@ func TestAssetsGCP_CollectAll(t *testing.T) {
 	publisher := mocks.NewMockPublisher(ctrl)
 
 	ctx := context.Background()
+	logger := logp.NewLogger("test")
 
 	input, err := newAssetsGCP(defaultConfig())
 	assert.NoError(t, err)
 
-	err = input.collectAll(ctx, publisher)
+	err = input.collectAll(ctx, logger, publisher)
 	assert.NoError(t, err)
 }
