@@ -48,39 +48,38 @@ func Plugin() input.Plugin {
 	}
 }
 
-func configure(cfg *conf.C) (stateless.Input, error) {
-	config := defaultConfig()
-	if err := cfg.Unpack(&config); err != nil {
+func configure(inputCfg *conf.C) (stateless.Input, error) {
+	cfg := defaultConfig()
+	if err := inputCfg.Unpack(&cfg); err != nil {
 		return nil, err
 	}
 
-	return newAssetsK8s(config)
+	return newAssetsK8s(cfg)
 }
 
-func newAssetsK8s(config config) (*assetsK8s, error) {
-	return &assetsK8s{config}, nil
+func newAssetsK8s(cfg config) (*assetsK8s, error) {
+	return &assetsK8s{cfg}, nil
 }
 
-type Config struct {
+type config struct {
+	BaseConfig `config:",inline"`
 	KubeConfig string        `config:"kube_config"`
 	Period     time.Duration `config:"period"`
 }
 
 func defaultConfig() config {
 	return config{
-		Config: Config{
-			KubeConfig: "",
+		BaseConfig: BaseConfig{
 			Period:     time.Second * 600,
+			AssetTypes: nil,
 		},
+		KubeConfig: "",
+		Period:     time.Second * 600,
 	}
 }
 
 type assetsK8s struct {
-	config
-}
-
-type config struct {
-	Config `config:",inline"`
+	Config config
 }
 
 func (s *assetsK8s) Name() string { return "assets_k8s" }
@@ -95,21 +94,23 @@ func (s *assetsK8s) Run(inputCtx input.Context, publisher stateless.Publisher) e
 
 	log.Info("k8s asset collector run started")
 	defer log.Info("k8s asset collector run stopped")
-	kubeConfigPath := s.config.Config.KubeConfig
 
-	ticker := time.NewTicker(s.config.Config.Period)
+	cfg := s.Config
+	kubeConfigPath := cfg.KubeConfig
+
+	ticker := time.NewTicker(cfg.Period)
 	select {
 	case <-ctx.Done():
 		return nil
 	default:
-		collectK8sAssets(ctx, kubeConfigPath, log, publisher)
+		collectK8sAssets(ctx, kubeConfigPath, log, cfg, publisher)
 	}
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case <-ticker.C:
-			collectK8sAssets(ctx, kubeConfigPath, log, publisher)
+			collectK8sAssets(ctx, kubeConfigPath, log, cfg, publisher)
 		}
 	}
 }
@@ -132,14 +133,19 @@ func getKubernetesClient(kubeconfigPath string) (kubernetes.Interface, error) {
 	return client, nil
 }
 
-func collectK8sAssets(ctx context.Context, kubeconfigPath string, log *logp.Logger, publisher stateless.Publisher) {
+func collectK8sAssets(ctx context.Context, kubeconfigPath string, log *logp.Logger, cfg config, publisher stateless.Publisher) {
 
 	client, err := getKubernetesClient(kubeconfigPath)
 	if err != nil {
 		log.Errorf("unable to build kubernetes clientset: %w", err)
 	}
-	go collectK8sNodes(ctx, log, client, publisher)
-	go collectK8sPods(ctx, log, client, publisher)
+
+	if IsTypeEnabled(cfg.AssetTypes, "node") {
+		go collectK8sNodes(ctx, log, client, publisher)
+	}
+	if IsTypeEnabled(cfg.AssetTypes, "pod") {
+		go collectK8sPods(ctx, log, client, publisher)
+	}
 }
 
 // collect the kubernetes nodes
