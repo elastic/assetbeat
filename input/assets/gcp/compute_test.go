@@ -79,8 +79,9 @@ func TestGetAllComputeInstances(t *testing.T) {
 
 			expectedInstances: []computeInstance{
 				computeInstance{
-					ID:     "1",
-					Region: "europe-west1",
+					ID:      "1",
+					Region:  "europe-west1",
+					Account: "my_project",
 					Metadata: mapstr.M{
 						"state": "RUNNING",
 					},
@@ -128,15 +129,17 @@ func TestGetAllComputeInstances(t *testing.T) {
 
 			expectedInstances: []computeInstance{
 				computeInstance{
-					ID:     "1",
-					Region: "europe-west1",
+					ID:      "1",
+					Region:  "europe-west1",
+					Account: "my_project",
 					Metadata: mapstr.M{
 						"state": "PROVISIONING",
 					},
 				},
 				computeInstance{
-					ID:     "42",
-					Region: "europe-west1",
+					ID:      "42",
+					Region:  "europe-west1",
+					Account: "my_second_project",
 					Metadata: mapstr.M{
 						"state": "STOPPED",
 					},

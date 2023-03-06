@@ -32,6 +32,7 @@ func TestPublishAsset(t *testing.T) {
 		event beat.Event
 
 		region    string
+		account   string
 		assetType string
 		assetID   string
 		parents   []string
@@ -43,15 +44,17 @@ func TestPublishAsset(t *testing.T) {
 			name: "required fields",
 			event: beat.Event{
 				Fields: mapstr.M{
-					"cloud.provider": "gcp",
-					"cloud.region":   "europe-central2",
-					"asset.type":     "gcp.compute.instance",
-					"asset.id":       "42",
-					"asset.ean":      "gcp.compute.instance:42",
+					"cloud.provider":   "gcp",
+					"cloud.region":     "europe-central2",
+					"cloud.account.id": "1234",
+					"asset.type":       "gcp.compute.instance",
+					"asset.id":         "42",
+					"asset.ean":        "gcp.compute.instance:42",
 				},
 			},
 
 			region:    "europe-central2",
+			account:   "1234",
 			assetType: "gcp.compute.instance",
 			assetID:   "42",
 		},
@@ -59,11 +62,12 @@ func TestPublishAsset(t *testing.T) {
 			name: "includes tags in metadata",
 			event: beat.Event{
 				Fields: mapstr.M{
-					"cloud.provider": "gcp",
-					"cloud.region":   "europe-central2",
-					"asset.type":     "gcp.compute.instance",
-					"asset.id":       "42",
-					"asset.ean":      "gcp.compute.instance:42",
+					"cloud.provider":   "gcp",
+					"cloud.region":     "europe-central2",
+					"cloud.account.id": "1234",
+					"asset.type":       "gcp.compute.instance",
+					"asset.id":         "42",
+					"asset.ean":        "gcp.compute.instance:42",
 					"asset.metadata": mapstr.M{
 						"tags": map[string]string{
 							"tag1": "a",
@@ -74,6 +78,7 @@ func TestPublishAsset(t *testing.T) {
 			},
 
 			region:    "europe-central2",
+			account:   "1234",
 			assetType: "gcp.compute.instance",
 			assetID:   "42",
 			tags:      map[string]string{"tag1": "a", "tag2": "b"},
@@ -87,6 +92,7 @@ func TestPublishAsset(t *testing.T) {
 			publishAsset(
 				publisher,
 				tt.region,
+				tt.account,
 				tt.assetType,
 				tt.assetID,
 				tt.parents,

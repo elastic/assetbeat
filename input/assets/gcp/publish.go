@@ -26,10 +26,11 @@ import (
 	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
-func publishAsset(publisher stateless.Publisher, region, assetType, assetID string, parents, children []string, tags map[string]string, metadata mapstr.M) {
+func publishAsset(publisher stateless.Publisher, region, account, assetType, assetID string, parents, children []string, tags map[string]string, metadata mapstr.M) {
 	asset := mapstr.M{
-		"cloud.provider": "gcp",
-		"cloud.region":   region,
+		"cloud.provider":   "gcp",
+		"cloud.region":     region,
+		"cloud.account.id": account,
 
 		"asset.type": assetType,
 		"asset.id":   assetID,
