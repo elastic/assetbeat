@@ -34,7 +34,7 @@ import (
 func Plugin() input.Plugin {
 	return input.Plugin{
 		Name:       "assets_gcp",
-		Stability:  feature.Stable,
+		Stability:  feature.Experimental,
 		Deprecated: false,
 		Info:       "assets_gcp",
 		Manager:    stateless.NewInputManager(configure),
