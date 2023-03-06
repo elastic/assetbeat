@@ -26,7 +26,7 @@ import (
 	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
-func publishAsset(publisher stateless.Publisher, region, assetType, assetID string, parents, children []string, metadata mapstr.M) {
+func publishAsset(publisher stateless.Publisher, region, assetType, assetID string, parents, children []string, tags map[string]string, metadata mapstr.M) {
 	asset := mapstr.M{
 		"cloud.provider": "gcp",
 		"cloud.region":   region,
@@ -45,6 +45,9 @@ func publishAsset(publisher stateless.Publisher, region, assetType, assetID stri
 	}
 
 	assetMetadata := mapstr.M{}
+	if tags != nil {
+		assetMetadata["tags"] = tags
+	}
 	assetMetadata.Update(metadata)
 	if len(assetMetadata) != 0 {
 		asset["asset.metadata"] = assetMetadata

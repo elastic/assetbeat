@@ -36,6 +36,7 @@ func TestPublishAsset(t *testing.T) {
 		assetID   string
 		parents   []string
 		children  []string
+		tags      map[string]string
 		metadata  mapstr.M
 	}{
 		{
@@ -43,16 +44,39 @@ func TestPublishAsset(t *testing.T) {
 			event: beat.Event{
 				Fields: mapstr.M{
 					"cloud.provider": "gcp",
-					"cloud.region":   "europe-central2-a",
+					"cloud.region":   "europe-central2",
 					"asset.type":     "gcp.compute.instance",
 					"asset.id":       "42",
 					"asset.ean":      "gcp.compute.instance:42",
 				},
 			},
 
-			region:    "europe-central2-a",
+			region:    "europe-central2",
 			assetType: "gcp.compute.instance",
 			assetID:   "42",
+		},
+		{
+			name: "includes tags in metadata",
+			event: beat.Event{
+				Fields: mapstr.M{
+					"cloud.provider": "gcp",
+					"cloud.region":   "europe-central2",
+					"asset.type":     "gcp.compute.instance",
+					"asset.id":       "42",
+					"asset.ean":      "gcp.compute.instance:42",
+					"asset.metadata": mapstr.M{
+						"tags": map[string]string{
+							"tag1": "a",
+							"tag2": "b",
+						},
+					},
+				},
+			},
+
+			region:    "europe-central2",
+			assetType: "gcp.compute.instance",
+			assetID:   "42",
+			tags:      map[string]string{"tag1": "a", "tag2": "b"},
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -67,6 +91,7 @@ func TestPublishAsset(t *testing.T) {
 				tt.assetID,
 				tt.parents,
 				tt.children,
+				tt.tags,
 				tt.metadata,
 			)
 		})

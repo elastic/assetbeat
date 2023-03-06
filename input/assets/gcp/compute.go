@@ -30,6 +30,7 @@ import (
 type computeInstance struct {
 	ID       string
 	Region   string
+	Tags     map[string]string
 	Metadata mapstr.M
 }
 
@@ -52,6 +53,7 @@ func collectComputeAssets(ctx context.Context, cfg config, publisher stateless.P
 			instance.ID,
 			nil,
 			nil,
+			instance.Tags,
 			instance.Metadata,
 		)
 	}
@@ -71,6 +73,7 @@ func getAllComputeInstances(ctx context.Context, cfg config, svc *compute.Servic
 					instances = append(instances, computeInstance{
 						ID:     strconv.FormatUint(i.Id, 10),
 						Region: getRegionFromZoneURL(i.Zone),
+						Tags:   i.Labels,
 						Metadata: mapstr.M{
 							"state": string(i.Status),
 						},
