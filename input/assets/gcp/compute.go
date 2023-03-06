@@ -33,7 +33,7 @@ type computeInstance struct {
 }
 
 func collectComputeAssets(ctx context.Context, cfg config, publisher stateless.Publisher) error {
-	svc, err := compute.NewService(ctx)
+	svc, err := compute.NewService(ctx, buildClientOptions(cfg)...)
 	if err != nil {
 		return err
 	}

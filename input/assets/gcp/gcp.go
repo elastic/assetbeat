@@ -28,6 +28,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/feature"
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"google.golang.org/api/option"
 )
 
 func Plugin() input.Plugin {
@@ -54,8 +55,9 @@ func newAssetsGCP(config config) (*assetsGCP, error) {
 }
 
 type Config struct {
-	Projects []string      `config:"projects"`
-	Period   time.Duration `config:"period"`
+	Projects      []string      `config:"projects"`
+	CredsFilePath string        `config:"credentials_file_path"`
+	Period        time.Duration `config:"period"`
 }
 
 func defaultConfig() config {
@@ -119,4 +121,14 @@ func (s *assetsGCP) collectAll(ctx context.Context, log *logp.Logger, publisher 
 	}()
 
 	return nil
+}
+
+func buildClientOptions(cfg config) []option.ClientOption {
+	var opts []option.ClientOption
+
+	if cfg.Config.CredsFilePath != "" {
+		opts = append(opts, option.WithCredentialsFile(cfg.Config.CredsFilePath))
+	}
+
+	return opts
 }

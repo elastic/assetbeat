@@ -28,6 +28,7 @@ import (
 	"github.com/elastic/inputrunner/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/api/option"
 )
 
 func TestPlugin(t *testing.T) {
@@ -85,4 +86,34 @@ func TestAssetsGCP_CollectAll(t *testing.T) {
 
 	err = input.collectAll(ctx, logger, publisher)
 	assert.NoError(t, err)
+}
+
+func TestBuildClientOptions(t *testing.T) {
+	for _, tt := range []struct {
+		name string
+
+		cfg          config
+		expectedOpts []option.ClientOption
+	}{
+		{
+			name: "with an empty config",
+		},
+		{
+			name: "with a credentials file path",
+
+			cfg: config{
+				Config{
+					CredsFilePath: "/tmp/file_path",
+				},
+			},
+			expectedOpts: []option.ClientOption{
+				option.WithCredentialsFile("/tmp/file_path"),
+			},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			opts := buildClientOptions(tt.cfg)
+			assert.Equal(t, tt.expectedOpts, opts)
+		})
+	}
 }
