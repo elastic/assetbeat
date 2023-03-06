@@ -20,6 +20,7 @@ package gcp
 import (
 	"context"
 	"strconv"
+	"strings"
 
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
@@ -69,7 +70,7 @@ func getAllComputeInstances(ctx context.Context, cfg config, svc *compute.Servic
 				for _, i := range isl.Instances {
 					instances = append(instances, computeInstance{
 						ID:     strconv.FormatUint(i.Id, 10),
-						Region: i.Zone,
+						Region: getRegionFromZoneURL(i.Zone),
 						Metadata: mapstr.M{
 							"state": string(i.Status),
 						},
@@ -85,4 +86,11 @@ func getAllComputeInstances(ctx context.Context, cfg config, svc *compute.Servic
 	}
 
 	return instances, nil
+}
+
+func getRegionFromZoneURL(zone string) string {
+	s := strings.Split(zone, "/")
+	r := strings.Split(s[len(s)-1], "-")
+
+	return strings.Join(r[:len(r)-1], "-")
 }

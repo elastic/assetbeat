@@ -68,6 +68,7 @@ func TestGetAllComputeInstances(t *testing.T) {
 							Instances: []*compute.Instance{
 								&compute.Instance{
 									Id:     1,
+									Zone:   "https://www.googleapis.com/compute/v1/projects/my_project/zones/europe-west1-d",
 									Status: "RUNNING",
 								},
 							},
@@ -78,7 +79,8 @@ func TestGetAllComputeInstances(t *testing.T) {
 
 			expectedInstances: []computeInstance{
 				computeInstance{
-					ID: "1",
+					ID:     "1",
+					Region: "europe-west1",
 					Metadata: mapstr.M{
 						"state": "RUNNING",
 					},
@@ -102,6 +104,7 @@ func TestGetAllComputeInstances(t *testing.T) {
 							Instances: []*compute.Instance{
 								&compute.Instance{
 									Id:     1,
+									Zone:   "https://www.googleapis.com/compute/v1/projects/my_project/zones/europe-west1-d",
 									Status: "PROVISIONING",
 								},
 							},
@@ -114,6 +117,7 @@ func TestGetAllComputeInstances(t *testing.T) {
 							Instances: []*compute.Instance{
 								&compute.Instance{
 									Id:     42,
+									Zone:   "https://www.googleapis.com/compute/v1/projects/my_project/zones/europe-west1-d",
 									Status: "STOPPED",
 								},
 							},
@@ -124,13 +128,15 @@ func TestGetAllComputeInstances(t *testing.T) {
 
 			expectedInstances: []computeInstance{
 				computeInstance{
-					ID: "1",
+					ID:     "1",
+					Region: "europe-west1",
 					Metadata: mapstr.M{
 						"state": "PROVISIONING",
 					},
 				},
 				computeInstance{
-					ID: "42",
+					ID:     "42",
+					Region: "europe-west1",
 					Metadata: mapstr.M{
 						"state": "STOPPED",
 					},
