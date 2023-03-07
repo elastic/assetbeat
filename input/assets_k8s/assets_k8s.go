@@ -118,9 +118,9 @@ func (s *assetsK8s) Run(inputCtx input.Context, publisher stateless.Publisher) e
 // getKubernetesClient returns a kubernetes client. If inCluster is true, it returns an
 // in cluster configuration based on the secrets mounted in the Pod. If kubeConfig is passed,
 // it parses the config file to get the config required to build a client.
-func getKubernetesClient(kubeconfigPath string) (kubernetes.Interface, error) {
-
-	cfg, err := BuildConfig(kubeconfigPath)
+func getKubernetesClient(kubeconfigPath string, log *logp.Logger) (kubernetes.Interface, error) {
+	log.Infof("Provided kube config path is %s", kubeconfigPath)
+	cfg, err := BuildConfig(kubeconfigPath, log)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build kubernetes config: %w", err)
 	}
@@ -135,15 +135,17 @@ func getKubernetesClient(kubeconfigPath string) (kubernetes.Interface, error) {
 
 func collectK8sAssets(ctx context.Context, kubeconfigPath string, log *logp.Logger, cfg config, publisher stateless.Publisher) {
 
-	client, err := getKubernetesClient(kubeconfigPath)
+	client, err := getKubernetesClient(kubeconfigPath, log)
 	if err != nil {
 		log.Errorf("unable to build kubernetes clientset: %w", err)
 	}
-
+	log.Infof("Enabled asset types are %+v", cfg.AssetTypes)
 	if IsTypeEnabled(cfg.AssetTypes, "node") {
+		log.Info("Node type enabled. Starting collecting")
 		go collectK8sNodes(ctx, log, client, publisher)
 	}
 	if IsTypeEnabled(cfg.AssetTypes, "pod") {
+		log.Info("Pod type enabled. Starting collecting")
 		go collectK8sPods(ctx, log, client, publisher)
 	}
 }
@@ -154,6 +156,7 @@ func collectK8sNodes(ctx context.Context, log *logp.Logger, client kubernetes.In
 	// collect the nodes using the client
 	nodes, err := client.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
+		log.Errorf("Cannot list k8s nodes: %+v", err)
 		return err
 	}
 
@@ -170,6 +173,7 @@ func collectK8sNodes(ctx context.Context, log *logp.Logger, client kubernetes.In
 			"kubernetes.node.providerId": assetProviderId,
 			"kubernetes.node.start_time": assetStartTime,
 		}
+		log.Info("Publishing nodes assets\n")
 		publishK8sAsset(node.Name, "k8s.node", assetId, assetParents, assetChildren, publisher, assetSpecificMap)
 	}
 	return nil
@@ -178,6 +182,7 @@ func collectK8sNodes(ctx context.Context, log *logp.Logger, client kubernetes.In
 func collectK8sPods(ctx context.Context, log *logp.Logger, client kubernetes.Interface, publisher stateless.Publisher) error {
 	pods, err := client.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
+		log.Errorf("Cannot list k8s pods: %+v", err)
 		return err
 	}
 
@@ -199,6 +204,7 @@ func collectK8sPods(ctx context.Context, log *logp.Logger, client kubernetes.Int
 			"kubernetes.pod.start_time": assetStartTime,
 			"kubernetes.namespace":      namespace,
 		}
+		log.Info("Publishing pod assets\n")
 		publishK8sAsset(assetName, "k8s.pod", assetId, assetParents, assetChildren, publisher, assetSpecificMap)
 	}
 
@@ -236,12 +242,14 @@ func publishK8sAsset(assetName, assetType, assetId string, assetParents, assetCh
 // If inClusterConfig fails, we fallback to the default config.
 // This is a copy of `clientcmd.BuildConfigFromFlags` of `client-go` but without the annoying
 // klog messages that are not possible to be disabled.
-func BuildConfig(kubeconfigPath string) (*restclient.Config, error) {
+func BuildConfig(kubeconfigPath string, log *logp.Logger) (*restclient.Config, error) {
 	if kubeconfigPath == "" {
 		kubeconfig, err := restclient.InClusterConfig()
 		if err == nil {
+			log.Info("Using incluster config")
 			return kubeconfig, nil
 		}
+		log.Infof("There was an error getting incluster config: %+v", err)
 	}
 	return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfigPath},
