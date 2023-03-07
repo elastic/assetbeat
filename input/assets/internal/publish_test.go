@@ -79,33 +79,10 @@ func TestPublish(t *testing.T) {
 			}},
 		},
 		{
-			name: "with a valid asset type",
+			name: "with a valid asset type and ID",
 			opts: []EventOption{
 				WithEventCloudProvider("aws"),
-				WithEventAssetType("aws.ec2.instance"),
-			},
-			expectedEvent: beat.Event{Fields: mapstr.M{
-				"cloud.provider": "aws",
-				"asset.type":     "aws.ec2.instance",
-			}},
-		},
-		{
-			name: "with a valid asset ID",
-			opts: []EventOption{
-				WithEventCloudProvider("aws"),
-				WithEventAssetID("i-1234"),
-			},
-			expectedEvent: beat.Event{Fields: mapstr.M{
-				"cloud.provider": "aws",
-				"asset.id":       "i-1234",
-			}},
-		},
-		{
-			name: "with a valid asset type and ID generates an EAN",
-			opts: []EventOption{
-				WithEventCloudProvider("aws"),
-				WithEventAssetType("aws.ec2.instance"),
-				WithEventAssetID("i-1234"),
+				WithEventAssetTypeAndID("aws.ec2.instance", "i-1234"),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
 				"cloud.provider": "aws",

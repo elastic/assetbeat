@@ -41,10 +41,6 @@ func Publish(publisher stateless.Publisher, opts ...EventOption) error {
 		return errors.New("a cloud provider name is required")
 	}
 
-	if event.Fields["asset.type"] != nil && event.Fields["asset.id"] != nil {
-		event.Fields["asset.ean"] = fmt.Sprintf("%s:%s", event.Fields["asset.type"], event.Fields["asset.id"])
-	}
-
 	publisher.Publish(event)
 	return nil
 }
@@ -70,16 +66,11 @@ func WithEventAccountID(value string) EventOption {
 	}
 }
 
-func WithEventAssetType(value string) EventOption {
+func WithEventAssetTypeAndID(t, id string) EventOption {
 	return func(e beat.Event) beat.Event {
-		e.Fields["asset.type"] = value
-		return e
-	}
-}
-
-func WithEventAssetID(value string) EventOption {
-	return func(e beat.Event) beat.Event {
-		e.Fields["asset.id"] = value
+		e.Fields["asset.type"] = t
+		e.Fields["asset.id"] = id
+		e.Fields["asset.ean"] = fmt.Sprintf("%s:%s", t, id)
 		return e
 	}
 }

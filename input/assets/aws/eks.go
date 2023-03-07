@@ -53,8 +53,7 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 				internal.WithEventCloudProvider("aws"),
 				internal.WithEventRegion(cfg.Region),
 				internal.WithEventAccountID(clusterARN.AccountID),
-				internal.WithEventAssetType("k8s.cluster"),
-				internal.WithEventAssetID(*clusterDetail.Arn),
+				internal.WithEventAssetTypeAndID("k8s.cluster", *clusterDetail.Arn),
 				internal.WithEventParents(parents),
 				internal.WithEventTags(clusterDetail.Tags),
 				internal.WithEventMetadata(mapstr.M{
