@@ -129,5 +129,5 @@ func installTools() error {
 
 func lint() error {
 	fmt.Println("Running golangci-lint...")
-	return sh.RunV("./.tools/golangci-lint", "run", "--timeout=5m")
+	return sh.RunV("./.tools/golangci-lint", "run")
 }
