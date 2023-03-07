@@ -177,11 +177,11 @@ func executeTest(t *testing.T, cfgLogsPath string, source string, expectedResult
 func executeTestWithResourceType(t *testing.T, cfgLogsPath string, cfgResourceType string, source string, expectedResult string) {
 	testConfig := conf.NewConfig()
 	if cfgLogsPath != "" {
-		testConfig.SetString("logs_path", -1, cfgLogsPath)
+		_ = testConfig.SetString("logs_path", -1, cfgLogsPath)
 	}
 
 	if cfgResourceType != "" {
-		testConfig.SetString("resource_type", -1, cfgResourceType)
+		_ = testConfig.SetString("resource_type", -1, cfgResourceType)
 	}
 
 	logMatcher, err := newLogsPathMatcher(*testConfig)

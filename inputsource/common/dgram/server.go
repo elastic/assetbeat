@@ -103,7 +103,7 @@ func (l *Listener) Start() error {
 		return err
 	}
 
-	l.tg.Go(func(ctx context.Context) error {
+	return l.tg.Go(func(ctx context.Context) error {
 		connCtx, connCancel := ctxtool.WithFunc(ctxtool.FromCanceller(ctx), func() {
 			conn.Close()
 		})
@@ -111,7 +111,6 @@ func (l *Listener) Start() error {
 
 		return l.connectAndRun(ctxtool.FromCanceller(connCtx), conn)
 	})
-	return nil
 }
 
 func (l *Listener) connectAndRun(ctx context.Context, conn net.PacketConn) error {

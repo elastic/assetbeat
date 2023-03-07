@@ -30,9 +30,7 @@ import (
 )
 
 func Init(info beat.Info, log *logp.Logger, components beater.StateStore) []v2.Plugin {
-	return append(
-		genericInputs(log, components),
-	)
+	return genericInputs(log, components)
 }
 
 func genericInputs(log *logp.Logger, components beater.StateStore) []v2.Plugin {

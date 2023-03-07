@@ -25,15 +25,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/monitoring"
 )
 
-/*
-type registrarLogger struct {
-	done chan struct{}
-}*/
-
-type finishedLogger struct {
-	wg *eventCounter
-}
-
 type eventCounter struct {
 	added *monitoring.Uint
 	done  *monitoring.Uint
@@ -56,17 +47,6 @@ type countingEventer struct {
 
 type combinedEventer struct {
 	a, b beat.ClientEventer
-}
-
-func newFinishedLogger(wg *eventCounter) *finishedLogger {
-	return &finishedLogger{wg}
-}
-
-func (l *finishedLogger) Published(n int) bool {
-	for i := 0; i < n; i++ {
-		l.wg.Done()
-	}
-	return true
 }
 
 func (c *eventCounter) Add(delta int) {

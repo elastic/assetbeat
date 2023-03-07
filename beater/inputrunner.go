@@ -20,7 +20,6 @@ package beater
 import (
 	"flag"
 	"fmt"
-	"github.com/elastic/beats/v7/filebeat/fileset"
 	"strings"
 	"sync"
 	"time"
@@ -29,7 +28,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
-	"github.com/elastic/beats/v7/libbeat/esleg/eslegclient"
 	"github.com/elastic/beats/v7/libbeat/management"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
 	"github.com/elastic/beats/v7/libbeat/statestore"
@@ -46,11 +44,6 @@ import (
 	_ "github.com/elastic/beats/v7/libbeat/processors/decode_csv_fields"
 	_ "github.com/elastic/inputrunner/processor/add_kubernetes_metadata"
 )
-
-const pipelinesWarning = "inputrunner is unable to load the ingest pipelines for the configured" +
-	" modules because the Elasticsearch output is not configured/enabled. If you have" +
-	" already loaded the ingest pipelines or are using Logstash pipelines, you" +
-	" can ignore this warning."
 
 var once = flag.Bool("once", false, "Run inputrunner only once until all harvesters reach EOF")
 
@@ -93,9 +86,6 @@ func newBeater(b *beat.Beat, plugins PluginFactory, rawConfig *conf.C) (beat.Bea
 		}
 	}*/
 
-	// Add inputs created by the modules
-	config.Inputs = append(config.Inputs)
-
 	enabledInputs := config.ListEnabledInputs()
 	var haveEnabledInputs bool
 	if len(enabledInputs) > 0 {
@@ -120,27 +110,6 @@ func newBeater(b *beat.Beat, plugins PluginFactory, rawConfig *conf.C) (beat.Bea
 	}
 
 	return ir, nil
-}
-
-// setupPipelineLoaderCallback sets the callback function for loading pipelines during setup.
-func (ir *Inputrunner) setupPipelineLoaderCallback(b *beat.Beat) error {
-	if b.Config.Output.Name() != "elasticsearch" {
-		logp.Warn(pipelinesWarning)
-		return nil
-	}
-
-	return nil
-}
-
-// loadModulesPipelines is called when modules are configured to do the initial
-// setup.
-func (ir *Inputrunner) loadModulesPipelines(b *beat.Beat) error {
-	if b.Config.Output.Name() != "elasticsearch" {
-		logp.Warn(pipelinesWarning)
-		return nil
-	}
-
-	return nil
 }
 
 // Run allows the beater to be run as a beat.
@@ -303,16 +272,4 @@ func (ir *Inputrunner) Stop() {
 	logp.Info("Stopping inputrunner")
 
 	ir.stopOnce.Do(func() { close(ir.done) })
-}
-
-// Create a new pipeline loader (es client) factory
-func newPipelineLoaderFactory(esConfig *conf.C) fileset.PipelineLoaderFactory {
-	pipelineLoaderFactory := func() (fileset.PipelineLoader, error) {
-		esClient, err := eslegclient.NewConnectedClient(esConfig, "inputrunner")
-		if err != nil {
-			return nil, fmt.Errorf("Error creating Elasticsearch client: %w", err)
-		}
-		return esClient, nil
-	}
-	return pipelineLoaderFactory
 }

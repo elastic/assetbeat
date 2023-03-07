@@ -85,5 +85,5 @@ func (d *DeadlineReader) Read(p []byte) (n int, err error) {
 }
 
 func (d *DeadlineReader) refresh() {
-	d.conn.SetDeadline(time.Now().Add(d.timeout))
+	_ = d.conn.SetDeadline(time.Now().Add(d.timeout))
 }
