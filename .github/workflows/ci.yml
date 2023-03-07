@@ -64,8 +64,6 @@ jobs:
           key: ${{ runner.os }}-tools-cache-${{ hashFiles('./internal/tools/**') }}
 
       - name: Check
-        # right now the checker is a bit too strict...
-        continue-on-error: true
         uses: magefile/mage-action@v2
         with:
           version: latest
