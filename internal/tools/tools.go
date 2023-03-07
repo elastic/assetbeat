@@ -20,6 +20,5 @@
 package tools
 
 import (
-	_ "github.com/securego/gosec/v2/cmd/gosec"
-	_ "honnef.co/go/tools/cmd/staticcheck"
+	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
 )

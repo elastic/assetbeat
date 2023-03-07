@@ -44,7 +44,7 @@ func Check() error {
 		return err
 	}
 
-	mg.Deps(staticcheck, gosec)
+	mg.Deps(lint)
 	return nil
 }
 
@@ -109,6 +109,7 @@ func isCoveragePercentageIsAboveThreshold(coverageFile string, thresholdPercent 
 }
 
 func installTools() error {
+	fmt.Println("Installing tools...")
 	oldPath, _ := os.Getwd()
 	toolsPath := oldPath + "/internal/tools"
 	os.Chdir(toolsPath)
@@ -126,12 +127,7 @@ func installTools() error {
 	return sh.RunWithV(map[string]string{"GOBIN": oldPath + "/.tools"}, "go", append([]string{"install"}, strings.Fields(tools)...)...)
 }
 
-func staticcheck() error {
-	fmt.Println("Running staticcheck...")
-	return sh.RunV("./.tools/staticcheck", "-f=stylish", "./...")
-}
-
-func gosec() error {
-	fmt.Println("Running gosec...")
-	return sh.RunV("./.tools/gosec", "./...")
+func lint() error {
+	fmt.Println("Running golangci-lint...")
+	return sh.RunV("./.tools/golangci-lint", "run")
 }
