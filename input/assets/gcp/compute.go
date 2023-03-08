@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/elastic/elastic-agent-libs/mapstr"
+	"github.com/elastic/inputrunner/input/assets/internal"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 	"google.golang.org/api/compute/v1"
 )
@@ -32,7 +33,7 @@ type computeInstance struct {
 	Region   string
 	Account  string
 	Networks []string
-	Tags     map[string]string
+	Labels   map[string]string
 	Metadata mapstr.M
 }
 
@@ -51,16 +52,14 @@ func collectComputeAssets(ctx context.Context, cfg config, publisher stateless.P
 		var parents []string
 		parents = append(parents, instance.Networks...)
 
-		publishAsset(
-			publisher,
-			instance.Region,
-			instance.Account,
-			"gcp.compute.instance",
-			instance.ID,
-			parents,
-			nil,
-			instance.Tags,
-			instance.Metadata,
+		internal.Publish(publisher,
+			internal.WithAssetCloudProvider("gcp"),
+			internal.WithAssetRegion(instance.Region),
+			internal.WithAssetAccountID(instance.Account),
+			internal.WithAssetTypeAndID("gcp.compute.instance", instance.ID),
+			internal.WithAssetParents(parents),
+			WithAssetLabels(instance.Labels),
+			internal.WithAssetMetadata(instance.Metadata),
 		)
 	}
 
@@ -86,7 +85,7 @@ func getAllComputeInstances(ctx context.Context, cfg config, svc *compute.Servic
 						Region:   getRegionFromZoneURL(i.Zone),
 						Account:  p,
 						Networks: networks,
-						Tags:     i.Labels,
+						Labels:   i.Labels,
 						Metadata: mapstr.M{
 							"state": string(i.Status),
 						},
