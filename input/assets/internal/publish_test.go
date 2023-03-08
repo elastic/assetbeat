@@ -124,34 +124,6 @@ func TestPublish(t *testing.T) {
 				"asset.metadata": mapstr.M{"foo": "bar"},
 			}},
 		},
-		{
-			name: "with valid tags",
-			opts: []AssetOption{
-				WithAssetCloudProvider("aws"),
-				WithAssetTags(map[string]string{"tag": "a"}),
-			},
-			expectedEvent: beat.Event{Fields: mapstr.M{
-				"cloud.provider": "aws",
-				"asset.metadata": mapstr.M{
-					"tags": map[string]string{"tag": "a"},
-				},
-			}},
-		},
-		{
-			name: "with valid metadata and tags",
-			opts: []AssetOption{
-				WithAssetCloudProvider("aws"),
-				WithAssetMetadata(mapstr.M{"foo": "bar"}),
-				WithAssetTags(map[string]string{"tag1": "a", "tag2": "b"}),
-			},
-			expectedEvent: beat.Event{Fields: mapstr.M{
-				"cloud.provider": "aws",
-				"asset.metadata": mapstr.M{
-					"foo":  "bar",
-					"tags": map[string]string{"tag1": "a", "tag2": "b"},
-				},
-			}},
-		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)

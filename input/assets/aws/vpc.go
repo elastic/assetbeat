@@ -45,7 +45,7 @@ func collectVPCAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 			internal.WithAssetRegion(cfg.Region),
 			internal.WithAssetAccountID(*vpc.OwnerId),
 			internal.WithAssetTypeAndID("aws.vpc", *vpc.VpcId),
-			internal.WithAssetTags(flattenEC2Tags(vpc.Tags)),
+			WithAssetTags(flattenEC2Tags(vpc.Tags)),
 			internal.WithAssetMetadata(mapstr.M{
 				"isDefault": vpc.IsDefault,
 			}),
@@ -67,7 +67,7 @@ func collectSubnetAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, 
 			internal.WithAssetAccountID(*subnet.OwnerId),
 			internal.WithAssetTypeAndID("aws.subnet", *subnet.SubnetId),
 			internal.WithAssetParents([]string{*subnet.VpcId}),
-			internal.WithAssetTags(flattenEC2Tags(subnet.Tags)),
+			WithAssetTags(flattenEC2Tags(subnet.Tags)),
 			internal.WithAssetMetadata(mapstr.M{
 				"state": string(subnet.State),
 			}),

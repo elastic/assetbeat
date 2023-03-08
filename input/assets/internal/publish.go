@@ -101,9 +101,3 @@ func WithAssetMetadata(value mapstr.M) AssetOption {
 		return e
 	}
 }
-
-func WithAssetTags(value map[string]string) AssetOption {
-	return WithAssetMetadata(mapstr.M{
-		"tags": value,
-	})
-}

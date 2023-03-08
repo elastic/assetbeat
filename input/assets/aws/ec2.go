@@ -59,7 +59,7 @@ func collectEC2Assets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 			internal.WithAssetAccountID(instance.OwnerID),
 			internal.WithAssetTypeAndID("aws.ec2.instance", instance.InstanceID),
 			internal.WithAssetParents(parents),
-			internal.WithAssetTags(flattenEC2Tags(instance.Tags)),
+			WithAssetTags(flattenEC2Tags(instance.Tags)),
 			internal.WithAssetMetadata(instance.Metadata),
 		)
 	}

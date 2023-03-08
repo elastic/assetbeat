@@ -55,7 +55,7 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 				internal.WithAssetAccountID(clusterARN.AccountID),
 				internal.WithAssetTypeAndID("k8s.cluster", *clusterDetail.Arn),
 				internal.WithAssetParents(parents),
-				internal.WithAssetTags(clusterDetail.Tags),
+				WithAssetTags(clusterDetail.Tags),
 				internal.WithAssetMetadata(mapstr.M{
 					"status": clusterDetail.Status,
 				}),
