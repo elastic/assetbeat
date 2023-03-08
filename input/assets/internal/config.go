@@ -25,7 +25,7 @@ type BaseConfig struct {
 }
 
 func IsTypeEnabled(configuredTypes []string, currentType string) bool {
-	if configuredTypes == nil || len(configuredTypes) == 0 {
+	if len(configuredTypes) == 0 {
 		return true
 	}
 
