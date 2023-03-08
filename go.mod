@@ -10,7 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/eks v1.27.5
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230126132006-91d4be69ffd7
-	github.com/elastic/elastic-agent-libs v0.2.16
+	github.com/elastic/elastic-agent-libs v0.3.3
 	github.com/elastic/go-concert v0.2.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/golang/mock v1.6.0
