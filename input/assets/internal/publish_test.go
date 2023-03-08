@@ -32,7 +32,7 @@ func TestPublish(t *testing.T) {
 	for _, tt := range []struct {
 		name string
 
-		opts          []EventOption
+		opts          []AssetOption
 		expectedEvent beat.Event
 		expectedError error
 	}{
@@ -42,15 +42,15 @@ func TestPublish(t *testing.T) {
 		},
 		{
 			name: "with an empty cloud provider name",
-			opts: []EventOption{
-				WithEventCloudProvider(""),
+			opts: []AssetOption{
+				WithAssetCloudProvider(""),
 			},
 			expectedError: errors.New("a cloud provider name is required"),
 		},
 		{
 			name: "with a valid cloud provider name",
-			opts: []EventOption{
-				WithEventCloudProvider("aws"),
+			opts: []AssetOption{
+				WithAssetCloudProvider("aws"),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
 				"cloud.provider": "aws",
@@ -58,9 +58,9 @@ func TestPublish(t *testing.T) {
 		},
 		{
 			name: "with a valid region",
-			opts: []EventOption{
-				WithEventCloudProvider("aws"),
-				WithEventRegion("us-east-1"),
+			opts: []AssetOption{
+				WithAssetCloudProvider("aws"),
+				WithAssetRegion("us-east-1"),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
 				"cloud.provider": "aws",
@@ -69,9 +69,9 @@ func TestPublish(t *testing.T) {
 		},
 		{
 			name: "with a valid account ID",
-			opts: []EventOption{
-				WithEventCloudProvider("aws"),
-				WithEventAccountID("42"),
+			opts: []AssetOption{
+				WithAssetCloudProvider("aws"),
+				WithAssetAccountID("42"),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
 				"cloud.provider":   "aws",
@@ -80,9 +80,9 @@ func TestPublish(t *testing.T) {
 		},
 		{
 			name: "with a valid asset type and ID",
-			opts: []EventOption{
-				WithEventCloudProvider("aws"),
-				WithEventAssetTypeAndID("aws.ec2.instance", "i-1234"),
+			opts: []AssetOption{
+				WithAssetCloudProvider("aws"),
+				WithAssetTypeAndID("aws.ec2.instance", "i-1234"),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
 				"cloud.provider": "aws",
@@ -93,9 +93,9 @@ func TestPublish(t *testing.T) {
 		},
 		{
 			name: "with valid parents",
-			opts: []EventOption{
-				WithEventCloudProvider("aws"),
-				WithEventParents([]string{"5678"}),
+			opts: []AssetOption{
+				WithAssetCloudProvider("aws"),
+				WithAssetParents([]string{"5678"}),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
 				"cloud.provider": "aws",
@@ -104,9 +104,9 @@ func TestPublish(t *testing.T) {
 		},
 		{
 			name: "with valid children",
-			opts: []EventOption{
-				WithEventCloudProvider("aws"),
-				WithEventChildren([]string{"5678"}),
+			opts: []AssetOption{
+				WithAssetCloudProvider("aws"),
+				WithAssetChildren([]string{"5678"}),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
 				"cloud.provider": "aws",
@@ -115,9 +115,9 @@ func TestPublish(t *testing.T) {
 		},
 		{
 			name: "with valid metadata",
-			opts: []EventOption{
-				WithEventCloudProvider("aws"),
-				WithEventMetadata(mapstr.M{"foo": "bar"}),
+			opts: []AssetOption{
+				WithAssetCloudProvider("aws"),
+				WithAssetMetadata(mapstr.M{"foo": "bar"}),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
 				"cloud.provider": "aws",
@@ -126,9 +126,9 @@ func TestPublish(t *testing.T) {
 		},
 		{
 			name: "with valid tags",
-			opts: []EventOption{
-				WithEventCloudProvider("aws"),
-				WithEventTags(map[string]string{"tag": "a"}),
+			opts: []AssetOption{
+				WithAssetCloudProvider("aws"),
+				WithAssetTags(map[string]string{"tag": "a"}),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
 				"cloud.provider": "aws",
@@ -139,10 +139,10 @@ func TestPublish(t *testing.T) {
 		},
 		{
 			name: "with valid metadata and tags",
-			opts: []EventOption{
-				WithEventCloudProvider("aws"),
-				WithEventMetadata(mapstr.M{"foo": "bar"}),
-				WithEventTags(map[string]string{"tag1": "a", "tag2": "b"}),
+			opts: []AssetOption{
+				WithAssetCloudProvider("aws"),
+				WithAssetMetadata(mapstr.M{"foo": "bar"}),
+				WithAssetTags(map[string]string{"tag1": "a", "tag2": "b"}),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
 				"cloud.provider": "aws",

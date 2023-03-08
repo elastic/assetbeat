@@ -54,13 +54,13 @@ func collectEC2Assets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 			parents = []string{instance.SubnetID}
 		}
 		internal.Publish(publisher,
-			internal.WithEventCloudProvider("aws"),
-			internal.WithEventRegion(cfg.Region),
-			internal.WithEventAccountID(instance.OwnerID),
-			internal.WithEventAssetTypeAndID("aws.ec2.instance", instance.InstanceID),
-			internal.WithEventParents(parents),
-			internal.WithEventTags(flattenEC2Tags(instance.Tags)),
-			internal.WithEventMetadata(instance.Metadata),
+			internal.WithAssetCloudProvider("aws"),
+			internal.WithAssetRegion(cfg.Region),
+			internal.WithAssetAccountID(instance.OwnerID),
+			internal.WithAssetTypeAndID("aws.ec2.instance", instance.InstanceID),
+			internal.WithAssetParents(parents),
+			internal.WithAssetTags(flattenEC2Tags(instance.Tags)),
+			internal.WithAssetMetadata(instance.Metadata),
 		)
 	}
 }

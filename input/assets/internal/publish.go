@@ -26,11 +26,11 @@ import (
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 )
 
-type EventOption func(beat.Event) beat.Event
+type AssetOption func(beat.Event) beat.Event
 
 // Publish emits a `beat.Event` to the specified publisher, with the provided
 // parameters
-func Publish(publisher stateless.Publisher, opts ...EventOption) error {
+func Publish(publisher stateless.Publisher, opts ...AssetOption) error {
 	event := beat.Event{Fields: mapstr.M{}}
 
 	for _, o := range opts {
@@ -45,28 +45,28 @@ func Publish(publisher stateless.Publisher, opts ...EventOption) error {
 	return nil
 }
 
-func WithEventCloudProvider(value string) EventOption {
+func WithAssetCloudProvider(value string) AssetOption {
 	return func(e beat.Event) beat.Event {
 		e.Fields["cloud.provider"] = value
 		return e
 	}
 }
 
-func WithEventRegion(value string) EventOption {
+func WithAssetRegion(value string) AssetOption {
 	return func(e beat.Event) beat.Event {
 		e.Fields["cloud.region"] = value
 		return e
 	}
 }
 
-func WithEventAccountID(value string) EventOption {
+func WithAssetAccountID(value string) AssetOption {
 	return func(e beat.Event) beat.Event {
 		e.Fields["cloud.account.id"] = value
 		return e
 	}
 }
 
-func WithEventAssetTypeAndID(t, id string) EventOption {
+func WithAssetTypeAndID(t, id string) AssetOption {
 	return func(e beat.Event) beat.Event {
 		e.Fields["asset.type"] = t
 		e.Fields["asset.id"] = id
@@ -75,21 +75,21 @@ func WithEventAssetTypeAndID(t, id string) EventOption {
 	}
 }
 
-func WithEventParents(value []string) EventOption {
+func WithAssetParents(value []string) AssetOption {
 	return func(e beat.Event) beat.Event {
 		e.Fields["asset.parents"] = value
 		return e
 	}
 }
 
-func WithEventChildren(value []string) EventOption {
+func WithAssetChildren(value []string) AssetOption {
 	return func(e beat.Event) beat.Event {
 		e.Fields["asset.children"] = value
 		return e
 	}
 }
 
-func WithEventMetadata(value mapstr.M) EventOption {
+func WithAssetMetadata(value mapstr.M) AssetOption {
 	return func(e beat.Event) beat.Event {
 		m := mapstr.M{}
 		if e.Fields["asset.metadata"] != nil {
@@ -102,8 +102,8 @@ func WithEventMetadata(value mapstr.M) EventOption {
 	}
 }
 
-func WithEventTags(value map[string]string) EventOption {
-	return WithEventMetadata(mapstr.M{
+func WithAssetTags(value map[string]string) AssetOption {
+	return WithAssetMetadata(mapstr.M{
 		"tags": value,
 	})
 }

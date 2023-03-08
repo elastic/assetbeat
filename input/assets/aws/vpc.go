@@ -41,12 +41,12 @@ func collectVPCAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 
 	for _, vpc := range vpcs {
 		internal.Publish(publisher,
-			internal.WithEventCloudProvider("aws"),
-			internal.WithEventRegion(cfg.Region),
-			internal.WithEventAccountID(*vpc.OwnerId),
-			internal.WithEventAssetTypeAndID("aws.vpc", *vpc.VpcId),
-			internal.WithEventTags(flattenEC2Tags(vpc.Tags)),
-			internal.WithEventMetadata(mapstr.M{
+			internal.WithAssetCloudProvider("aws"),
+			internal.WithAssetRegion(cfg.Region),
+			internal.WithAssetAccountID(*vpc.OwnerId),
+			internal.WithAssetTypeAndID("aws.vpc", *vpc.VpcId),
+			internal.WithAssetTags(flattenEC2Tags(vpc.Tags)),
+			internal.WithAssetMetadata(mapstr.M{
 				"isDefault": vpc.IsDefault,
 			}),
 		)
@@ -63,12 +63,12 @@ func collectSubnetAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, 
 
 	for _, subnet := range subnets {
 		internal.Publish(publisher,
-			internal.WithEventRegion(cfg.Region),
-			internal.WithEventAccountID(*subnet.OwnerId),
-			internal.WithEventAssetTypeAndID("aws.subnet", *subnet.SubnetId),
-			internal.WithEventParents([]string{*subnet.VpcId}),
-			internal.WithEventTags(flattenEC2Tags(subnet.Tags)),
-			internal.WithEventMetadata(mapstr.M{
+			internal.WithAssetRegion(cfg.Region),
+			internal.WithAssetAccountID(*subnet.OwnerId),
+			internal.WithAssetTypeAndID("aws.subnet", *subnet.SubnetId),
+			internal.WithAssetParents([]string{*subnet.VpcId}),
+			internal.WithAssetTags(flattenEC2Tags(subnet.Tags)),
+			internal.WithAssetMetadata(mapstr.M{
 				"state": string(subnet.State),
 			}),
 		)
