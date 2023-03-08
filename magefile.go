@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 )
 
@@ -37,15 +36,15 @@ func Build() error {
 	return sh.RunV("go", "build", ".")
 }
 
-// Check runs static analysis and security checks
-func Check() error {
+// Lint runs golangci-lint
+func Lint() error {
 	err := installTools()
 	if err != nil {
 		return err
 	}
 
-	mg.Deps(lint)
-	return nil
+	fmt.Println("Running golangci-lint...")
+	return sh.RunV("./.tools/golangci-lint", "run")
 }
 
 // UnitTest runs all unit tests and writes a HTML coverage report to the build directory
@@ -125,9 +124,4 @@ func installTools() error {
 	}
 
 	return sh.RunWithV(map[string]string{"GOBIN": oldPath + "/.tools"}, "go", append([]string{"install"}, strings.Fields(tools)...)...)
-}
-
-func lint() error {
-	fmt.Println("Running golangci-lint...")
-	return sh.RunV("./.tools/golangci-lint", "run")
 }

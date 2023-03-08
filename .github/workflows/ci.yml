@@ -63,11 +63,11 @@ jobs:
           path: .tools
           key: ${{ runner.os }}-tools-cache-${{ hashFiles('./internal/tools/**') }}
 
-      - name: Check
+      - name: Lint
         uses: magefile/mage-action@v2
         with:
           version: latest
-          args: check
+          args: lint
 
   unit-test:
     runs-on: ubuntu-latest
