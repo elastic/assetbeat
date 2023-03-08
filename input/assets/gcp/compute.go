@@ -52,7 +52,7 @@ func collectComputeAssets(ctx context.Context, cfg config, publisher stateless.P
 		var parents []string
 		parents = append(parents, instance.Networks...)
 
-		internal.Publish(publisher,
+		err = internal.Publish(publisher,
 			internal.WithAssetCloudProvider("gcp"),
 			internal.WithAssetRegion(instance.Region),
 			internal.WithAssetAccountID(instance.Account),
@@ -61,6 +61,9 @@ func collectComputeAssets(ctx context.Context, cfg config, publisher stateless.P
 			WithAssetLabels(instance.Labels),
 			internal.WithAssetMetadata(instance.Metadata),
 		)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
