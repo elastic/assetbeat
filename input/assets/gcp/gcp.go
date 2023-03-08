@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/elastic/go-concert/ctxtool"
+	"github.com/elastic/inputrunner/input/assets"
 	input "github.com/elastic/inputrunner/input/v2"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 
@@ -54,26 +55,21 @@ func newAssetsGCP(config config) (*assetsGCP, error) {
 	return &assetsGCP{config}, nil
 }
 
-type Config struct {
-	Projects      []string      `config:"projects"`
-	CredsFilePath string        `config:"credentials_file_path"`
-	Period        time.Duration `config:"period"`
+type config struct {
+	assets.BaseConfig `config:",inline"`
+	Projects          []string      `config:"projects"`
+	CredsFilePath     string        `config:"credentials_file_path"`
+	Period            time.Duration `config:"period"`
 }
 
 func defaultConfig() config {
 	return config{
-		Config: Config{
-			Period: time.Second * 600,
-		},
+		Period: time.Second * 600,
 	}
 }
 
 type assetsGCP struct {
 	config
-}
-
-type config struct {
-	Config `config:",inline"`
 }
 
 func (s *assetsGCP) Name() string { return "assets_gcp" }
@@ -89,7 +85,7 @@ func (s *assetsGCP) Run(inputCtx input.Context, publisher stateless.Publisher) e
 	log.Info("gcp asset collector run started")
 	defer log.Info("gcp asset collector run stopped")
 
-	ticker := time.NewTicker(s.Config.Period)
+	ticker := time.NewTicker(s.Period)
 	select {
 	case <-ctx.Done():
 		return nil
@@ -126,8 +122,8 @@ func (s *assetsGCP) collectAll(ctx context.Context, log *logp.Logger, publisher 
 func buildClientOptions(cfg config) []option.ClientOption {
 	var opts []option.ClientOption
 
-	if cfg.Config.CredsFilePath != "" {
-		opts = append(opts, option.WithCredentialsFile(cfg.Config.CredsFilePath))
+	if cfg.CredsFilePath != "" {
+		opts = append(opts, option.WithCredentialsFile(cfg.CredsFilePath))
 	}
 
 	return opts

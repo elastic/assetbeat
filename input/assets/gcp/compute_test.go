@@ -47,18 +47,14 @@ func TestGetAllComputeInstances(t *testing.T) {
 			name: "with no project specified",
 
 			ctx: context.Background(),
-			cfg: config{
-				Config{},
-			},
+			cfg: config{},
 		},
 		{
 			name: "with one project specified",
 
 			ctx: context.Background(),
 			cfg: config{
-				Config{
-					Projects: []string{"my_project"},
-				},
+				Projects: []string{"my_project"},
 			},
 
 			httpResponses: map[string]compute.InstanceAggregatedList{
@@ -99,9 +95,7 @@ func TestGetAllComputeInstances(t *testing.T) {
 
 			ctx: context.Background(),
 			cfg: config{
-				Config{
-					Projects: []string{"my_project", "my_second_project"},
-				},
+				Projects: []string{"my_project", "my_second_project"},
 			},
 
 			httpResponses: map[string]compute.InstanceAggregatedList{

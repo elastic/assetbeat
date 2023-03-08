@@ -72,7 +72,7 @@ func collectComputeAssets(ctx context.Context, cfg config, publisher stateless.P
 func getAllComputeInstances(ctx context.Context, cfg config, svc *compute.Service) ([]computeInstance, error) {
 	var instances []computeInstance
 
-	for _, p := range cfg.Config.Projects {
+	for _, p := range cfg.Projects {
 		req := svc.Instances.AggregatedList(p)
 
 		err := req.Pages(ctx, func(page *compute.InstanceAggregatedList) error {

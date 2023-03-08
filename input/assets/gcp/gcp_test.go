@@ -102,9 +102,7 @@ func TestBuildClientOptions(t *testing.T) {
 			name: "with a credentials file path",
 
 			cfg: config{
-				Config{
-					CredsFilePath: "/tmp/file_path",
-				},
+				CredsFilePath: "/tmp/file_path",
 			},
 			expectedOpts: []option.ClientOption{
 				option.WithCredentialsFile("/tmp/file_path"),
