@@ -15,13 +15,14 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package assets_k8s
+package k8s
 
 import (
 	"context"
 	"fmt"
 	"time"
 
+	"github.com/elastic/inputrunner/input/assets"
 	input "github.com/elastic/inputrunner/input/v2"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 
@@ -62,14 +63,14 @@ func newAssetsK8s(cfg config) (*assetsK8s, error) {
 }
 
 type config struct {
-	BaseConfig `config:",inline"`
-	KubeConfig string        `config:"kube_config"`
-	Period     time.Duration `config:"period"`
+	assets.BaseConfig `config:",inline"`
+	KubeConfig        string        `config:"kube_config"`
+	Period            time.Duration `config:"period"`
 }
 
 func defaultConfig() config {
 	return config{
-		BaseConfig: BaseConfig{
+		BaseConfig: assets.BaseConfig{
 			Period:     time.Second * 600,
 			AssetTypes: nil,
 		},
@@ -140,11 +141,11 @@ func collectK8sAssets(ctx context.Context, kubeconfigPath string, log *logp.Logg
 		log.Errorf("unable to build kubernetes clientset: %w", err)
 	}
 	log.Infof("Enabled asset types are %+v", cfg.AssetTypes)
-	if IsTypeEnabled(cfg.AssetTypes, "node") {
+	if assets.IsTypeEnabled(cfg.AssetTypes, "node") {
 		log.Info("Node type enabled. Starting collecting")
 		go collectK8sNodes(ctx, log, client, publisher)
 	}
-	if IsTypeEnabled(cfg.AssetTypes, "pod") {
+	if assets.IsTypeEnabled(cfg.AssetTypes, "pod") {
 		log.Info("Pod type enabled. Starting collecting")
 		go collectK8sPods(ctx, log, client, publisher)
 	}

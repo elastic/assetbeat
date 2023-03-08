@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package assets_k8s
+package k8s
 
 import (
 	"testing"

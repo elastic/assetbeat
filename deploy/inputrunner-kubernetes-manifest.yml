@@ -47,8 +47,8 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
          - name: inputrunner
-           image: inputrunner:latest
-           imagePullPolicy: Never
+           image: michaelkatsoulis/inputrunner:latest 
+         #   imagePullPolicy: Never
          #   command: ['sleep 3600']
            env:
                   # The basic authentication username used to connect to Elasticsearch
@@ -57,13 +57,13 @@ spec:
                     value: "elastic"
                   # The basic authentication password used to connect to Elasticsearch
                   - name: ELASTICSEARCH_PASSWORD
-                    value: "changeme"
+                    value: "OzZGqri8fWfSwZrV5Ht5VtYn"
                   # The Elasticsearch host to communicate with
                   - name: ELASTICSEARCH_HOST
-                    value: "https://elasticsearch"
+                    value: "https://snapshot-fd497c.es.us-west2.gcp.elastic-cloud.com"
                   # The Elasticsearch port to communicate with
                   - name: ELASTICSEARCH_PORT
-                    value: "9200"
+                    value: "443"
            volumeMounts:
                   - name: config
                     mountPath: /usr/share/inputrunner/inputrunner.yml
