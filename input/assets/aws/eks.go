@@ -19,7 +19,6 @@ package aws
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/elastic/inputrunner/input/assets/internal"
@@ -49,7 +48,7 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 			}
 
 			clusterARN, _ := arn.Parse(*clusterDetail.Arn)
-			err := internal.Publish(publisher,
+			internal.Publish(publisher,
 				internal.WithAssetCloudProvider("aws"),
 				internal.WithAssetRegion(cfg.Region),
 				internal.WithAssetAccountID(clusterARN.AccountID),
@@ -60,9 +59,6 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 					"status": clusterDetail.Status,
 				}),
 			)
-			if err != nil {
-				return fmt.Errorf("publish error: %w", err)
-			}
 		}
 	}
 

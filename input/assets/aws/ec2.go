@@ -53,7 +53,7 @@ func collectEC2Assets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 		if instance.SubnetID != "" {
 			parents = []string{instance.SubnetID}
 		}
-		err := internal.Publish(publisher,
+		internal.Publish(publisher,
 			internal.WithAssetCloudProvider("aws"),
 			internal.WithAssetRegion(cfg.Region),
 			internal.WithAssetAccountID(instance.OwnerID),
@@ -62,9 +62,6 @@ func collectEC2Assets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 			WithAssetTags(flattenEC2Tags(instance.Tags)),
 			internal.WithAssetMetadata(instance.Metadata),
 		)
-		if err != nil {
-			return fmt.Errorf("publish error: %w", err)
-		}
 	}
 
 	return nil

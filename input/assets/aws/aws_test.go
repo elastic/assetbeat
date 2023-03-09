@@ -22,7 +22,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/inputrunner/input/assets"
+	"github.com/elastic/inputrunner/input/assets/internal"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/stretchr/testify/assert"
@@ -41,7 +41,7 @@ func TestGetAWSConfigForRegion(t *testing.T) {
 			name: "with explicit creds",
 
 			inputCfg: config{
-				BaseConfig: assets.BaseConfig{
+				BaseConfig: internal.BaseConfig{
 					Period:     time.Second * 600,
 					AssetTypes: []string{},
 				},
@@ -67,7 +67,7 @@ func TestGetAWSConfigForRegion(t *testing.T) {
 				"AWS_SECRET_ACCESS_KEY": "EXAMPLE_SECRET_KEY",
 			},
 			inputCfg: config{
-				BaseConfig: assets.BaseConfig{
+				BaseConfig: internal.BaseConfig{
 					Period:     time.Second * 600,
 					AssetTypes: []string{},
 				},

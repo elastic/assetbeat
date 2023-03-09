@@ -25,7 +25,6 @@ import (
 	"github.com/elastic/inputrunner/input/assets/internal"
 	"github.com/elastic/inputrunner/mocks"
 	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestWithAssetLabels(t *testing.T) {
@@ -34,7 +33,6 @@ func TestWithAssetLabels(t *testing.T) {
 
 		opts          []internal.AssetOption
 		expectedEvent beat.Event
-		expectedError error
 	}{
 		{
 			name: "with valid labels",
@@ -68,18 +66,9 @@ func TestWithAssetLabels(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			publisher := mocks.NewMockPublisher(ctrl)
+			publisher.EXPECT().Publish(tt.expectedEvent)
 
-			if tt.expectedError == nil {
-				publisher.EXPECT().Publish(tt.expectedEvent)
-			}
-
-			err := internal.Publish(publisher, tt.opts...)
-
-			if tt.expectedError != nil {
-				assert.Equal(t, tt.expectedError, err)
-			} else {
-				assert.NoError(t, err)
-			}
+			internal.Publish(publisher, tt.opts...)
 		})
 	}
 }
