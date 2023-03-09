@@ -22,7 +22,7 @@ import (
 	"time"
 
 	"github.com/elastic/go-concert/ctxtool"
-	"github.com/elastic/inputrunner/input/assets"
+	"github.com/elastic/inputrunner/input/assets/internal"
 	input "github.com/elastic/inputrunner/input/v2"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 
@@ -56,10 +56,10 @@ func newAssetsGCP(config config) (*assetsGCP, error) {
 }
 
 type config struct {
-	assets.BaseConfig `config:",inline"`
-	Projects          []string      `config:"projects"`
-	CredsFilePath     string        `config:"credentials_file_path"`
-	Period            time.Duration `config:"period"`
+	internal.BaseConfig `config:",inline"`
+	Projects            []string      `config:"projects"`
+	CredsFilePath       string        `config:"credentials_file_path"`
+	Period              time.Duration `config:"period"`
 }
 
 func defaultConfig() config {

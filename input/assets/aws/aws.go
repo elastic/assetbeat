@@ -21,7 +21,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/elastic/inputrunner/input/assets"
+	"github.com/elastic/inputrunner/input/assets/internal"
 	input "github.com/elastic/inputrunner/input/v2"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 
@@ -59,16 +59,16 @@ func newAssetsAWS(cfg config) (*assetsAWS, error) {
 }
 
 type config struct {
-	assets.BaseConfig `config:",inline"`
-	Regions           []string `config:"regions"`
-	AccessKeyId       string   `config:"access_key_id"`
-	SecretAccessKey   string   `config:"secret_access_key"`
-	SessionToken      string   `config:"session_token"`
+	internal.BaseConfig `config:",inline"`
+	Regions             []string `config:"regions"`
+	AccessKeyId         string   `config:"access_key_id"`
+	SecretAccessKey     string   `config:"secret_access_key"`
+	SessionToken        string   `config:"session_token"`
 }
 
 func defaultConfig() config {
 	return config{
-		BaseConfig: assets.BaseConfig{
+		BaseConfig: internal.BaseConfig{
 			Period:     time.Second * 600,
 			AssetTypes: nil,
 		},
@@ -141,13 +141,13 @@ func collectAWSAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 		}
 
 		// these strings need careful documentation
-		if assets.IsTypeEnabled(cfg.AssetTypes, "eks") {
+		if internal.IsTypeEnabled(cfg.AssetTypes, "eks") {
 			go collectEKSAssets(ctx, awsCfg, log, publisher)
 		}
-		if assets.IsTypeEnabled(cfg.AssetTypes, "ec2") {
+		if internal.IsTypeEnabled(cfg.AssetTypes, "ec2") {
 			go collectEC2Assets(ctx, awsCfg, log, publisher)
 		}
-		if assets.IsTypeEnabled(cfg.AssetTypes, "vpc") {
+		if internal.IsTypeEnabled(cfg.AssetTypes, "vpc") {
 			// should these just go in the same function??
 			go collectVPCAssets(ctx, awsCfg, log, publisher)
 			go collectSubnetAssets(ctx, awsCfg, log, publisher)
