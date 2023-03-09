@@ -57,13 +57,13 @@ func newAssetsGCP(config config) (*assetsGCP, error) {
 
 type config struct {
 	internal.BaseConfig `config:",inline"`
-	Projects          []string `config:"projects"`
-	CredsFilePath     string   `config:"credentials_file_path"`
+	Projects            []string `config:"projects"`
+	CredsFilePath       string   `config:"credentials_file_path"`
 }
 
 func defaultConfig() config {
 	return config{
-		BaseConfig: assets.BaseConfig{
+		BaseConfig: internal.BaseConfig{
 			Period: time.Second * 600,
 		},
 	}
