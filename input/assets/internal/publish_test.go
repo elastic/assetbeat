@@ -24,7 +24,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/inputrunner/mocks"
 	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestPublish(t *testing.T) {
@@ -121,8 +120,7 @@ func TestPublish(t *testing.T) {
 			publisher := mocks.NewMockPublisher(ctrl)
 			publisher.EXPECT().Publish(tt.expectedEvent)
 
-			err := Publish(publisher, tt.opts...)
-			assert.NoError(t, err)
+			Publish(publisher, tt.opts...)
 		})
 	}
 }

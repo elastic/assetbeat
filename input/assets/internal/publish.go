@@ -29,7 +29,7 @@ type AssetOption func(beat.Event) beat.Event
 
 // Publish emits a `beat.Event` to the specified publisher, with the provided
 // parameters
-func Publish(publisher stateless.Publisher, opts ...AssetOption) error {
+func Publish(publisher stateless.Publisher, opts ...AssetOption) {
 	event := beat.Event{Fields: mapstr.M{}}
 
 	for _, o := range opts {
@@ -37,7 +37,6 @@ func Publish(publisher stateless.Publisher, opts ...AssetOption) error {
 	}
 
 	publisher.Publish(event)
-	return nil
 }
 
 func WithAssetCloudProvider(value string) AssetOption {
