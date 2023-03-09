@@ -19,6 +19,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/elastic/inputrunner/input/assets/internal"
@@ -33,12 +34,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 )
 
-func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) {
+func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) error {
 	client := eks.NewFromConfig(cfg)
 	clusters, err := listEKSClusters(ctx, client)
 	if err != nil {
-		log.Errorf("could not list EKS clusters for %s: %v", cfg.Region, err)
-		return
+		return err
 	}
 
 	for _, clusterDetail := range describeEKSClusters(log, ctx, clusters, client) {
@@ -49,7 +49,7 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 			}
 
 			clusterARN, _ := arn.Parse(*clusterDetail.Arn)
-			internal.Publish(publisher,
+			err := internal.Publish(publisher,
 				internal.WithAssetCloudProvider("aws"),
 				internal.WithAssetRegion(cfg.Region),
 				internal.WithAssetAccountID(clusterARN.AccountID),
@@ -60,8 +60,13 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 					"status": clusterDetail.Status,
 				}),
 			)
+			if err != nil {
+				return fmt.Errorf("publish error: %w", err)
+			}
 		}
 	}
+
+	return nil
 }
 
 func describeEKSClusters(log *logp.Logger, ctx context.Context, clusters []string, client *eks.Client) []*types.Cluster {
