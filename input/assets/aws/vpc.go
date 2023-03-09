@@ -40,7 +40,7 @@ func collectVPCAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 	}
 
 	for _, vpc := range vpcs {
-		err = internal.Publish(publisher,
+		internal.Publish(publisher,
 			internal.WithAssetCloudProvider("aws"),
 			internal.WithAssetRegion(cfg.Region),
 			internal.WithAssetAccountID(*vpc.OwnerId),
@@ -50,10 +50,6 @@ func collectVPCAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 				"isDefault": vpc.IsDefault,
 			}),
 		)
-		if err != nil {
-			log.Errorf("could not publish asset: %v", err)
-			return
-		}
 	}
 
 	return nil
@@ -67,7 +63,7 @@ func collectSubnetAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, 
 	}
 
 	for _, subnet := range subnets {
-		err = internal.Publish(publisher,
+		internal.Publish(publisher,
 			internal.WithAssetRegion(cfg.Region),
 			internal.WithAssetAccountID(*subnet.OwnerId),
 			internal.WithAssetTypeAndID("aws.subnet", *subnet.SubnetId),
@@ -77,10 +73,6 @@ func collectSubnetAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, 
 				"state": string(subnet.State),
 			}),
 		)
-		if err != nil {
-			log.Errorf("could not publish asset: %v", err)
-			return
-		}
 	}
 
 	return nil
