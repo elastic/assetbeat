@@ -40,12 +40,11 @@ type EC2Instance struct {
 	Metadata   mapstr.M
 }
 
-func collectEC2Assets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) {
+func collectEC2Assets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) error {
 	client := ec2.NewFromConfig(cfg)
 	instances, err := describeEC2Instances(ctx, client)
 	if err != nil {
-		log.Errorf("could not describe EC2 instances for %s: %v", cfg.Region, err)
-		return
+		return err
 	}
 
 	for _, instance := range instances {
@@ -53,7 +52,7 @@ func collectEC2Assets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 		if instance.SubnetID != "" {
 			parents = []string{instance.SubnetID}
 		}
-		internal.Publish(publisher,
+		err := internal.Publish(publisher,
 			internal.WithAssetCloudProvider("aws"),
 			internal.WithAssetRegion(cfg.Region),
 			internal.WithAssetAccountID(instance.OwnerID),
@@ -62,7 +61,12 @@ func collectEC2Assets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 			WithAssetTags(flattenEC2Tags(instance.Tags)),
 			internal.WithAssetMetadata(instance.Metadata),
 		)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 func describeEC2Instances(ctx context.Context, client *ec2.Client) ([]EC2Instance, error) {

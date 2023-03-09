@@ -142,15 +142,35 @@ func collectAWSAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 
 		// these strings need careful documentation
 		if assets.IsTypeEnabled(cfg.AssetTypes, "eks") {
-			go collectEKSAssets(ctx, awsCfg, log, publisher)
+			go func() {
+				err := collectEKSAssets(ctx, awsCfg, log, publisher)
+				if err != nil {
+					log.Errorf("error collecting EKS assets: %w", err)
+				}
+			}()
 		}
 		if assets.IsTypeEnabled(cfg.AssetTypes, "ec2") {
-			go collectEC2Assets(ctx, awsCfg, log, publisher)
+			go func() {
+				err := collectEC2Assets(ctx, awsCfg, log, publisher)
+				if err != nil {
+					log.Errorf("error collecting EC2 assets: %w", err)
+				}
+			}()
 		}
 		if assets.IsTypeEnabled(cfg.AssetTypes, "vpc") {
 			// should these just go in the same function??
-			go collectVPCAssets(ctx, awsCfg, log, publisher)
-			go collectSubnetAssets(ctx, awsCfg, log, publisher)
+			go func() {
+				err := collectVPCAssets(ctx, awsCfg, log, publisher)
+				if err != nil {
+					log.Errorf("error collecting VPC assets: %w", err)
+				}
+			}()
+			go func() {
+				err := collectSubnetAssets(ctx, awsCfg, log, publisher)
+				if err != nil {
+					log.Errorf("error collecting Subnet assets: %w", err)
+				}
+			}()
 		}
 	}
 }

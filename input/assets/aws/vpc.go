@@ -31,16 +31,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 )
 
-func collectVPCAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) {
+func collectVPCAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) error {
 	client := ec2.NewFromConfig(cfg)
 	vpcs, err := describeVPCs(ctx, client)
 	if err != nil {
-		log.Errorf("could not describe VPCs for %s: %v", cfg.Region, err)
-		return
+		return err
 	}
 
 	for _, vpc := range vpcs {
-		internal.Publish(publisher,
+		err := internal.Publish(publisher,
 			internal.WithAssetCloudProvider("aws"),
 			internal.WithAssetRegion(cfg.Region),
 			internal.WithAssetAccountID(*vpc.OwnerId),
@@ -50,19 +49,23 @@ func collectVPCAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 				"isDefault": vpc.IsDefault,
 			}),
 		)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
-func collectSubnetAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) {
+func collectSubnetAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) error {
 	client := ec2.NewFromConfig(cfg)
 	subnets, err := describeSubnets(ctx, client)
 	if err != nil {
-		log.Errorf("could not describe Subnets for %s: %v", cfg.Region, err)
-		return
+		return err
 	}
 
 	for _, subnet := range subnets {
-		internal.Publish(publisher,
+		err := internal.Publish(publisher,
 			internal.WithAssetRegion(cfg.Region),
 			internal.WithAssetAccountID(*subnet.OwnerId),
 			internal.WithAssetTypeAndID("aws.subnet", *subnet.SubnetId),
@@ -72,7 +75,12 @@ func collectSubnetAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, 
 				"state": string(subnet.State),
 			}),
 		)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 func describeVPCs(ctx context.Context, client *ec2.Client) ([]types.Vpc, error) {
