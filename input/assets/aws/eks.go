@@ -19,6 +19,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/elastic/inputrunner/input/assets/internal"
@@ -60,7 +61,7 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 				}),
 			)
 			if err != nil {
-				return err
+				return fmt.Errorf("publish error: %w", err)
 			}
 		}
 	}

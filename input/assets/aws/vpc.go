@@ -19,6 +19,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/elastic/inputrunner/input/assets/internal"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
@@ -50,7 +51,7 @@ func collectVPCAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 			}),
 		)
 		if err != nil {
-			return err
+			return fmt.Errorf("publish error: %w", err)
 		}
 	}
 
@@ -76,7 +77,7 @@ func collectSubnetAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, 
 			}),
 		)
 		if err != nil {
-			return err
+			return fmt.Errorf("publish error: %w", err)
 		}
 	}
 
@@ -89,7 +90,7 @@ func describeVPCs(ctx context.Context, client *ec2.Client) ([]types.Vpc, error) 
 	for paginator.HasMorePages() {
 		resp, err := paginator.NextPage(ctx)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error describing VPCs: %w", err)
 		}
 
 		vpcs = append(vpcs, resp.Vpcs...)
@@ -104,7 +105,7 @@ func describeSubnets(ctx context.Context, client *ec2.Client) ([]types.Subnet, e
 	for paginator.HasMorePages() {
 		resp, err := paginator.NextPage(ctx)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error describing subnets: %w", err)
 		}
 
 		subnets = append(subnets, resp.Subnets...)
