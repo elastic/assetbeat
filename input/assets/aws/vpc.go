@@ -41,10 +41,13 @@ func collectVPCAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 
 	for _, vpc := range vpcs {
 		internal.Publish(publisher,
-			internal.WithAssetCloudProvider("aws"),
+			internal.AssetRequiredFields{
+				CloudProvider: "aws",
+				AssetType:     "aws.vpc",
+				AssetID:       *vpc.VpcId,
+			},
 			internal.WithAssetRegion(cfg.Region),
 			internal.WithAssetAccountID(*vpc.OwnerId),
-			internal.WithAssetTypeAndID("aws.vpc", *vpc.VpcId),
 			WithAssetTags(flattenEC2Tags(vpc.Tags)),
 			internal.WithAssetMetadata(mapstr.M{
 				"isDefault": vpc.IsDefault,
@@ -63,9 +66,13 @@ func collectSubnetAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, 
 
 	for _, subnet := range subnets {
 		internal.Publish(publisher,
+			internal.AssetRequiredFields{
+				CloudProvider: "aws",
+				AssetType:     "aws.subnet",
+				AssetID:       *subnet.SubnetId,
+			},
 			internal.WithAssetRegion(cfg.Region),
 			internal.WithAssetAccountID(*subnet.OwnerId),
-			internal.WithAssetTypeAndID("aws.subnet", *subnet.SubnetId),
 			internal.WithAssetParents([]string{*subnet.VpcId}),
 			WithAssetTags(flattenEC2Tags(subnet.Tags)),
 			internal.WithAssetMetadata(mapstr.M{

@@ -25,7 +25,6 @@ import (
 	"github.com/elastic/inputrunner/input/assets/internal"
 	"github.com/elastic/inputrunner/mocks"
 	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestWithAssetTags(t *testing.T) {
@@ -34,16 +33,17 @@ func TestWithAssetTags(t *testing.T) {
 
 		opts          []internal.AssetOption
 		expectedEvent beat.Event
-		expectedError error
 	}{
 		{
 			name: "with valid tags",
 			opts: []internal.AssetOption{
-				internal.WithAssetCloudProvider("aws"),
 				WithAssetTags(map[string]string{"tag1": "a", "tag2": "b"}),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
-				"cloud.provider": "aws",
+				"cloud.provider": "",
+				"asset.type":     "",
+				"asset.id":       "",
+				"asset.ean":      ":",
 				"asset.metadata": mapstr.M{
 					"tags": map[string]string{"tag1": "a", "tag2": "b"},
 				},
@@ -52,12 +52,14 @@ func TestWithAssetTags(t *testing.T) {
 		{
 			name: "with valid tags and metadata",
 			opts: []internal.AssetOption{
-				internal.WithAssetCloudProvider("aws"),
 				internal.WithAssetMetadata(mapstr.M{"foo": "bar"}),
 				WithAssetTags(map[string]string{"tag1": "a", "tag2": "b"}),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
-				"cloud.provider": "aws",
+				"cloud.provider": "",
+				"asset.type":     "",
+				"asset.id":       "",
+				"asset.ean":      ":",
 				"asset.metadata": mapstr.M{
 					"tags": map[string]string{"tag1": "a", "tag2": "b"},
 					"foo":  "bar",
@@ -68,18 +70,9 @@ func TestWithAssetTags(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			publisher := mocks.NewMockPublisher(ctrl)
+			publisher.EXPECT().Publish(tt.expectedEvent)
 
-			if tt.expectedError == nil {
-				publisher.EXPECT().Publish(tt.expectedEvent)
-			}
-
-			err := internal.Publish(publisher, tt.opts...)
-
-			if tt.expectedError != nil {
-				assert.Equal(t, tt.expectedError, err)
-			} else {
-				assert.NoError(t, err)
-			}
+			internal.Publish(publisher, internal.AssetRequiredFields{}, tt.opts...)
 		})
 	}
 }

@@ -18,7 +18,6 @@
 package internal
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -30,26 +29,25 @@ type AssetOption func(beat.Event) beat.Event
 
 // Publish emits a `beat.Event` to the specified publisher, with the provided
 // parameters
-func Publish(publisher stateless.Publisher, opts ...AssetOption) error {
-	event := beat.Event{Fields: mapstr.M{}}
+func Publish(publisher stateless.Publisher, req AssetRequiredFields, opts ...AssetOption) {
+	event := beat.Event{Fields: mapstr.M{
+		"cloud.provider": req.CloudProvider,
+		"asset.type":     req.AssetType,
+		"asset.id":       req.AssetID,
+		"asset.ean":      fmt.Sprintf("%s:%s", req.AssetType, req.AssetID),
+	}}
 
 	for _, o := range opts {
 		event = o(event)
 	}
 
-	if event.Fields["cloud.provider"] == nil || event.Fields["cloud.provider"] == "" {
-		return errors.New("a cloud provider name is required")
-	}
-
 	publisher.Publish(event)
-	return nil
 }
 
-func WithAssetCloudProvider(value string) AssetOption {
-	return func(e beat.Event) beat.Event {
-		e.Fields["cloud.provider"] = value
-		return e
-	}
+type AssetRequiredFields struct {
+	CloudProvider string
+	AssetType     string
+	AssetID       string
 }
 
 func WithAssetRegion(value string) AssetOption {
@@ -62,15 +60,6 @@ func WithAssetRegion(value string) AssetOption {
 func WithAssetAccountID(value string) AssetOption {
 	return func(e beat.Event) beat.Event {
 		e.Fields["cloud.account.id"] = value
-		return e
-	}
-}
-
-func WithAssetTypeAndID(t, id string) AssetOption {
-	return func(e beat.Event) beat.Event {
-		e.Fields["asset.type"] = t
-		e.Fields["asset.id"] = id
-		e.Fields["asset.ean"] = fmt.Sprintf("%s:%s", t, id)
 		return e
 	}
 }
