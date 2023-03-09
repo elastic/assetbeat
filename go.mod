@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.89.0
 	github.com/aws/aws-sdk-go-v2/service/eks v1.27.5
 	github.com/dustin/go-humanize v1.0.1
-	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230126132006-91d4be69ffd7
+	github.com/elastic/beats/v7 v7.17.9
 	github.com/elastic/elastic-agent-libs v0.3.3
 	github.com/elastic/go-concert v0.2.0
 	github.com/gofrs/uuid v4.4.0+incompatible
@@ -50,15 +50,13 @@ require (
 	github.com/eapache/go-resiliency v1.3.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20230111030713-bf00bc1b83b6 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
-	github.com/elastic/elastic-agent-autodiscover v0.5.0 // indirect
+	github.com/elastic/ecs v1.12.0 // indirect
 	github.com/elastic/elastic-agent-client/v7 v7.0.3 // indirect
-	github.com/elastic/elastic-agent-shipper-client v0.4.0 // indirect
-	github.com/elastic/elastic-agent-system-metrics v0.4.5-0.20220927192933-25a985b07d51 // indirect
-	github.com/elastic/go-licenser v0.4.0 // indirect
 	github.com/elastic/go-lumber v0.1.2-0.20220819171948-335fde24ea0f // indirect
 	github.com/elastic/go-seccomp-bpf v1.3.0 // indirect
 	github.com/elastic/go-structform v0.0.10 // indirect
 	github.com/elastic/go-sysinfo v1.9.0 // indirect
+	github.com/elastic/go-txfile v0.0.7 // indirect
 	github.com/elastic/go-ucfg v0.8.6 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect
 	github.com/elastic/gosigar v0.14.2 // indirect
@@ -89,7 +87,6 @@ require (
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
-	github.com/jcchavezs/porto v0.1.0 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
 	github.com/jcmturner/gofork v1.7.6 // indirect
@@ -101,7 +98,6 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.15.14 // indirect
-	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
@@ -115,26 +111,25 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/pierrec/lz4 v2.6.0+incompatible // indirect
-	github.com/pierrec/lz4/v4 v4.1.17 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/santhosh-tekuri/jsonschema v1.2.4 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
-	github.com/shirou/gopsutil/v3 v3.21.12 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/spf13/cobra v1.6.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.9 // indirect
 	github.com/tklauser/numcpus v0.3.0 // indirect
 	github.com/urso/diag v0.0.0-20200210123136-21b3cc8eb797 // indirect
+	github.com/urso/go-bin v0.0.0-20180220135811-781c575c9f0e // indirect
+	github.com/urso/magetools v0.0.0-20190919040553-290c89e0c230 // indirect
 	github.com/urso/sderr v0.0.0-20210525210834-52b04e8f5c71 // indirect
 	github.com/xdg/scram v1.0.3 // indirect
 	github.com/xdg/stringprep v1.0.3 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
-	go.elastic.co/apm/module/apmelasticsearch/v2 v2.0.0 // indirect
-	go.elastic.co/apm/module/apmhttp/v2 v2.0.0 // indirect
-	go.elastic.co/apm/v2 v2.0.0 // indirect
+	go.elastic.co/apm v1.11.0 // indirect
+	go.elastic.co/apm/module/apmelasticsearch v1.7.2 // indirect
+	go.elastic.co/apm/module/apmhttp v1.7.2 // indirect
 	go.elastic.co/ecszap v1.0.1 // indirect
 	go.elastic.co/fastjson v1.1.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
@@ -143,13 +138,12 @@ require (
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/crypto v0.5.0 // indirect
-	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20220822191816-0ebed06d0094 // indirect
+	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/term v0.6.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/tools v0.6.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220829175752-36a9c930ecbf // indirect
 	google.golang.org/grpc v1.49.0 // indirect
