@@ -20,7 +20,6 @@ package gcp
 import (
 	"context"
 	"strconv"
-	"strings"
 
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/inputrunner/input/assets/internal"
@@ -101,15 +100,4 @@ func getAllComputeInstances(ctx context.Context, cfg config, svc *compute.Servic
 	}
 
 	return instances, nil
-}
-
-func getResourceNameFromURL(res string) string {
-	s := strings.Split(res, "/")
-	return s[len(s)-1]
-}
-
-func getRegionFromZoneURL(zone string) string {
-	z := getResourceNameFromURL(zone)
-	r := strings.Split(z, "-")
-	return strings.Join(r[:len(r)-1], "-")
 }
