@@ -49,7 +49,9 @@ func collectGKEAssets(ctx context.Context, cfg config, publisher stateless.Publi
 
 	for _, cluster := range clusters {
 		var parents []string
-		parents = append(parents, cluster.VPC)
+		if len(cluster.VPC) > 0 {
+			parents = append(parents, cluster.VPC)
+		}
 
 		internal.Publish(publisher,
 			internal.WithAssetCloudProvider("gcp"),
