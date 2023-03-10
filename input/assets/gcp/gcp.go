@@ -116,6 +116,12 @@ func (s *assetsGCP) collectAll(ctx context.Context, log *logp.Logger, publisher 
 			log.Errorf("error collecting compute assets: %w", err)
 		}
 	}()
+	go func() {
+		err := collectGKEAssets(ctx, s.config, publisher)
+		if err != nil {
+			log.Errorf("error collecting GKE assets: %w", err)
+		}
+	}()
 
 	return nil
 }

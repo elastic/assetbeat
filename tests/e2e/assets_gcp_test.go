@@ -25,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/inputrunner/input/assets/aws"
+	"github.com/elastic/inputrunner/input/assets/gcp"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 
 	"github.com/elastic/elastic-agent-libs/config"
@@ -46,7 +46,7 @@ func TestAssetsGCP_Run_startsAndStopsTheInput(t *testing.T) {
 		Cancelation: ctx,
 	}
 
-	input, err := aws.Plugin().Manager.(stateless.InputManager).Configure(config.NewConfig())
+	input, err := gcp.Plugin().Manager.(stateless.InputManager).Configure(config.NewConfig())
 	assert.NoError(t, err)
 
 	var wg sync.WaitGroup

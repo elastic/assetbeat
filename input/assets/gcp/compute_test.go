@@ -31,7 +31,7 @@ import (
 	"google.golang.org/api/option"
 )
 
-var findProjectRe = regexp.MustCompile("/projects/([a-z_]+)/aggregated/instances")
+var findComputeProjectRe = regexp.MustCompile("/projects/([a-z_]+)/aggregated/instances")
 
 func TestGetAllComputeInstances(t *testing.T) {
 	for _, tt := range []struct {
@@ -149,7 +149,7 @@ func TestGetAllComputeInstances(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				m := findProjectRe.FindStringSubmatch(r.URL.Path)
+				m := findComputeProjectRe.FindStringSubmatch(r.URL.Path)
 				if len(m) < 2 {
 					w.WriteHeader(http.StatusNotFound)
 					return
