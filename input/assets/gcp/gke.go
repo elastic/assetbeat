@@ -19,6 +19,7 @@ package gcp
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/inputrunner/input/assets/internal"
@@ -70,7 +71,7 @@ func getAllGKEClusters(ctx context.Context, cfg config, svc *container.Service) 
 	for _, p := range cfg.Projects {
 		list, err := svc.Projects.Zones.Clusters.List(p, "-").Do()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error retrieving clusters list for project %s: %w", p, err)
 		}
 
 		for _, c := range list.Clusters {
