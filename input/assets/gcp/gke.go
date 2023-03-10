@@ -54,7 +54,7 @@ func collectGKEAssets(ctx context.Context, cfg config, publisher stateless.Publi
 			internal.WithAssetCloudProvider("gcp"),
 			internal.WithAssetRegion(cluster.Region),
 			internal.WithAssetAccountID(cluster.Account),
-			internal.WithAssetTypeAndID("gcp.container.cluster", cluster.ID),
+			internal.WithAssetTypeAndID("k8s.cluster", cluster.ID),
 			internal.WithAssetParents(parents),
 			WithAssetLabels(cluster.Labels),
 			internal.WithAssetMetadata(cluster.Metadata),
