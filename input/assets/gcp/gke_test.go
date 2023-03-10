@@ -75,7 +75,7 @@ func TestGetAllGKEClusters(t *testing.T) {
 					ID:      "1",
 					Region:  "europe-west1",
 					Account: "my_project",
-					Network: "my_network",
+					VPC:     "my_network",
 					Metadata: mapstr.M{
 						"state": "RUNNING",
 					},
@@ -117,7 +117,7 @@ func TestGetAllGKEClusters(t *testing.T) {
 					ID:      "1",
 					Region:  "europe-west1",
 					Account: "my_project",
-					Network: "my_network",
+					VPC:     "my_network",
 					Metadata: mapstr.M{
 						"state": "RUNNING",
 					},
@@ -126,7 +126,7 @@ func TestGetAllGKEClusters(t *testing.T) {
 					ID:      "42",
 					Region:  "us-central",
 					Account: "my_second_project",
-					Network: "",
+					VPC:     "",
 					Metadata: mapstr.M{
 						"state": "STOPPED",
 					},

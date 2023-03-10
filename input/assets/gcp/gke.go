@@ -31,7 +31,7 @@ type containerCluster struct {
 	ID       string
 	Region   string
 	Account  string
-	Network  string
+	VPC      string
 	Labels   map[string]string
 	Metadata mapstr.M
 }
@@ -49,7 +49,7 @@ func collectGKEAssets(ctx context.Context, cfg config, publisher stateless.Publi
 
 	for _, cluster := range clusters {
 		var parents []string
-		parents = append(parents, cluster.Network)
+		parents = append(parents, cluster.VPC)
 
 		internal.Publish(publisher,
 			internal.WithAssetCloudProvider("gcp"),
@@ -79,7 +79,7 @@ func getAllGKEClusters(ctx context.Context, cfg config, svc *container.Service) 
 				ID:      c.Id,
 				Region:  getRegionFromZoneURL(c.Zone),
 				Account: p,
-				Network: c.Network,
+				VPC:     c.Network,
 				Labels:  c.ResourceLabels,
 				Metadata: mapstr.M{
 					"state": c.Status,

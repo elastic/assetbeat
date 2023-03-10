@@ -80,10 +80,10 @@ func TestGetAllComputeInstances(t *testing.T) {
 
 			expectedInstances: []computeInstance{
 				computeInstance{
-					ID:       "1",
-					Region:   "europe-west1",
-					Account:  "my_project",
-					Networks: []string{"my_network"},
+					ID:      "1",
+					Region:  "europe-west1",
+					Account: "my_project",
+					VPCs:    []string{"my_network"},
 					Metadata: mapstr.M{
 						"state": "RUNNING",
 					},
