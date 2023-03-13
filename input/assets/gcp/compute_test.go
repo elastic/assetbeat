@@ -146,6 +146,62 @@ func TestGetAllComputeInstances(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "with a region filter",
+
+			ctx: context.Background(),
+			cfg: config{
+				Projects: []string{"my_project"},
+				Regions:  []string{"us-west1"},
+			},
+
+			httpResponses: map[string]compute.InstanceAggregatedList{
+				"my_project": compute.InstanceAggregatedList{
+					Items: map[string]compute.InstancesScopedList{
+						"europe-central2-a": compute.InstancesScopedList{
+							Instances: []*compute.Instance{
+								&compute.Instance{
+									Id:   1,
+									Zone: "https://www.googleapis.com/compute/v1/projects/my_project/zones/europe-west1-d",
+									NetworkInterfaces: []*compute.NetworkInterface{
+										&compute.NetworkInterface{
+											Network: "https://www.googleapis.com/compute/v1/projects/my_project/global/networks/my_network",
+										},
+									},
+									Status: "RUNNING",
+								},
+							},
+						},
+						"us-west1-b": compute.InstancesScopedList{
+							Instances: []*compute.Instance{
+								&compute.Instance{
+									Id:   2,
+									Zone: "https://www.googleapis.com/compute/v1/projects/my_project/zones/us-west1-b",
+									NetworkInterfaces: []*compute.NetworkInterface{
+										&compute.NetworkInterface{
+											Network: "https://www.googleapis.com/compute/v1/projects/my_project/global/networks/my_network",
+										},
+									},
+									Status: "RUNNING",
+								},
+							},
+						},
+					},
+				},
+			},
+
+			expectedInstances: []computeInstance{
+				computeInstance{
+					ID:      "2",
+					Region:  "us-west1",
+					Account: "my_project",
+					VPCs:    []string{"my_network"},
+					Metadata: mapstr.M{
+						"state": "RUNNING",
+					},
+				},
+			},
+		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

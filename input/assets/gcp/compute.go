@@ -74,21 +74,23 @@ func getAllComputeInstances(ctx context.Context, cfg config, svc *compute.Servic
 		err := req.Pages(ctx, func(page *compute.InstanceAggregatedList) error {
 			for _, isl := range page.Items {
 				for _, i := range isl.Instances {
-					var vpcs []string
-					for _, ni := range i.NetworkInterfaces {
-						vpcs = append(vpcs, getResourceNameFromURL(ni.Network))
-					}
+					if wantInstance(cfg, i) {
+						var vpcs []string
+						for _, ni := range i.NetworkInterfaces {
+							vpcs = append(vpcs, getResourceNameFromURL(ni.Network))
+						}
 
-					instances = append(instances, computeInstance{
-						ID:      strconv.FormatUint(i.Id, 10),
-						Region:  getRegionFromZoneURL(i.Zone),
-						Account: p,
-						VPCs:    vpcs,
-						Labels:  i.Labels,
-						Metadata: mapstr.M{
-							"state": string(i.Status),
-						},
-					})
+						instances = append(instances, computeInstance{
+							ID:      strconv.FormatUint(i.Id, 10),
+							Region:  getRegionFromZoneURL(i.Zone),
+							Account: p,
+							VPCs:    vpcs,
+							Labels:  i.Labels,
+							Metadata: mapstr.M{
+								"state": string(i.Status),
+							},
+						})
+					}
 				}
 			}
 			return nil
@@ -100,4 +102,18 @@ func getAllComputeInstances(ctx context.Context, cfg config, svc *compute.Servic
 	}
 
 	return instances, nil
+}
+
+func wantInstance(cfg config, i *compute.Instance) bool {
+	if len(cfg.Regions) == 0 {
+		return true
+	}
+
+	for _, z := range cfg.Regions {
+		if z == getRegionFromZoneURL(i.Zone) {
+			return true
+		}
+	}
+
+	return false
 }

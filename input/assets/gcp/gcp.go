@@ -58,6 +58,7 @@ func newAssetsGCP(config config) (*assetsGCP, error) {
 type config struct {
 	internal.BaseConfig `config:",inline"`
 	Projects            []string `config:"projects"`
+	Regions             []string `config:"regions"`
 	CredsFilePath       string   `config:"credentials_file_path"`
 }
 
