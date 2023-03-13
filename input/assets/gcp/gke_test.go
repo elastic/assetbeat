@@ -31,7 +31,7 @@ import (
 	"google.golang.org/api/option"
 )
 
-var findGKEProjectRe = regexp.MustCompile("/projects/([a-z_]+)/zones/-/clusters")
+var findGKEProjectRe = regexp.MustCompile("/projects/([a-z_-]+)/zones/([0-9a-z_-]+)/clusters")
 
 func TestGetAllGKEClusters(t *testing.T) {
 	for _, tt := range []struct {
@@ -133,6 +133,40 @@ func TestGetAllGKEClusters(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "with a regions filter",
+
+			ctx: context.Background(),
+			cfg: config{
+				Projects: []string{"my_project"},
+				Regions:  []string{"us-west1"},
+			},
+
+			httpResponses: map[string]container.ListClustersResponse{
+				"my_project/us-west1": container.ListClustersResponse{
+					Clusters: []*container.Cluster{
+						&container.Cluster{
+							Id:      "2",
+							Zone:    "https://www.googleapis.com/compute/v1/projects/my_project/zones/us-west1-b",
+							Network: "my_network",
+							Status:  "RUNNING",
+						},
+					},
+				},
+			},
+
+			expectedClusters: []containerCluster{
+				containerCluster{
+					ID:      "2",
+					Region:  "us-west1",
+					Account: "my_project",
+					VPC:     "my_network",
+					Metadata: mapstr.M{
+						"state": "RUNNING",
+					},
+				},
+			},
+		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -142,8 +176,13 @@ func TestGetAllGKEClusters(t *testing.T) {
 					return
 				}
 				project := m[1]
+				zone := m[2]
+				path := project
+				if zone != "-" {
+					path = path + "/" + zone
+				}
 
-				b, err := json.Marshal(tt.httpResponses[project])
+				b, err := json.Marshal(tt.httpResponses[path])
 				assert.NoError(t, err)
 				_, err = w.Write(b)
 				assert.NoError(t, err)

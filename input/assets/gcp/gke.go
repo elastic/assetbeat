@@ -20,6 +20,7 @@ package gcp
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/inputrunner/input/assets/internal"
@@ -70,8 +71,13 @@ func collectGKEAssets(ctx context.Context, cfg config, publisher stateless.Publi
 func getAllGKEClusters(ctx context.Context, cfg config, svc *container.Service) ([]containerCluster, error) {
 	var clusters []containerCluster
 
+	var zones = []string{"-"}
+	if len(cfg.Regions) > 0 {
+		zones = cfg.Regions
+	}
+
 	for _, p := range cfg.Projects {
-		list, err := svc.Projects.Zones.Clusters.List(p, "-").Do()
+		list, err := svc.Projects.Zones.Clusters.List(p, strings.Join(zones, "-")).Do()
 		if err != nil {
 			return nil, fmt.Errorf("error retrieving clusters list for project %s: %w", p, err)
 		}
