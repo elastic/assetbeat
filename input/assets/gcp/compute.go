@@ -109,8 +109,9 @@ func wantInstance(cfg config, i *compute.Instance) bool {
 		return true
 	}
 
+	region := getRegionFromZoneURL(i.Zone)
 	for _, z := range cfg.Regions {
-		if z == getRegionFromZoneURL(i.Zone) {
+		if z == region {
 			return true
 		}
 	}
