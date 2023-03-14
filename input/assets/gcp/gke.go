@@ -71,13 +71,13 @@ func collectGKEAssets(ctx context.Context, cfg config, publisher stateless.Publi
 func getAllGKEClusters(ctx context.Context, cfg config, svc *container.Service) ([]containerCluster, error) {
 	var clusters []containerCluster
 
-	var zones = []string{"-"}
+	var zones = "-"
 	if len(cfg.Regions) > 0 {
-		zones = cfg.Regions
+		zones = strings.Join(cfg.Regions, ",")
 	}
 
 	for _, p := range cfg.Projects {
-		list, err := svc.Projects.Zones.Clusters.List(p, strings.Join(zones, "-")).Do()
+		list, err := svc.Projects.Zones.Clusters.List(p, zones).Do()
 		if err != nil {
 			return nil, fmt.Errorf("error retrieving clusters list for project %s: %w", p, err)
 		}

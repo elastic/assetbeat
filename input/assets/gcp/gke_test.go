@@ -31,7 +31,7 @@ import (
 	"google.golang.org/api/option"
 )
 
-var findGKEProjectRe = regexp.MustCompile("/projects/([a-z_-]+)/zones/([0-9a-z_-]+)/clusters")
+var findGKEProjectRe = regexp.MustCompile("/projects/([a-z_-]+)/zones/([0-9a-z_,-]+)/clusters")
 
 func TestGetAllGKEClusters(t *testing.T) {
 	for _, tt := range []struct {
@@ -159,6 +159,55 @@ func TestGetAllGKEClusters(t *testing.T) {
 				containerCluster{
 					ID:      "2",
 					Region:  "us-west1",
+					Account: "my_project",
+					VPC:     "my_network",
+					Metadata: mapstr.M{
+						"state": "RUNNING",
+					},
+				},
+			},
+		},
+		{
+			name: "with multiple regions filters",
+
+			ctx: context.Background(),
+			cfg: config{
+				Projects: []string{"my_project"},
+				Regions:  []string{"us-west1,europe-west1"},
+			},
+
+			httpResponses: map[string]container.ListClustersResponse{
+				"my_project/us-west1,europe-west1": container.ListClustersResponse{
+					Clusters: []*container.Cluster{
+						&container.Cluster{
+							Id:      "2",
+							Zone:    "https://www.googleapis.com/compute/v1/projects/my_project/zones/us-west1-b",
+							Network: "my_network",
+							Status:  "RUNNING",
+						},
+						&container.Cluster{
+							Id:      "1",
+							Zone:    "https://www.googleapis.com/compute/v1/projects/my_project/zones/europe-west1-d",
+							Network: "my_network",
+							Status:  "RUNNING",
+						},
+					},
+				},
+			},
+
+			expectedClusters: []containerCluster{
+				containerCluster{
+					ID:      "2",
+					Region:  "us-west1",
+					Account: "my_project",
+					VPC:     "my_network",
+					Metadata: mapstr.M{
+						"state": "RUNNING",
+					},
+				},
+				containerCluster{
+					ID:      "1",
+					Region:  "europe-west1",
 					Account: "my_project",
 					VPC:     "my_network",
 					Metadata: mapstr.M{
