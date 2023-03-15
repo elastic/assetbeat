@@ -26,19 +26,17 @@ import (
 	"time"
 
 	"github.com/elastic/inputrunner/input/assets/gcp"
+	"github.com/elastic/inputrunner/input/testutil"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	v2 "github.com/elastic/inputrunner/input/v2"
-	"github.com/elastic/inputrunner/mocks"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAssetsGCP_Run_startsAndStopsTheInput(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	publisher := mocks.NewMockPublisher(ctrl)
+	publisher := testutil.NewInMemoryPublisher()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	inputCtx := v2.Context{

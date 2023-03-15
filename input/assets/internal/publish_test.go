@@ -22,8 +22,8 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/mapstr"
-	"github.com/elastic/inputrunner/mocks"
-	"github.com/golang/mock/gomock"
+	"github.com/elastic/inputrunner/input/testutil"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPublish(t *testing.T) {
@@ -116,11 +116,11 @@ func TestPublish(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			ctrl := gomock.NewController(t)
-			publisher := mocks.NewMockPublisher(ctrl)
-			publisher.EXPECT().Publish(tt.expectedEvent)
+			publisher := testutil.NewInMemoryPublisher()
 
 			Publish(publisher, tt.opts...)
+			assert.Equal(t, 1, len(publisher.Events))
+			assert.Equal(t, tt.expectedEvent, publisher.Events[0])
 		})
 	}
 }

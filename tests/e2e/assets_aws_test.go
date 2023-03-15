@@ -21,23 +21,22 @@ package e2e
 
 import (
 	"context"
-	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/elastic/inputrunner/input/testutil"
+	v2 "github.com/elastic/inputrunner/input/v2"
+	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
+
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/inputrunner/input/assets/aws"
-	"github.com/elastic/inputrunner/input/v2"
-	"github.com/elastic/inputrunner/mocks"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAssetsAWS_Run_startsAndStopsTheInput(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	publisher := mocks.NewMockPublisher(ctrl)
+	publisher := testutil.NewInMemoryPublisher()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	inputCtx := v2.Context{

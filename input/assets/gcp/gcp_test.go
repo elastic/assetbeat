@@ -24,9 +24,8 @@ import (
 	"time"
 
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/inputrunner/input/testutil"
 	v2 "github.com/elastic/inputrunner/input/v2"
-	"github.com/elastic/inputrunner/mocks"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/api/option"
 )
@@ -38,8 +37,7 @@ func TestPlugin(t *testing.T) {
 }
 
 func TestAssetsGCP_Run(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	publisher := mocks.NewMockPublisher(ctrl)
+	publisher := testutil.NewInMemoryPublisher()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	inputCtx := v2.Context{
@@ -75,8 +73,7 @@ func TestAssetsGCP_Run(t *testing.T) {
 }
 
 func TestAssetsGCP_CollectAll(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	publisher := mocks.NewMockPublisher(ctrl)
+	publisher := testutil.NewInMemoryPublisher()
 
 	ctx := context.Background()
 	logger := logp.NewLogger("test")
