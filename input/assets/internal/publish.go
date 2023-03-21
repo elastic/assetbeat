@@ -95,3 +95,12 @@ func WithAssetMetadata(value mapstr.M) AssetOption {
 		return e
 	}
 }
+
+func WithAssetKubernetesInfo(assetSpecificMap map[string]interface{}) AssetOption {
+	return func(e beat.Event) beat.Event {
+		for k, v := range assetSpecificMap {
+			e.Fields[k] = v
+		}
+		return e
+	}
+}

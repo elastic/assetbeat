@@ -22,15 +22,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/elastic/inputrunner/input/assets"
+	"github.com/elastic/inputrunner/input/assets/internal"
 	input "github.com/elastic/inputrunner/input/v2"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 
-	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/feature"
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/go-concert/ctxtool"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -63,14 +61,14 @@ func newAssetsK8s(cfg config) (*assetsK8s, error) {
 }
 
 type config struct {
-	assets.BaseConfig `config:",inline"`
-	KubeConfig        string        `config:"kube_config"`
-	Period            time.Duration `config:"period"`
+	internal.BaseConfig `config:",inline"`
+	KubeConfig          string        `config:"kube_config"`
+	Period              time.Duration `config:"period"`
 }
 
 func defaultConfig() config {
 	return config{
-		BaseConfig: assets.BaseConfig{
+		BaseConfig: internal.BaseConfig{
 			Period:     time.Second * 600,
 			AssetTypes: nil,
 		},
@@ -141,11 +139,11 @@ func collectK8sAssets(ctx context.Context, kubeconfigPath string, log *logp.Logg
 		log.Errorf("unable to build kubernetes clientset: %w", err)
 	}
 	log.Infof("Enabled asset types are %+v", cfg.AssetTypes)
-	if assets.IsTypeEnabled(cfg.AssetTypes, "node") {
+	if internal.IsTypeEnabled(cfg.AssetTypes, "node") {
 		log.Info("Node type enabled. Starting collecting")
 		go collectK8sNodes(ctx, log, client, publisher)
 	}
-	if assets.IsTypeEnabled(cfg.AssetTypes, "pod") {
+	if internal.IsTypeEnabled(cfg.AssetTypes, "pod") {
 		log.Info("Pod type enabled. Starting collecting")
 		go collectK8sPods(ctx, log, client, publisher)
 	}
@@ -167,15 +165,18 @@ func collectK8sNodes(ctx context.Context, log *logp.Logger, client kubernetes.In
 		assetId := string(node.ObjectMeta.UID)
 		assetStartTime := node.ObjectMeta.CreationTimestamp.Time
 		assetParents := []string{}
-		assetChildren := []string{}
 
-		assetSpecificMap := map[string]interface{}{
+		assetNodeMap := map[string]interface{}{
 			"kubernetes.node.name":       node.Name,
 			"kubernetes.node.providerId": assetProviderId,
 			"kubernetes.node.start_time": assetStartTime,
 		}
 		log.Info("Publishing nodes assets\n")
-		publishK8sAsset(node.Name, "k8s.node", assetId, assetParents, assetChildren, publisher, assetSpecificMap)
+		internal.Publish(publisher,
+			internal.WithAssetTypeAndID("k8s.node", assetId),
+			internal.WithAssetParents(assetParents),
+			internal.WithAssetKubernetesInfo(assetNodeMap),
+		)
 	}
 	return nil
 }
@@ -197,45 +198,21 @@ func collectK8sPods(ctx context.Context, log *logp.Logger, client kubernetes.Int
 		node := pod.Spec.NodeName
 		nodeEan := fmt.Sprintf("%s.%s", "k8s.node", node)
 		assetParents := []string{nodeEan}
-		assetChildren := []string{}
-
-		assetSpecificMap := map[string]interface{}{
+		assetPodMap := map[string]interface{}{
 			"kubernetes.pod.name":       assetName,
 			"kubernetes.pod.uid":        assetId,
 			"kubernetes.pod.start_time": assetStartTime,
 			"kubernetes.namespace":      namespace,
 		}
 		log.Info("Publishing pod assets\n")
-		publishK8sAsset(assetName, "k8s.pod", assetId, assetParents, assetChildren, publisher, assetSpecificMap)
+		internal.Publish(publisher,
+			internal.WithAssetTypeAndID("k8s.pod", assetId),
+			internal.WithAssetParents(assetParents),
+			internal.WithAssetKubernetesInfo(assetPodMap),
+		)
 	}
 
 	return nil
-}
-
-// publishes the kubernetes assets
-func publishK8sAsset(assetName, assetType, assetId string, assetParents, assetChildren []string, publisher stateless.Publisher, assetSpecificMap map[string]interface{}) {
-
-	asset := mapstr.M{
-		"asset.name": assetName,
-		"asset.type": assetType,
-		"asset.id":   assetId,
-		"asset.ean":  fmt.Sprintf("%s.%s", assetType, assetName),
-	}
-
-	if assetParents != nil {
-		asset["asset.parents"] = assetParents
-	}
-
-	if assetChildren != nil {
-		asset["asset.children"] = assetChildren
-	}
-
-	for k, v := range assetSpecificMap {
-		asset[k] = v
-	}
-
-	publisher.Publish(beat.Event{Fields: asset})
-
 }
 
 // BuildConfig is a helper function that builds configs from a kubeconfig filepath.
