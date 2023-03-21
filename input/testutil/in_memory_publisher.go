@@ -15,25 +15,30 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package assets
+package testutil
 
-import "time"
+import (
+	"sync"
 
-type BaseConfig struct {
-	Period     time.Duration `config:"period"`
-	AssetTypes []string      `config:"asset_types"`
+	"github.com/elastic/beats/v7/libbeat/beat"
+)
+
+// InMemoryPublisher is a publisher which stores events in memory, to be used
+// in unit tests
+type InMemoryPublisher struct {
+	mu     sync.Mutex
+	Events []beat.Event
 }
 
-func IsTypeEnabled(configuredTypes []string, currentType string) bool {
-	if configuredTypes == nil || len(configuredTypes) == 0 {
-		return true
-	}
+// NewInMemoryPublisher creates a new instance of InMemoryPublisher
+func NewInMemoryPublisher() *InMemoryPublisher {
+	return &InMemoryPublisher{}
+}
 
-	for _, t := range configuredTypes {
-		if currentType == t {
-			return true
-		}
-	}
+// Publish stores a new event in memory
+func (p *InMemoryPublisher) Publish(e beat.Event) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
-	return false
+	p.Events = append(p.Events, e)
 }

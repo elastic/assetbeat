@@ -15,10 +15,15 @@
 // specific language governing permissions and limitations
 // under the License.
 
-//go:build tools
-
-package tools
+package gcp
 
 import (
-	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
+	"github.com/elastic/elastic-agent-libs/mapstr"
+	"github.com/elastic/inputrunner/input/assets/internal"
 )
+
+func WithAssetLabels(value map[string]string) internal.AssetOption {
+	return internal.WithAssetMetadata(mapstr.M{
+		"labels": value,
+	})
+}

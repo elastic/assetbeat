@@ -15,10 +15,17 @@
 // specific language governing permissions and limitations
 // under the License.
 
-//go:build tools
+package gcp
 
-package tools
+import "strings"
 
-import (
-	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
-)
+func getResourceNameFromURL(res string) string {
+	s := strings.Split(res, "/")
+	return s[len(s)-1]
+}
+
+func getRegionFromZoneURL(zone string) string {
+	z := getResourceNameFromURL(zone)
+	r := strings.Split(z, "-")
+	return strings.Join(r[:len(r)-1], "-")
+}

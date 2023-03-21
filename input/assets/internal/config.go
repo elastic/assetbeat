@@ -15,10 +15,25 @@
 // specific language governing permissions and limitations
 // under the License.
 
-//go:build tools
+package internal
 
-package tools
+import "time"
 
-import (
-	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
-)
+type BaseConfig struct {
+	Period     time.Duration `config:"period"`
+	AssetTypes []string      `config:"asset_types"`
+}
+
+func IsTypeEnabled(configuredTypes []string, currentType string) bool {
+	if len(configuredTypes) == 0 {
+		return true
+	}
+
+	for _, t := range configuredTypes {
+		if currentType == t {
+			return true
+		}
+	}
+
+	return false
+}

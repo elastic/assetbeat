@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package aws
+package gcp
 
 import (
 	"testing"
@@ -27,7 +27,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestWithAssetTags(t *testing.T) {
+func TestWithAssetLabels(t *testing.T) {
 	for _, tt := range []struct {
 		name string
 
@@ -35,30 +35,30 @@ func TestWithAssetTags(t *testing.T) {
 		expectedEvent beat.Event
 	}{
 		{
-			name: "with valid tags",
+			name: "with valid labels",
 			opts: []internal.AssetOption{
 				internal.WithAssetCloudProvider("aws"),
-				WithAssetTags(map[string]string{"tag1": "a", "tag2": "b"}),
+				WithAssetLabels(map[string]string{"label1": "a", "label2": "b"}),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
 				"cloud.provider": "aws",
 				"asset.metadata": mapstr.M{
-					"tags": map[string]string{"tag1": "a", "tag2": "b"},
+					"labels": map[string]string{"label1": "a", "label2": "b"},
 				},
 			}},
 		},
 		{
-			name: "with valid tags and metadata",
+			name: "with valid labels and metadata",
 			opts: []internal.AssetOption{
 				internal.WithAssetCloudProvider("aws"),
 				internal.WithAssetMetadata(mapstr.M{"foo": "bar"}),
-				WithAssetTags(map[string]string{"tag1": "a", "tag2": "b"}),
+				WithAssetLabels(map[string]string{"label1": "a", "label2": "b"}),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
 				"cloud.provider": "aws",
 				"asset.metadata": mapstr.M{
-					"tags": map[string]string{"tag1": "a", "tag2": "b"},
-					"foo":  "bar",
+					"labels": map[string]string{"label1": "a", "label2": "b"},
+					"foo":    "bar",
 				},
 			}},
 		},

@@ -294,7 +294,10 @@ func TestReceiveNewEventsConcurrently(t *testing.T) {
 	for w := 0; w < workers; w++ {
 		go func() {
 			conn, err := net.Dial("tcp", server.Listener.Listener.Addr().String())
-			defer conn.Close()
+			defer func() {
+				err := conn.Close()
+				assert.NoError(t, err)
+			}()
 			assert.NoError(t, err)
 			for _, sample := range samples {
 				fmt.Fprintln(conn, sample)

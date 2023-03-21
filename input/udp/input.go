@@ -18,16 +18,10 @@
 package udp
 
 import (
-	"bytes"
-	"errors"
-	"fmt"
-	"github.com/dustin/go-humanize"
 	"net"
-	"os"
-	"runtime/metrics"
-	"strconv"
-	"strings"
 	"time"
+
+	"github.com/dustin/go-humanize"
 
 	"github.com/elastic/beats/v7/libbeat/beat" // TODO: Replace with sync/atomic when go1.19 is supported.
 	"github.com/elastic/beats/v7/libbeat/feature"
@@ -35,11 +29,10 @@ import (
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 	"github.com/elastic/inputrunner/inputsource"
 	"github.com/elastic/inputrunner/inputsource/udp"
+
 	//"github.com/elastic/beats/v7/libbeat/monitoring/inputmon"
 	conf "github.com/elastic/elastic-agent-libs/config"
-	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
-	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/go-concert/ctxtool"
 )
 
@@ -102,7 +95,7 @@ func (s *server) Run(ctx input.Context, publisher stateless.Publisher) error {
 	log.Info("starting udp socket input")
 	defer log.Info("udp input stopped")
 
-	const pollInterval = time.Minute
+	//const pollInterval = time.Minute
 	/*metrics := newInputMetrics(ctx.ID, s.config.Host, uint64(s.config.ReadBuffer), pollInterval, log)
 	defer metrics.close()*/
 
@@ -142,7 +135,7 @@ func (s *server) Run(ctx input.Context, publisher stateless.Publisher) error {
 }
 
 // inputMetrics handles the input's metric reporting.
-type inputMetrics struct {
+/*type inputMetrics struct {
 	unregister func()
 	done       chan struct{}
 
@@ -160,7 +153,7 @@ type inputMetrics struct {
 
 // newInputMetrics returns an input metric for the UDP processor. If id is empty
 // a nil inputMetric is returned.
-/*func newInputMetrics(id, device string, buflen uint64, poll time.Duration, log *logp.Logger) *inputMetrics {
+func newInputMetrics(id, device string, buflen uint64, poll time.Duration, log *logp.Logger) *inputMetrics {
 	if id == "" {
 		return nil
 	}
@@ -214,7 +207,7 @@ type inputMetrics struct {
 	}
 
 	return out
-}*/
+}
 
 // log logs metric for the given packet.
 func (m *inputMetrics) log(data []byte, timestamp time.Time) {
@@ -224,9 +217,6 @@ func (m *inputMetrics) log(data []byte, timestamp time.Time) {
 	//m.processingTime.Update(time.Since(timestamp).Nanoseconds())
 	m.packets.Add(1)
 	m.bytes.Add(uint64(len(data)))
-	if !m.lastPacket.IsZero() {
-		//m.arrivalPeriod.Update(timestamp.Sub(m.lastPacket).Nanoseconds())
-	}
 	m.lastPacket = timestamp
 }
 
@@ -302,4 +292,4 @@ func (m *inputMetrics) close() {
 		m.done <- struct{}{}
 	}
 	m.unregister()
-}
+}*/

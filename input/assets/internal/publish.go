@@ -18,7 +18,6 @@
 package internal
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -30,19 +29,14 @@ type AssetOption func(beat.Event) beat.Event
 
 // Publish emits a `beat.Event` to the specified publisher, with the provided
 // parameters
-func Publish(publisher stateless.Publisher, opts ...AssetOption) error {
+func Publish(publisher stateless.Publisher, opts ...AssetOption) {
 	event := beat.Event{Fields: mapstr.M{}}
 
 	for _, o := range opts {
 		event = o(event)
 	}
 
-	if event.Fields["cloud.provider"] == nil || event.Fields["cloud.provider"] == "" {
-		return errors.New("a cloud provider name is required")
-	}
-
 	publisher.Publish(event)
-	return nil
 }
 
 func WithAssetCloudProvider(value string) AssetOption {

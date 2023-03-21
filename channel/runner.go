@@ -191,6 +191,6 @@ func newCommonConfigEditor(
 
 func setOptional(to mapstr.M, key string, value string) {
 	if value != "" {
-		to.Put(key, value)
+		_, _ = to.Put(key, value)
 	}
 }

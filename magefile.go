@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 )
 
@@ -37,15 +36,15 @@ func Build() error {
 	return sh.RunV("go", "build", ".")
 }
 
-// Check runs static analysis and security checks
-func Check() error {
+// Lint runs golangci-lint
+func Lint() error {
 	err := installTools()
 	if err != nil {
 		return err
 	}
 
-	mg.Deps(staticcheck, gosec)
-	return nil
+	fmt.Println("Running golangci-lint...")
+	return sh.RunV("./.tools/golangci-lint", "run")
 }
 
 // UnitTest runs all unit tests and writes a HTML coverage report to the build directory
@@ -109,6 +108,7 @@ func isCoveragePercentageIsAboveThreshold(coverageFile string, thresholdPercent 
 }
 
 func installTools() error {
+	fmt.Println("Installing tools...")
 	oldPath, _ := os.Getwd()
 	toolsPath := oldPath + "/internal/tools"
 	os.Chdir(toolsPath)
@@ -124,14 +124,4 @@ func installTools() error {
 	}
 
 	return sh.RunWithV(map[string]string{"GOBIN": oldPath + "/.tools"}, "go", append([]string{"install"}, strings.Fields(tools)...)...)
-}
-
-func staticcheck() error {
-	fmt.Println("Running staticcheck...")
-	return sh.RunV("./.tools/staticcheck", "-f=stylish", "./...")
-}
-
-func gosec() error {
-	fmt.Println("Running gosec...")
-	return sh.RunV("./.tools/gosec", "./...")
 }

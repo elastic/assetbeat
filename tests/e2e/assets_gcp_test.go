@@ -25,17 +25,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/inputrunner/input/assets/gcp"
 	"github.com/elastic/inputrunner/input/testutil"
-	v2 "github.com/elastic/inputrunner/input/v2"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/inputrunner/input/assets/aws"
+	v2 "github.com/elastic/inputrunner/input/v2"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAssetsAWS_Run_startsAndStopsTheInput(t *testing.T) {
+func TestAssetsGCP_Run_startsAndStopsTheInput(t *testing.T) {
 	publisher := testutil.NewInMemoryPublisher()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -44,7 +44,7 @@ func TestAssetsAWS_Run_startsAndStopsTheInput(t *testing.T) {
 		Cancelation: ctx,
 	}
 
-	input, err := aws.Plugin().Manager.(stateless.InputManager).Configure(config.NewConfig())
+	input, err := gcp.Plugin().Manager.(stateless.InputManager).Configure(config.NewConfig())
 	assert.NoError(t, err)
 
 	var wg sync.WaitGroup

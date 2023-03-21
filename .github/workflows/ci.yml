@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ env.DEFAULT_GO_VERSION }}
           cache: true
@@ -36,7 +36,7 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Set up Go
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@v4
       with:
         go-version: ${{ env.DEFAULT_GO_VERSION }}
         cache: true
@@ -53,7 +53,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ env.DEFAULT_GO_VERSION }}
           cache: true
@@ -63,13 +63,11 @@ jobs:
           path: .tools
           key: ${{ runner.os }}-tools-cache-${{ hashFiles('./internal/tools/**') }}
 
-      - name: Check
-        # right now the checker is a bit too strict...
-        continue-on-error: true
+      - name: Lint
         uses: magefile/mage-action@v2
         with:
           version: latest
-          args: check
+          args: lint
 
   unit-test:
     runs-on: ubuntu-latest
@@ -77,7 +75,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ env.DEFAULT_GO_VERSION }}
           cache: true
@@ -100,7 +98,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ env.DEFAULT_GO_VERSION }}
           cache: true

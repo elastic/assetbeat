@@ -19,6 +19,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/elastic/inputrunner/input/assets/internal"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
@@ -31,12 +32,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 )
 
-func collectVPCAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) {
+func collectVPCAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) error {
 	client := ec2.NewFromConfig(cfg)
 	vpcs, err := describeVPCs(ctx, client)
 	if err != nil {
-		log.Errorf("could not describe VPCs for %s: %v", cfg.Region, err)
-		return
+		return err
 	}
 
 	for _, vpc := range vpcs {
@@ -51,14 +51,15 @@ func collectVPCAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 			}),
 		)
 	}
+
+	return nil
 }
 
-func collectSubnetAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) {
+func collectSubnetAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) error {
 	client := ec2.NewFromConfig(cfg)
 	subnets, err := describeSubnets(ctx, client)
 	if err != nil {
-		log.Errorf("could not describe Subnets for %s: %v", cfg.Region, err)
-		return
+		return err
 	}
 
 	for _, subnet := range subnets {
@@ -73,6 +74,8 @@ func collectSubnetAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, 
 			}),
 		)
 	}
+
+	return nil
 }
 
 func describeVPCs(ctx context.Context, client *ec2.Client) ([]types.Vpc, error) {
@@ -81,7 +84,7 @@ func describeVPCs(ctx context.Context, client *ec2.Client) ([]types.Vpc, error) 
 	for paginator.HasMorePages() {
 		resp, err := paginator.NextPage(ctx)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error describing VPCs: %w", err)
 		}
 
 		vpcs = append(vpcs, resp.Vpcs...)
@@ -96,7 +99,7 @@ func describeSubnets(ctx context.Context, client *ec2.Client) ([]types.Subnet, e
 	for paginator.HasMorePages() {
 		resp, err := paginator.NextPage(ctx)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error describing subnets: %w", err)
 		}
 
 		subnets = append(subnets, resp.Subnets...)

@@ -33,12 +33,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 )
 
-func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) {
+func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) error {
 	client := eks.NewFromConfig(cfg)
 	clusters, err := listEKSClusters(ctx, client)
 	if err != nil {
-		log.Errorf("could not list EKS clusters for %s: %v", cfg.Region, err)
-		return
+		return err
 	}
 
 	for _, clusterDetail := range describeEKSClusters(log, ctx, clusters, client) {
@@ -62,6 +61,8 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 			)
 		}
 	}
+
+	return nil
 }
 
 func describeEKSClusters(log *logp.Logger, ctx context.Context, clusters []string, client *eks.Client) []*types.Cluster {

@@ -18,13 +18,11 @@
 package internal
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/mapstr"
-	"github.com/elastic/inputrunner/mocks"
-	"github.com/golang/mock/gomock"
+	"github.com/elastic/inputrunner/input/testutil"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,18 +32,10 @@ func TestPublish(t *testing.T) {
 
 		opts          []AssetOption
 		expectedEvent beat.Event
-		expectedError error
 	}{
 		{
 			name:          "with no options",
-			expectedError: errors.New("a cloud provider name is required"),
-		},
-		{
-			name: "with an empty cloud provider name",
-			opts: []AssetOption{
-				WithAssetCloudProvider(""),
-			},
-			expectedError: errors.New("a cloud provider name is required"),
+			expectedEvent: beat.Event{Fields: mapstr.M{}},
 		},
 		{
 			name: "with a valid cloud provider name",
@@ -126,20 +116,11 @@ func TestPublish(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			ctrl := gomock.NewController(t)
-			publisher := mocks.NewMockPublisher(ctrl)
+			publisher := testutil.NewInMemoryPublisher()
 
-			if tt.expectedError == nil {
-				publisher.EXPECT().Publish(tt.expectedEvent)
-			}
-
-			err := Publish(publisher, tt.opts...)
-
-			if tt.expectedError != nil {
-				assert.Equal(t, tt.expectedError, err)
-			} else {
-				assert.NoError(t, err)
-			}
+			Publish(publisher, tt.opts...)
+			assert.Equal(t, 1, len(publisher.Events))
+			assert.Equal(t, tt.expectedEvent, publisher.Events[0])
 		})
 	}
 }

@@ -15,32 +15,28 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package inputs
+package testutil
 
 import (
+	"testing"
+
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/inputrunner/beater"
-	"github.com/elastic/inputrunner/input/assets/aws"
-	"github.com/elastic/inputrunner/input/assets/gcp"
-	"github.com/elastic/inputrunner/input/assets/k8s"
-	"github.com/elastic/inputrunner/input/exec"
-	"github.com/elastic/inputrunner/input/udp"
-	"github.com/elastic/inputrunner/input/unix"
-	v2 "github.com/elastic/inputrunner/input/v2"
+	"github.com/elastic/elastic-agent-libs/mapstr"
+	"github.com/stretchr/testify/assert"
 )
 
-func Init(info beat.Info, log *logp.Logger, components beater.StateStore) []v2.Plugin {
-	return genericInputs(log, components)
-}
+func TestInMemoryPublisher(t *testing.T) {
+	p := NewInMemoryPublisher()
 
-func genericInputs(log *logp.Logger, components beater.StateStore) []v2.Plugin {
-	return []v2.Plugin{
-		aws.Plugin(),
-		k8s.Plugin(),
-		gcp.Plugin(),
-		exec.Plugin(),
-		udp.Plugin(),
-		unix.Plugin(),
-	}
+	event := beat.Event{Fields: mapstr.M{
+		"hello": "world",
+	}}
+
+	assert.Equal(t, 0, len(p.Events))
+	p.Publish(event)
+	assert.Equal(t, 1, len(p.Events))
+	assert.Equal(t, event, p.Events[0])
+
+	p.Publish(event)
+	assert.Equal(t, 2, len(p.Events))
 }
