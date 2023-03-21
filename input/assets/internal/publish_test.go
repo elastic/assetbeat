@@ -18,13 +18,16 @@
 package internal
 
 import (
-	"testing"
-
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/inputrunner/input/testutil"
 	"github.com/stretchr/testify/assert"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"testing"
+	"time"
 )
+
+var startTime = metav1.Time{Time: time.Date(2021, 8, 15, 14, 30, 45, 100, time.Local)}
 
 func TestPublish(t *testing.T) {
 	for _, tt := range []struct {
@@ -112,6 +115,29 @@ func TestPublish(t *testing.T) {
 			expectedEvent: beat.Event{Fields: mapstr.M{
 				"cloud.provider": "aws",
 				"asset.metadata": mapstr.M{"foo": "bar"},
+			}},
+		},
+		{
+			name: "with valid node data",
+			opts: []AssetOption{
+				WithNodeData("ip-172-31-29-242.us-east-2.compute.internal", "aws:///us-east-2b/i-0699b78f46f0fa248", &startTime),
+			},
+			expectedEvent: beat.Event{Fields: mapstr.M{
+				"kubernetes.node.name":       "ip-172-31-29-242.us-east-2.compute.internal",
+				"kubernetes.node.providerId": "aws:///us-east-2b/i-0699b78f46f0fa248",
+				"kubernetes.node.start_time": &startTime,
+			}},
+		},
+		{
+			name: "with valid pod data",
+			opts: []AssetOption{
+				WithPodData("nginx", "a375d24b-fa20-4ea6-a0ee-1d38671d2c09", "default", &startTime),
+			},
+			expectedEvent: beat.Event{Fields: mapstr.M{
+				"kubernetes.pod.name":       "nginx",
+				"kubernetes.pod.uid":        "a375d24b-fa20-4ea6-a0ee-1d38671d2c09",
+				"kubernetes.pod.start_time": &startTime,
+				"kubernetes.namespace":      "default",
 			}},
 		},
 	} {

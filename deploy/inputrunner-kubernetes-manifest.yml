@@ -48,8 +48,6 @@ spec:
       containers:
          - name: inputrunner
            image: michaelkatsoulis/inputrunner:latest 
-         #   imagePullPolicy: Never
-         #   command: ['sleep 3600']
            env:
                   # The basic authentication username used to connect to Elasticsearch
                   # This user needs the privileges required to publish events to Elasticsearch.
@@ -57,13 +55,13 @@ spec:
                     value: "elastic"
                   # The basic authentication password used to connect to Elasticsearch
                   - name: ELASTICSEARCH_PASSWORD
-                    value: "OzZGqri8fWfSwZrV5Ht5VtYn"
+                    value: "changeme"
                   # The Elasticsearch host to communicate with
                   - name: ELASTICSEARCH_HOST
-                    value: "https://snapshot-fd497c.es.us-west2.gcp.elastic-cloud.com"
+                    value: "elasticsearch"
                   # The Elasticsearch port to communicate with
                   - name: ELASTICSEARCH_PORT
-                    value: "443"
+                    value: "9200"
            volumeMounts:
                   - name: config
                     mountPath: /usr/share/inputrunner/inputrunner.yml

@@ -163,19 +163,14 @@ func collectK8sNodes(ctx context.Context, log *logp.Logger, client kubernetes.In
 	for _, node := range nodes.Items {
 		assetProviderId := node.Spec.ProviderID
 		assetId := string(node.ObjectMeta.UID)
-		assetStartTime := node.ObjectMeta.CreationTimestamp.Time
+		assetStartTime := node.ObjectMeta.CreationTimestamp
 		assetParents := []string{}
 
-		assetNodeMap := map[string]interface{}{
-			"kubernetes.node.name":       node.Name,
-			"kubernetes.node.providerId": assetProviderId,
-			"kubernetes.node.start_time": assetStartTime,
-		}
 		log.Info("Publishing nodes assets\n")
 		internal.Publish(publisher,
 			internal.WithAssetTypeAndID("k8s.node", assetId),
 			internal.WithAssetParents(assetParents),
-			internal.WithAssetKubernetesInfo(assetNodeMap),
+			internal.WithNodeData(node.Name, assetProviderId, &assetStartTime),
 		)
 	}
 	return nil
@@ -198,17 +193,12 @@ func collectK8sPods(ctx context.Context, log *logp.Logger, client kubernetes.Int
 		node := pod.Spec.NodeName
 		nodeEan := fmt.Sprintf("%s.%s", "k8s.node", node)
 		assetParents := []string{nodeEan}
-		assetPodMap := map[string]interface{}{
-			"kubernetes.pod.name":       assetName,
-			"kubernetes.pod.uid":        assetId,
-			"kubernetes.pod.start_time": assetStartTime,
-			"kubernetes.namespace":      namespace,
-		}
+
 		log.Info("Publishing pod assets\n")
 		internal.Publish(publisher,
 			internal.WithAssetTypeAndID("k8s.pod", assetId),
 			internal.WithAssetParents(assetParents),
-			internal.WithAssetKubernetesInfo(assetPodMap),
+			internal.WithPodData(assetName, assetId, namespace, assetStartTime),
 		)
 	}
 

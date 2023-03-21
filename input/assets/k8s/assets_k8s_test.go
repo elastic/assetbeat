@@ -19,25 +19,28 @@ package k8s
 
 import (
 	"testing"
+	"time"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/inputrunner/input/assets/internal"
 	"github.com/elastic/inputrunner/input/testutil"
 	"github.com/stretchr/testify/assert"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestPublishK8sAsset(t *testing.T) {
+var startTime = metav1.Time{Time: time.Date(2021, 8, 15, 14, 30, 45, 100, time.Local)}
+
+func TestPublishK8sPodAsset(t *testing.T) {
 	for _, tt := range []struct {
 		name  string
 		event beat.Event
 
-		assetName        string
-		assetType        string
-		assetID          string
-		parents          []string
-		children         []string
-		assetSpecificMap map[string]interface{}
+		assetName string
+		assetType string
+		assetID   string
+		parents   []string
+		children  []string
 	}{
 		{
 			name: "publish pod",
@@ -49,7 +52,7 @@ func TestPublishK8sAsset(t *testing.T) {
 					"asset.parents":             []string{},
 					"kubernetes.pod.name":       "foo",
 					"kubernetes.pod.uid":        "a375d24b-fa20-4ea6-a0ee-1d38671d2c09",
-					"kubernetes.pod.start_time": "2023-02-14T17:38:53+02:00",
+					"kubernetes.pod.start_time": &startTime,
 					"kubernetes.namespace":      "default",
 				},
 			},
@@ -58,13 +61,33 @@ func TestPublishK8sAsset(t *testing.T) {
 			assetType: "k8s.pod",
 			assetID:   "a375d24b-fa20-4ea6-a0ee-1d38671d2c09",
 			parents:   []string{},
-			assetSpecificMap: map[string]interface{}{
-				"kubernetes.pod.name":       "foo",
-				"kubernetes.pod.uid":        "a375d24b-fa20-4ea6-a0ee-1d38671d2c09",
-				"kubernetes.pod.start_time": "2023-02-14T17:38:53+02:00",
-				"kubernetes.namespace":      "default",
-			},
 		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			publisher := testutil.NewInMemoryPublisher()
+
+			internal.Publish(publisher,
+				internal.WithAssetTypeAndID(tt.assetType, tt.assetID),
+				internal.WithAssetParents(tt.parents),
+				internal.WithPodData(tt.assetName, tt.assetID, "default", &startTime),
+			)
+			assert.Equal(t, 1, len(publisher.Events))
+			assert.Equal(t, tt.event, publisher.Events[0])
+		})
+	}
+}
+
+func TestPublishK8sNodeAsset(t *testing.T) {
+	for _, tt := range []struct {
+		name  string
+		event beat.Event
+
+		assetName string
+		assetType string
+		assetID   string
+		parents   []string
+		children  []string
+	}{
 		{
 			name: "publish node",
 			event: beat.Event{
@@ -75,7 +98,7 @@ func TestPublishK8sAsset(t *testing.T) {
 					"asset.parents":              []string{},
 					"kubernetes.node.name":       "ip-172-31-29-242.us-east-2.compute.internal",
 					"kubernetes.node.providerId": "aws:///us-east-2b/i-0699b78f46f0fa248",
-					"kubernetes.node.start_time": "2023-02-14T17:38:53+02:00",
+					"kubernetes.node.start_time": &startTime,
 				},
 			},
 
@@ -83,11 +106,6 @@ func TestPublishK8sAsset(t *testing.T) {
 			assetType: "k8s.node",
 			assetID:   "60988eed-1885-4b63-9fa4-780206969deb",
 			parents:   []string{},
-			assetSpecificMap: map[string]interface{}{
-				"kubernetes.node.name":       "ip-172-31-29-242.us-east-2.compute.internal",
-				"kubernetes.node.providerId": "aws:///us-east-2b/i-0699b78f46f0fa248",
-				"kubernetes.node.start_time": "2023-02-14T17:38:53+02:00",
-			},
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -96,7 +114,7 @@ func TestPublishK8sAsset(t *testing.T) {
 			internal.Publish(publisher,
 				internal.WithAssetTypeAndID(tt.assetType, tt.assetID),
 				internal.WithAssetParents(tt.parents),
-				internal.WithAssetKubernetesInfo(tt.assetSpecificMap),
+				internal.WithNodeData(tt.assetName, "aws:///us-east-2b/i-0699b78f46f0fa248", &startTime),
 			)
 			assert.Equal(t, 1, len(publisher.Events))
 			assert.Equal(t, tt.event, publisher.Events[0])

@@ -23,6 +23,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type AssetOption func(beat.Event) beat.Event
@@ -96,11 +97,21 @@ func WithAssetMetadata(value mapstr.M) AssetOption {
 	}
 }
 
-func WithAssetKubernetesInfo(assetSpecificMap map[string]interface{}) AssetOption {
+func WithNodeData(name, providerId string, startTime *metav1.Time) AssetOption {
 	return func(e beat.Event) beat.Event {
-		for k, v := range assetSpecificMap {
-			e.Fields[k] = v
-		}
+		e.Fields["kubernetes.node.name"] = name
+		e.Fields["kubernetes.node.providerId"] = providerId
+		e.Fields["kubernetes.node.start_time"] = startTime
+		return e
+	}
+}
+
+func WithPodData(name, uid, namespace string, startTime *metav1.Time) AssetOption {
+	return func(e beat.Event) beat.Event {
+		e.Fields["kubernetes.pod.name"] = name
+		e.Fields["kubernetes.pod.uid"] = uid
+		e.Fields["kubernetes.pod.start_time"] = startTime
+		e.Fields["kubernetes.namespace"] = namespace
 		return e
 	}
 }
