@@ -121,12 +121,8 @@ func (s *otelInput) Run(inputCtx input.Context, publisher stateless.Publisher) e
 		return err
 	}
 
-	for {
-		select {
-		case <-ctx.Done():
-			return rcv.Shutdown(ctx)
-		}
-	}
+	<-ctx.Done()
+	return rcv.Shutdown(ctx)
 }
 
 func (s *otelInput) ReportFatalError(err error) {}
