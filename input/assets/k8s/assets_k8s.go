@@ -195,8 +195,8 @@ func collectK8sPods(ctx context.Context, log *logp.Logger, client kubernetes.Int
 		nodeId, err := getNodeIdFromName(ctx, client, nodeName)
 		assetParents := []string{}
 		if err == nil {
-			nodeEan := fmt.Sprintf("%s:%s", "k8s.node", nodeId)
-			assetParents = append(assetParents, nodeEan)
+			nodeAssetName := fmt.Sprintf("%s:%s", "k8s.node", nodeId)
+			assetParents = append(assetParents, nodeAssetName)
 		}
 
 		log.Info("Publishing pod assets\n")
