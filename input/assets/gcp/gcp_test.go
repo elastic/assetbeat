@@ -23,11 +23,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/inputrunner/input/testutil"
-	v2 "github.com/elastic/inputrunner/input/v2"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/api/option"
+
+	"github.com/elastic/elastic-agent-libs/logp"
+
+	"github.com/elastic/inputrunner/input/testutil"
 )
 
 func TestPlugin(t *testing.T) {
@@ -40,10 +41,6 @@ func TestAssetsGCP_Run(t *testing.T) {
 	publisher := testutil.NewInMemoryPublisher()
 
 	ctx, cancel := context.WithCancel(context.Background())
-	inputCtx := v2.Context{
-		Logger:      logp.NewLogger("test"),
-		Cancelation: ctx,
-	}
 
 	input, err := newAssetsGCP(defaultConfig())
 	assert.NoError(t, err)
@@ -52,7 +49,7 @@ func TestAssetsGCP_Run(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		err = input.Run(inputCtx, publisher)
+		err = input.Run(ctx, publisher)
 		assert.NoError(t, err)
 	}()
 

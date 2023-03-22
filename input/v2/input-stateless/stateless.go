@@ -18,6 +18,7 @@
 package stateless
 
 import (
+	"context"
 	"fmt"
 	"runtime/debug"
 
@@ -37,8 +38,8 @@ type InputManager struct {
 // Input is the interface transient inputs are required to implemented.
 type Input interface {
 	Name() string
-	Test(v2.TestContext) error
-	Run(ctx v2.Context, publish Publisher) error
+	Test(context.Context) error
+	Run(context.Context, Publisher) error
 }
 
 // Publisher is used by the Input to emit events.
@@ -72,7 +73,7 @@ func (m InputManager) Create(cfg *conf.C) (v2.Input, error) {
 
 func (si configuredInput) Name() string { return si.input.Name() }
 
-func (si configuredInput) Run(ctx v2.Context, pipeline beat.PipelineConnector) (err error) {
+func (si configuredInput) Run(ctx context.Context, pipeline beat.PipelineConnector) (err error) {
 	defer func() {
 		if v := recover(); v != nil {
 			if e, ok := v.(error); ok {
@@ -87,7 +88,7 @@ func (si configuredInput) Run(ctx v2.Context, pipeline beat.PipelineConnector) (
 		PublishMode: beat.DefaultGuarantees,
 
 		// configure pipeline to disconnect input on stop signal.
-		CloseRef: ctx.Cancelation,
+		CloseRef: ctx,
 	})
 	if err != nil {
 		return err
@@ -97,6 +98,6 @@ func (si configuredInput) Run(ctx v2.Context, pipeline beat.PipelineConnector) (
 	return si.input.Run(ctx, client)
 }
 
-func (si configuredInput) Test(ctx v2.TestContext) error {
+func (si configuredInput) Test(ctx context.Context) error {
 	return si.input.Test(ctx)
 }

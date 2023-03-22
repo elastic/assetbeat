@@ -18,6 +18,7 @@
 package udp
 
 import (
+	"context"
 	"net"
 	"time"
 
@@ -25,6 +26,7 @@ import (
 
 	"github.com/elastic/beats/v7/libbeat/beat" // TODO: Replace with sync/atomic when go1.19 is supported.
 	"github.com/elastic/beats/v7/libbeat/feature"
+	iContext "github.com/elastic/inputrunner/input/internal/context"
 	input "github.com/elastic/inputrunner/input/v2"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 	"github.com/elastic/inputrunner/inputsource"
@@ -80,7 +82,7 @@ func newServer(config config) (*server, error) {
 
 func (s *server) Name() string { return "udp" }
 
-func (s *server) Test(_ input.TestContext) error {
+func (s *server) Test(_ context.Context) error {
 	l, err := net.Listen("udp", s.config.Config.Host)
 	if err != nil {
 		return err
@@ -88,8 +90,8 @@ func (s *server) Test(_ input.TestContext) error {
 	return l.Close()
 }
 
-func (s *server) Run(ctx input.Context, publisher stateless.Publisher) error {
-	log := ctx.Logger.With("host", s.config.Config.Host)
+func (s *server) Run(ctx context.Context, publisher stateless.Publisher) error {
+	log := iContext.Logger(ctx).With("host", s.config.Config.Host)
 
 	log.Info("AAAAA")
 	log.Info("starting udp socket input")
@@ -126,9 +128,9 @@ func (s *server) Run(ctx input.Context, publisher stateless.Publisher) error {
 
 	log.Debug("udp input initialized")
 
-	err := server.Run(ctxtool.FromCanceller(ctx.Cancelation))
+	err := server.Run(ctxtool.FromCanceller(ctx))
 	// Ignore error from 'Run' in case shutdown was signaled.
-	if ctxerr := ctx.Cancelation.Err(); ctxerr != nil {
+	if ctxerr := ctx.Err(); ctxerr != nil {
 		err = ctxerr
 	}
 	return err

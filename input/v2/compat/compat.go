@@ -32,6 +32,8 @@ import (
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/go-concert/ctxtool"
+
+	iContext "github.com/elastic/inputrunner/input/internal/context"
 	v2 "github.com/elastic/inputrunner/input/v2"
 )
 
@@ -111,15 +113,10 @@ func (r *runner) Start() {
 	go func() {
 		defer r.wg.Done()
 		log.Infof("Input '%s' starting", name)
-		err := r.input.Run(
-			v2.Context{
-				ID:          r.id,
-				Agent:       *r.agent,
-				Logger:      log,
-				Cancelation: r.sig,
-			},
-			r.connector,
-		)
+		ctx := iContext.WithLogger(r.sig, log)
+		ctx = iContext.WithID(ctx, r.id)
+
+		err := r.input.Run(ctx, r.connector)
 		if err != nil {
 			log.Errorf("Input '%s' failed with: %+v", name, err)
 		} else {

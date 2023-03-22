@@ -18,14 +18,17 @@
 package exec
 
 import (
+	"context"
+	execOS "os/exec"
+	"strings"
+
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/feature"
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/mapstr"
+	iContext "github.com/elastic/inputrunner/input/internal/context"
 	input "github.com/elastic/inputrunner/input/v2"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
-	execOS "os/exec"
-	"strings"
 )
 
 func Plugin() input.Plugin {
@@ -75,15 +78,15 @@ type config struct {
 
 func (s *execCmd) Name() string { return "exec" }
 
-func (s *execCmd) Test(_ input.TestContext) error {
+func (s *execCmd) Test(_ context.Context) error {
 	return nil
 }
 
-func (s *execCmd) Run(ctx input.Context, publisher stateless.Publisher) error {
+func (s *execCmd) Run(ctx context.Context, publisher stateless.Publisher) error {
 
 	cmd := s.config.Config.Cmd
 	args := s.config.Config.Args
-	log := ctx.Logger.With("exec")
+	log := iContext.Logger(ctx).With("exec")
 
 	log.Info("exec run started")
 	defer log.Info("exec run stopped")

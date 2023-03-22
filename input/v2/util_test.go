@@ -18,6 +18,7 @@
 package v2
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -33,8 +34,8 @@ type fakeInputManager struct {
 
 type fakeInput struct {
 	Type   string
-	OnTest func(TestContext) error
-	OnRun  func(Context, beat.PipelineConnector) error
+	OnTest func(context.Context) error
+	OnRun  func(context.Context, beat.PipelineConnector) error
 }
 
 func makeConfigFakeInput(prototype fakeInput) func(*conf.C) (Input, error) {
@@ -59,14 +60,14 @@ func (m *fakeInputManager) Create(cfg *conf.C) (Input, error) {
 }
 
 func (f *fakeInput) Name() string { return f.Type }
-func (f *fakeInput) Test(ctx TestContext) error {
+func (f *fakeInput) Test(ctx context.Context) error {
 	if f.OnTest != nil {
 		return f.OnTest(ctx)
 	}
 	return nil
 }
 
-func (f *fakeInput) Run(ctx Context, pipeline beat.PipelineConnector) error {
+func (f *fakeInput) Run(ctx context.Context, pipeline beat.PipelineConnector) error {
 	if f.OnRun != nil {
 		return f.OnRun(ctx, pipeline)
 	}

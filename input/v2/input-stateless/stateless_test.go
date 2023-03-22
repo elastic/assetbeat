@@ -36,8 +36,8 @@ import (
 )
 
 type fakeStatelessInput struct {
-	OnTest func(v2.TestContext) error
-	OnRun  func(v2.Context, stateless.Publisher) error
+	OnTest func(context.Context) error
+	OnRun  func(context.Context, stateless.Publisher) error
 }
 
 func TestStateless_Run(t *testing.T) {
@@ -48,7 +48,7 @@ func TestStateless_Run(t *testing.T) {
 		connector := pubtest.ConstClient(pubtest.ChClient(ch))
 
 		input := createConfiguredInput(t, constInputManager(&fakeStatelessInput{
-			OnRun: func(ctx v2.Context, publisher stateless.Publisher) error {
+			OnRun: func(ctx context.Context, publisher stateless.Publisher) error {
 				defer close(ch)
 				for i := 0; i < numEvents; i++ {
 					publisher.Publish(beat.Event{Fields: map[string]interface{}{"id": i}})
@@ -62,7 +62,7 @@ func TestStateless_Run(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			err = input.Run(v2.Context{}, connector)
+			err = input.Run(context.Background(), connector)
 		}()
 
 		var receivedEvents int
@@ -77,13 +77,13 @@ func TestStateless_Run(t *testing.T) {
 
 	t.Run("capture panic and return error", func(t *testing.T) {
 		input := createConfiguredInput(t, constInputManager(&fakeStatelessInput{
-			OnRun: func(_ v2.Context, _ stateless.Publisher) error {
+			OnRun: func(_ context.Context, _ stateless.Publisher) error {
 				panic("oops")
 			},
 		}), nil)
 
 		var clientCounters pubtest.ClientCounter
-		err := input.Run(v2.Context{}, clientCounters.BuildConnector())
+		err := input.Run(context.Background(), clientCounters.BuildConnector())
 
 		require.Error(t, err)
 		require.Equal(t, 1, clientCounters.Total())
@@ -94,8 +94,8 @@ func TestStateless_Run(t *testing.T) {
 		// the input blocks in the publisher. We loop until the shutdown signal is received
 		var started atomic.Bool
 		input := createConfiguredInput(t, constInputManager(&fakeStatelessInput{
-			OnRun: func(ctx v2.Context, publisher stateless.Publisher) error {
-				for ctx.Cancelation.Err() == nil {
+			OnRun: func(ctx context.Context, publisher stateless.Publisher) error {
+				for ctx.Err() == nil {
 					started.Store(true)
 					publisher.Publish(beat.Event{
 						Fields: mapstr.M{
@@ -103,7 +103,7 @@ func TestStateless_Run(t *testing.T) {
 						},
 					})
 				}
-				return ctx.Cancelation.Err()
+				return ctx.Err()
 			},
 		}), nil)
 
@@ -128,7 +128,7 @@ func TestStateless_Run(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			err = input.Run(v2.Context{Cancelation: ctx}, connector)
+			err = input.Run(ctx, connector)
 		}()
 
 		// signal and wait for shutdown
@@ -149,13 +149,13 @@ func TestStateless_Run(t *testing.T) {
 
 		var run atomic.Int
 		input := createConfiguredInput(t, constInputManager(&fakeStatelessInput{
-			OnRun: func(_ v2.Context, publisher stateless.Publisher) error {
+			OnRun: func(_ context.Context, publisher stateless.Publisher) error {
 				run.Inc()
 				return nil
 			},
 		}), nil)
 
-		err := input.Run(v2.Context{}, connector)
+		err := input.Run(context.Background(), connector)
 		require.True(t, errors.Is(err, errOpps))
 		require.Equal(t, 0, run.Load())
 	})
@@ -163,14 +163,14 @@ func TestStateless_Run(t *testing.T) {
 
 func (f *fakeStatelessInput) Name() string { return "test" }
 
-func (f *fakeStatelessInput) Test(ctx v2.TestContext) error {
+func (f *fakeStatelessInput) Test(ctx context.Context) error {
 	if f.OnTest != nil {
 		return f.OnTest(ctx)
 	}
 	return nil
 }
 
-func (f *fakeStatelessInput) Run(ctx v2.Context, publish stateless.Publisher) error {
+func (f *fakeStatelessInput) Run(ctx context.Context, publish stateless.Publisher) error {
 	if f.OnRun != nil {
 		return f.OnRun(ctx, publish)
 	}

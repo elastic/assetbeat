@@ -18,6 +18,7 @@
 package compat
 
 import (
+	"context"
 	"sync"
 	"testing"
 
@@ -42,8 +43,8 @@ func TestRunnerFactory_CheckConfig(t *testing.T) {
 			OnConfigure: func(_ *conf.C) (v2.Input, error) {
 				countConfigure++
 				return &inputest.MockInput{
-					OnTest: func(_ v2.TestContext) error { countTest++; return nil },
-					OnRun:  func(_ v2.Context, _ beat.PipelineConnector) error { countRun++; return nil },
+					OnTest: func(_ context.Context) error { countTest++; return nil },
+					OnRun:  func(_ context.Context, _ beat.PipelineConnector) error { countRun++; return nil },
 				}, nil
 			},
 		})
@@ -82,10 +83,10 @@ func TestRunnerFactory_CreateAndRun(t *testing.T) {
 		var countRun int
 		var wg sync.WaitGroup
 		plugins := inputest.SinglePlugin("test", inputest.ConstInputManager(&inputest.MockInput{
-			OnRun: func(ctx v2.Context, _ beat.PipelineConnector) error {
+			OnRun: func(ctx context.Context, _ beat.PipelineConnector) error {
 				defer wg.Done()
 				countRun++
-				<-ctx.Cancelation.Done()
+				<-ctx.Done()
 				return nil
 			},
 		}))

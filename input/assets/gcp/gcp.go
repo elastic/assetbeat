@@ -21,8 +21,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/elastic/go-concert/ctxtool"
 	"github.com/elastic/inputrunner/input/assets/internal"
+	iContext "github.com/elastic/inputrunner/input/internal/context"
 	input "github.com/elastic/inputrunner/input/v2"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 
@@ -76,13 +76,12 @@ type assetsGCP struct {
 
 func (s *assetsGCP) Name() string { return "assets_gcp" }
 
-func (s *assetsGCP) Test(_ input.TestContext) error {
+func (s *assetsGCP) Test(_ context.Context) error {
 	return nil
 }
 
-func (s *assetsGCP) Run(inputCtx input.Context, publisher stateless.Publisher) error {
-	ctx := ctxtool.FromCanceller(inputCtx.Cancelation)
-	log := inputCtx.Logger.With("assets_gcp")
+func (s *assetsGCP) Run(ctx context.Context, publisher stateless.Publisher) error {
+	log := iContext.Logger(ctx).With("assets_gcp")
 
 	log.Info("gcp asset collector run started")
 	defer log.Info("gcp asset collector run stopped")

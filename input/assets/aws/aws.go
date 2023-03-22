@@ -22,13 +22,13 @@ import (
 	"time"
 
 	"github.com/elastic/inputrunner/input/assets/internal"
+	iContext "github.com/elastic/inputrunner/input/internal/context"
 	input "github.com/elastic/inputrunner/input/v2"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 
 	"github.com/elastic/beats/v7/libbeat/feature"
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/go-concert/ctxtool"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
@@ -85,13 +85,12 @@ type assetsAWS struct {
 
 func (s *assetsAWS) Name() string { return "assets_aws" }
 
-func (s *assetsAWS) Test(_ input.TestContext) error {
+func (s *assetsAWS) Test(_ context.Context) error {
 	return nil
 }
 
-func (s *assetsAWS) Run(inputCtx input.Context, publisher stateless.Publisher) error {
-	ctx := ctxtool.FromCanceller(inputCtx.Cancelation)
-	log := inputCtx.Logger.With("assets_aws")
+func (s *assetsAWS) Run(ctx context.Context, publisher stateless.Publisher) error {
+	log := iContext.Logger(ctx).With("assets_aws")
 
 	log.Info("aws asset collector run started")
 	defer log.Info("aws asset collector run stopped")

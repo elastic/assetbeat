@@ -18,9 +18,10 @@
 package v2
 
 import (
+	"context"
+
 	"github.com/elastic/beats/v7/libbeat/beat"
 	conf "github.com/elastic/elastic-agent-libs/config"
-	"github.com/elastic/elastic-agent-libs/logp"
 
 	"github.com/elastic/go-concert/unison"
 )
@@ -68,46 +69,9 @@ type Input interface {
 	// Test checks the configuaration and runs additional checks if the Input can
 	// actually collect data for the given configuration (e.g. check if host/port or files are
 	// accessible).
-	Test(TestContext) error
+	Test(context.Context) error
 
 	// Run starts the data collection. Run must return an error only if the
 	// error is fatal making it impossible for the input to recover.
-	Run(Context, beat.PipelineConnector) error
-}
-
-// Context provides the Input Run function with common environmental
-// information and services.
-type Context struct {
-	// Logger provides a structured logger to inputs. The logger is initialized
-	// with labels that will identify logs for the input.
-	Logger *logp.Logger
-
-	// The input ID.
-	ID string
-
-	// Agent provides additional Beat info like instance ID or beat name.
-	Agent beat.Info
-
-	// Cancelation is used by Beats to signal the input to shutdown.
-	Cancelation Canceler
-}
-
-// TestContext provides the Input Test function with common environmental
-// information and services.
-type TestContext struct {
-	// Logger provides a structured logger to inputs. The logger is initialized
-	// with labels that will identify logs for the input.
-	Logger *logp.Logger
-
-	// Agent provides additional Beat info like instance ID or beat name.
-	Agent beat.Info
-
-	// Cancelation is used by Beats to signal the input to shutdown.
-	Cancelation Canceler
-}
-
-// Canceler is used to provide shutdown handling to the Context.
-type Canceler interface {
-	Done() <-chan struct{}
-	Err() error
+	Run(context.Context, beat.PipelineConnector) error
 }

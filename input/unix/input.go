@@ -18,6 +18,7 @@
 package unix
 
 import (
+	"context"
 	"net"
 	"time"
 
@@ -26,6 +27,7 @@ import (
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/go-concert/ctxtool"
+	iContext "github.com/elastic/inputrunner/input/internal/context"
 	input "github.com/elastic/inputrunner/input/v2"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 	"github.com/elastic/inputrunner/inputsource"
@@ -62,7 +64,7 @@ func newServer(config config) (*server, error) {
 
 func (s *server) Name() string { return "unix" }
 
-func (s *server) Test(_ input.TestContext) error {
+func (s *server) Test(_ context.Context) error {
 	l, err := net.Listen("unix", s.config.Config.Path)
 	if err != nil {
 		return err
@@ -70,8 +72,8 @@ func (s *server) Test(_ input.TestContext) error {
 	return l.Close()
 }
 
-func (s *server) Run(ctx input.Context, publisher stateless.Publisher) error {
-	log := ctx.Logger.Named("input.unix").With("path", s.config.Config.Path)
+func (s *server) Run(ctx context.Context, publisher stateless.Publisher) error {
+	log := iContext.Logger(ctx).Named("input.unix").With("path", s.config.Config.Path)
 
 	log.Info("Starting Unix socket input")
 	defer log.Info("Unix socket input stopped")
@@ -86,12 +88,12 @@ func (s *server) Run(ctx input.Context, publisher stateless.Publisher) error {
 		return err
 	}
 
-	log.Debugf("%s Input '%v' initialized", s.config.Config.SocketType, ctx.ID)
+	log.Debugf("%s Input '%v' initialized", s.config.Config.SocketType, iContext.ID(ctx))
 
-	err = server.Run(ctxtool.FromCanceller(ctx.Cancelation))
+	err = server.Run(ctxtool.FromCanceller(ctx))
 
 	// ignore error from 'Run' in case shutdown was signaled.
-	if ctxerr := ctx.Cancelation.Err(); ctxerr != nil {
+	if ctxerr := ctx.Err(); ctxerr != nil {
 		err = ctxerr
 	}
 	return err

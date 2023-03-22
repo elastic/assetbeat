@@ -18,6 +18,7 @@
 package inputest
 
 import (
+	"context"
 	"errors"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
@@ -42,8 +43,8 @@ type InputConfigurer func(*conf.C) (v2.Input, error)
 // The OnTest and OnRun functions are executed if the corresponding methods get called.
 type MockInput struct {
 	Type   string
-	OnTest func(v2.TestContext) error
-	OnRun  func(v2.Context, beat.PipelineConnector) error
+	OnTest func(context.Context) error
+	OnRun  func(context.Context, beat.PipelineConnector) error
 }
 
 // Init returns nil if OnInit is not set. Otherwise the return value of OnInit is returned.
@@ -67,7 +68,7 @@ func (m *MockInputManager) Create(cfg *conf.C) (v2.Input, error) {
 func (f *MockInput) Name() string { return f.Type }
 
 // Test return nil if OnTest is not set. Otherwise OnTest will be called.
-func (f *MockInput) Test(ctx v2.TestContext) error {
+func (f *MockInput) Test(ctx context.Context) error {
 	if f.OnTest != nil {
 		return f.OnTest(ctx)
 	}
@@ -75,7 +76,7 @@ func (f *MockInput) Test(ctx v2.TestContext) error {
 }
 
 // Run returns nil if OnRun is not set.
-func (f *MockInput) Run(ctx v2.Context, pipeline beat.PipelineConnector) error {
+func (f *MockInput) Run(ctx context.Context, pipeline beat.PipelineConnector) error {
 	if f.OnRun != nil {
 		return f.OnRun(ctx, pipeline)
 	}
