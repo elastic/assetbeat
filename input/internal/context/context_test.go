@@ -22,40 +22,26 @@ package context
 
 import (
 	"context"
+	"testing"
 
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/stretchr/testify/assert"
 )
 
-type contextKeyType int
+func TestContextLogger(t *testing.T) {
+	ctx := context.Background()
 
-const (
-	IDKey contextKeyType = iota
-	loggerKey
-)
+	assert.Equal(t, logp.NewLogger("empty"), Logger(ctx))
 
-// WithLogger returns a copy of the context with a logger assigned
-func WithLogger(ctx context.Context, logger *logp.Logger) context.Context {
-	return context.WithValue(ctx, loggerKey, logger)
+	logger := logp.NewLogger("empty")
+	ctx = WithLogger(ctx, logger)
+	assert.Equal(t, logger, Logger(ctx))
 }
 
-// Logger returns the logger assigned to the context
-func Logger(ctx context.Context) *logp.Logger {
-	if l, ok := ctx.Value(loggerKey).(*logp.Logger); ok {
-		return l
-	}
-	return logp.NewLogger("empty")
-}
+func TestContextID(t *testing.T) {
+	ctx := context.Background()
 
-// WithID returns a copy of the context with the specified input ID stored
-func WithID(ctx context.Context, id string) context.Context {
-	return context.WithValue(ctx, IDKey, id)
-}
-
-// ID returns the input ID assigned to the context
-func ID(ctx context.Context) string {
-	if i, ok := ctx.Value(IDKey).(string); ok {
-		return i
-	}
-
-	return ""
+	assert.Equal(t, "", ID(ctx))
+	ctx = WithID(ctx, "test")
+	assert.Equal(t, "test", ID(ctx))
 }
