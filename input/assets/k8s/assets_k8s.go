@@ -19,6 +19,7 @@ package k8s
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -26,16 +27,22 @@ import (
 	input "github.com/elastic/inputrunner/input/v2"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 
-	"github.com/elastic/beats/v7/libbeat/feature"
+	util "github.com/elastic/elastic-agent-autodiscover/kubernetes"
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
+
+	"github.com/elastic/beats/v7/libbeat/feature"
 	"github.com/elastic/go-concert/ctxtool"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	restclient "k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
+
+type config struct {
+	internal.BaseConfig `config:",inline"`
+	KubeConfig          string        `config:"kube_config"`
+	Period              time.Duration `config:"period"`
+}
 
 func Plugin() input.Plugin {
 	return input.Plugin{
@@ -58,12 +65,6 @@ func configure(inputCfg *conf.C) (stateless.Input, error) {
 
 func newAssetsK8s(cfg config) (*assetsK8s, error) {
 	return &assetsK8s{cfg}, nil
-}
-
-type config struct {
-	internal.BaseConfig `config:",inline"`
-	KubeConfig          string        `config:"kube_config"`
-	Period              time.Duration `config:"period"`
 }
 
 func defaultConfig() config {
@@ -119,7 +120,7 @@ func (s *assetsK8s) Run(inputCtx input.Context, publisher stateless.Publisher) e
 // it parses the config file to get the config required to build a client.
 func getKubernetesClient(kubeconfigPath string, log *logp.Logger) (kubernetes.Interface, error) {
 	log.Infof("Provided kube config path is %s", kubeconfigPath)
-	cfg, err := BuildConfig(kubeconfigPath, log)
+	cfg, err := util.BuildConfig(kubeconfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build kubernetes config: %w", err)
 	}
@@ -190,9 +191,13 @@ func collectK8sPods(ctx context.Context, log *logp.Logger, client kubernetes.Int
 		assetId := string(pod.UID)
 		assetStartTime := pod.Status.StartTime
 		namespace := pod.Namespace
-		node := pod.Spec.NodeName
-		nodeEan := fmt.Sprintf("%s.%s", "k8s.node", node)
-		assetParents := []string{nodeEan}
+		nodeName := pod.Spec.NodeName
+		nodeId, err := getNodeIdFromName(ctx, client, nodeName)
+		assetParents := []string{}
+		if err == nil {
+			nodeEan := fmt.Sprintf("%s:%s", "k8s.node", nodeId)
+			assetParents = append(assetParents, nodeEan)
+		}
 
 		log.Info("Publishing pod assets\n")
 		internal.Publish(publisher,
@@ -205,21 +210,17 @@ func collectK8sPods(ctx context.Context, log *logp.Logger, client kubernetes.Int
 	return nil
 }
 
-// BuildConfig is a helper function that builds configs from a kubeconfig filepath.
-// If kubeconfigPath is not passed in we fallback to inClusterConfig.
-// If inClusterConfig fails, we fallback to the default config.
-// This is a copy of `clientcmd.BuildConfigFromFlags` of `client-go` but without the annoying
-// klog messages that are not possible to be disabled.
-func BuildConfig(kubeconfigPath string, log *logp.Logger) (*restclient.Config, error) {
-	if kubeconfigPath == "" {
-		kubeconfig, err := restclient.InClusterConfig()
-		if err == nil {
-			log.Info("Using incluster config")
-			return kubeconfig, nil
-		}
-		log.Infof("There was an error getting incluster config: %+v", err)
+func getNodeIdFromName(ctx context.Context, client kubernetes.Interface, nodeName string) (string, error) {
+	listOptions := metav1.ListOptions{
+		FieldSelector: "metadata.name=" + nodeName,
 	}
-	return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfigPath},
-		&clientcmd.ConfigOverrides{ClusterInfo: clientcmdapi.Cluster{Server: ""}}).ClientConfig()
+	nodes, err := client.CoreV1().Nodes().List(context.TODO(), listOptions)
+	if err != nil {
+		return "", err
+	}
+	for _, node := range nodes.Items {
+		return string(node.ObjectMeta.UID), nil
+	}
+	return "", errors.New("node list is empty for given node name")
+
 }
