@@ -96,16 +96,7 @@ rules:
       - pods
       - services
       - configmaps
-      # Needed for cloudbeat
-      - serviceaccounts
-      - persistentvolumes
-      - persistentvolumeclaims
     verbs: ["get", "list", "watch"]
-  # Enable this rule only if planing to use kubernetes_secrets provider
-  #- apiGroups: [""]
-  #  resources:
-  #  - secrets
-  #  verbs: ["get"]
   - apiGroups: ["extensions"]
     resources:
       - replicasets
@@ -133,23 +124,6 @@ rules:
       - "/metrics"
     verbs:
       - get
-  # Needed for cloudbeat
-  - apiGroups: ["rbac.authorization.k8s.io"]
-    resources:
-      - clusterrolebindings
-      - clusterroles
-      - rolebindings
-      - roles
-    verbs: ["get", "list", "watch"]
-  # Needed for cloudbeat
-  - apiGroups: ["policy"]
-    resources:
-      - podsecuritypolicies
-    verbs: ["get", "list", "watch"]
-  - apiGroups: [ "storage.k8s.io" ]
-    resources:
-      - storageclasses
-    verbs: [ "get", "list", "watch" ]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
