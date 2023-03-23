@@ -126,22 +126,35 @@ func installTools() error {
 	return sh.RunWithV(map[string]string{"GOBIN": oldPath + "/.tools"}, "go", append([]string{"install"}, strings.Fields(tools)...)...)
 }
 
-// Docker packages inputrunner for distribution as a docker image
-func Docker() error {
-	filePath := "build/package/inputrunner/inputrunner-linux-amd64.docker/docker-build"
-	executable := filePath + "/inputrunner"
-	if err := sh.RunV("mkdir", "-p", filePath); err != nil {
-		return err
+// Package packages inputrunner for distribution
+// Use PLATFORMS to control the target platforms. Only linux/amd64 is supported.
+// Use TYPES to control the target Type. Only Docker is supported
+func Package() error {
+
+	platform, ok := os.LookupEnv("PLATFORMS")
+	if !ok {
+		return fmt.Errorf("PLATFORMS env var is not set. Available options are %s", "linux/amd64")
 	}
-	var envMap = map[string]string{
-		"GOOS":   "linux",
-		"GOARCH": "amd64",
+	types, ok := os.LookupEnv("TYPES")
+	if !ok {
+		return fmt.Errorf("TYPES env var is not set. Available options are %s", "docker")
 	}
-	if err := sh.RunWithV(envMap, "go", "build", "-o", executable); err != nil {
-		return err
-	}
-	if err := sh.RunV("cp", "Dockerfile", filePath); err != nil {
-		return err
+	if platform == "linux/amd64" && types == "docker" {
+		filePath := "build/package/inputrunner/inputrunner-linux-amd64.docker/docker-build"
+		executable := filePath + "/inputrunner"
+		if err := sh.RunV("mkdir", "-p", filePath); err != nil {
+			return err
+		}
+		var envMap = map[string]string{
+			"GOOS":   "linux",
+			"GOARCH": "amd64",
+		}
+		if err := sh.RunWithV(envMap, "go", "build", "-o", executable); err != nil {
+			return err
+		}
+		if err := sh.RunV("cp", "Dockerfile", filePath); err != nil {
+			return err
+		}
 	}
 
 	return nil
