@@ -142,6 +142,7 @@ func Package() error {
 	if platform == "linux/amd64" && types == "docker" {
 		filePath := "build/package/inputrunner/inputrunner-linux-amd64.docker/docker-build"
 		executable := filePath + "/inputrunner"
+		dockerfile := filePath + "/Dockerfile"
 		if err := sh.RunV("mkdir", "-p", filePath); err != nil {
 			return err
 		}
@@ -152,7 +153,7 @@ func Package() error {
 		if err := sh.RunWithV(envMap, "go", "build", "-o", executable); err != nil {
 			return err
 		}
-		if err := sh.RunV("cp", "Dockerfile", filePath); err != nil {
+		if err := sh.RunV("cp", "Dockerfile.reference", dockerfile); err != nil {
 			return err
 		}
 	}
