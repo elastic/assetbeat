@@ -21,27 +21,37 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/elastic/inputrunner/input/assets/internal"
 	input "github.com/elastic/inputrunner/input/v2"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 
-	util "github.com/elastic/elastic-agent-autodiscover/kubernetes"
+	kube "github.com/elastic/elastic-agent-autodiscover/kubernetes"
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 
 	"github.com/elastic/beats/v7/libbeat/feature"
 	"github.com/elastic/go-concert/ctxtool"
 
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
+	kuberntescli "k8s.io/client-go/kubernetes"
 )
 
 type config struct {
 	internal.BaseConfig `config:",inline"`
 	KubeConfig          string        `config:"kube_config"`
 	Period              time.Duration `config:"period"`
+}
+
+type pod struct {
+	publisher stateless.Publisher
+	watcher   kube.Watcher
+	client    kuberntescli.Interface
+	logger    *logp.Logger
+	ctx       context.Context
 }
 
 func Plugin() input.Plugin {
@@ -118,14 +128,14 @@ func (s *assetsK8s) Run(inputCtx input.Context, publisher stateless.Publisher) e
 // getKubernetesClient returns a kubernetes client. If inCluster is true, it returns an
 // in cluster configuration based on the secrets mounted in the Pod. If kubeConfig is passed,
 // it parses the config file to get the config required to build a client.
-func getKubernetesClient(kubeconfigPath string, log *logp.Logger) (kubernetes.Interface, error) {
+func getKubernetesClient(kubeconfigPath string, log *logp.Logger) (kuberntescli.Interface, error) {
 	log.Infof("Provided kube config path is %s", kubeconfigPath)
-	cfg, err := util.BuildConfig(kubeconfigPath)
+	cfg, err := kube.BuildConfig(kubeconfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build kubernetes config: %w", err)
 	}
 
-	client, err := kubernetes.NewForConfig(cfg)
+	client, err := kuberntescli.NewForConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build kubernetes client: %w", err)
 	}
@@ -152,7 +162,7 @@ func collectK8sAssets(ctx context.Context, kubeconfigPath string, log *logp.Logg
 	if internal.IsTypeEnabled(cfg.AssetTypes, "pod") {
 		log.Info("Pod type enabled. Starting collecting")
 		go func() {
-			err := collectK8sPods(ctx, log, client, publisher)
+			err := watchK8sPods(ctx, log, client, publisher)
 			if err != nil {
 				log.Errorf("error collecting Pod assets: %w", err)
 			}
@@ -161,7 +171,7 @@ func collectK8sAssets(ctx context.Context, kubeconfigPath string, log *logp.Logg
 }
 
 // collect the kubernetes nodes
-func collectK8sNodes(ctx context.Context, log *logp.Logger, client kubernetes.Interface, publisher stateless.Publisher) error {
+func collectK8sNodes(ctx context.Context, log *logp.Logger, client kuberntescli.Interface, publisher stateless.Publisher) error {
 
 	// collect the nodes using the client
 	nodes, err := client.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
@@ -187,7 +197,7 @@ func collectK8sNodes(ctx context.Context, log *logp.Logger, client kubernetes.In
 	return nil
 }
 
-func collectK8sPods(ctx context.Context, log *logp.Logger, client kubernetes.Interface, publisher stateless.Publisher) error {
+func collectK8sPods(ctx context.Context, log *logp.Logger, client kuberntescli.Interface, publisher stateless.Publisher) error {
 	pods, err := client.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Errorf("Cannot list k8s pods: %w", err)
@@ -220,7 +230,7 @@ func collectK8sPods(ctx context.Context, log *logp.Logger, client kubernetes.Int
 	return nil
 }
 
-func getNodeIdFromName(ctx context.Context, client kubernetes.Interface, nodeName string) (string, error) {
+func getNodeIdFromName(ctx context.Context, client kuberntescli.Interface, nodeName string) (string, error) {
 	listOptions := metav1.ListOptions{
 		FieldSelector: "metadata.name=" + nodeName,
 	}
@@ -233,4 +243,144 @@ func getNodeIdFromName(ctx context.Context, client kubernetes.Interface, nodeNam
 	}
 	return "", errors.New("node list is empty for given node name")
 
+}
+
+func watchK8sPods(ctx context.Context, log *logp.Logger, client kuberntescli.Interface, publisher stateless.Publisher) error {
+
+	watcher, err := kube.NewNamedWatcher("pod", client, &kube.Pod{}, kube.WatchOptions{
+		SyncTimeout:  10 * time.Minute,
+		Node:         "",
+		Namespace:    "",
+		HonorReSyncs: true,
+	}, nil)
+
+	if err != nil {
+		log.Errorf("could not create kubernetes watcher %v", err)
+		return err
+	}
+
+	p := &pod{
+		publisher: publisher,
+		watcher:   watcher,
+		client:    client,
+		logger:    log,
+		ctx:       ctx,
+	}
+
+	watcher.AddEventHandler(p)
+
+	log.Infof("start watching for pods")
+	go p.Start()
+
+	return nil
+}
+
+// Start starts the eventer
+func (p *pod) Start() error {
+	return p.watcher.Start()
+}
+
+// Stop stops the eventer
+func (p *pod) Stop() {
+	p.watcher.Stop()
+}
+
+// OnUpdate handles events for pods that have been updated.
+func (p *pod) OnUpdate(obj interface{}) {
+	o := obj.(*kube.Pod)
+	p.logger.Infof("Watcher Pod update: %+v", o.Name)
+
+	// Get metadata of the object
+	accessor, err := meta.Accessor(o)
+	if err != nil {
+		return
+	}
+	meta := map[string]string{}
+	for _, ref := range accessor.GetOwnerReferences() {
+		if ref.Controller != nil && *ref.Controller {
+			switch ref.Kind {
+			// grow this list as we keep adding more `state_*` metricsets
+			case "Deployment",
+				"ReplicaSet",
+				"StatefulSet",
+				"DaemonSet",
+				"Job",
+				"CronJob":
+				meta[strings.ToLower(ref.Kind)+".name"] = ref.Name
+			}
+		}
+	}
+}
+
+// OnDelete stops pod objects that are deleted.
+func (p *pod) OnDelete(obj interface{}) {
+	o := obj.(*kube.Pod)
+	p.logger.Infof("Watcher Pod delete: %+v", o.Name)
+
+	// Get metadata of the object
+	accessor, err := meta.Accessor(o)
+	if err != nil {
+		return
+	}
+	meta := map[string]string{}
+	for _, ref := range accessor.GetOwnerReferences() {
+		if ref.Controller != nil && *ref.Controller {
+			switch ref.Kind {
+			// grow this list as we keep adding more `state_*` metricsets
+			case "Deployment",
+				"ReplicaSet",
+				"StatefulSet",
+				"DaemonSet",
+				"Job",
+				"CronJob":
+				meta[strings.ToLower(ref.Kind)+".name"] = ref.Name
+			}
+		}
+	}
+}
+
+// OnAdd ensures processing of pod objects that are newly added.
+func (p *pod) OnAdd(obj interface{}) {
+	o := obj.(*kube.Pod)
+	p.logger.Infof("Watcher Pod add: %+v", o.Name)
+
+	// Get metadata of the object
+	accessor, err := meta.Accessor(o)
+	if err != nil {
+		return
+	}
+	meta := map[string]string{}
+	for _, ref := range accessor.GetOwnerReferences() {
+		if ref.Controller != nil && *ref.Controller {
+			switch ref.Kind {
+			// grow this list as we keep adding more `state_*` metricsets
+			case "Deployment",
+				"ReplicaSet",
+				"StatefulSet",
+				"DaemonSet",
+				"Job",
+				"CronJob":
+				meta[strings.ToLower(ref.Kind)+".name"] = ref.Name
+			}
+		}
+	}
+
+	assetName := o.Name
+	assetId := string(o.UID)
+	assetStartTime := o.Status.StartTime
+	namespace := o.Namespace
+	nodeName := o.Spec.NodeName
+	nodeId, err := getNodeIdFromName(p.ctx, p.client, nodeName)
+	assetParents := []string{}
+	if err == nil {
+		nodeAssetName := fmt.Sprintf("%s:%s", "k8s.node", nodeId)
+		assetParents = append(assetParents, nodeAssetName)
+	}
+
+	p.logger.Info("Publishing pod assets\n")
+	internal.Publish(p.publisher,
+		internal.WithAssetTypeAndID("k8s.pod", assetId),
+		internal.WithAssetParents(assetParents),
+		internal.WithPodData(assetName, assetId, namespace, assetStartTime),
+	)
 }
