@@ -10,7 +10,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/eks v1.27.8
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230126132006-91d4be69ffd7
-	github.com/elastic/elastic-agent-libs v0.3.3
+	github.com/elastic/elastic-agent-autodiscover v0.5.0
+	github.com/elastic/elastic-agent-libs v0.3.4
 	github.com/elastic/go-concert v0.2.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/magefile/mage v1.14.0
@@ -20,6 +21,8 @@ require (
 	github.com/stretchr/testify v1.8.2
 	golang.org/x/net v0.8.0
 	google.golang.org/api v0.114.0
+	k8s.io/apimachinery v0.26.0
+	k8s.io/client-go v0.26.0
 )
 
 require (
@@ -50,7 +53,6 @@ require (
 	github.com/eapache/go-resiliency v1.3.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20230111030713-bf00bc1b83b6 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
-	github.com/elastic/elastic-agent-autodiscover v0.5.0 // indirect
 	github.com/elastic/elastic-agent-client/v7 v7.0.3 // indirect
 	github.com/elastic/elastic-agent-shipper-client v0.4.0 // indirect
 	github.com/elastic/elastic-agent-system-metrics v0.4.5-0.20220927192933-25a985b07d51 // indirect
@@ -164,8 +166,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	howett.net/plist v1.0.0 // indirect
 	k8s.io/api v0.26.0 // indirect
-	k8s.io/apimachinery v0.26.0 // indirect
-	k8s.io/client-go v0.26.0 // indirect
 	k8s.io/klog/v2 v2.80.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20221012153701-172d655c2280 // indirect
 	k8s.io/utils v0.0.0-20221128185143-99ec85e7a448 // indirect
