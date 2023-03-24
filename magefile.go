@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/magefile/mage/sh"
 )
@@ -129,7 +130,10 @@ func installTools() error {
 // Package packages inputrunner for distribution
 // Use PLATFORMS to control the target platforms. Only linux/amd64 is supported.
 // Use TYPES to control the target Type. Only Docker is supported
+// Example of Usage: PLATFORMS=linux/amd64 TYPES=docker mage package
 func Package() error {
+	start := time.Now()
+	defer func() { fmt.Println("package ran for", time.Since(start)) }()
 
 	platform, ok := os.LookupEnv("PLATFORMS")
 	if !ok {
@@ -139,10 +143,14 @@ func Package() error {
 	if !ok {
 		return fmt.Errorf("TYPES env var is not set. Available options are %s", "docker")
 	}
+
+	fmt.Printf("package command called for Platforms=%s and TYPES=%s\n", platform, types)
 	if platform == "linux/amd64" && types == "docker" {
 		filePath := "build/package/inputrunner/inputrunner-linux-amd64.docker/docker-build"
 		executable := filePath + "/inputrunner"
 		dockerfile := filePath + "/Dockerfile"
+
+		fmt.Printf("Creating filepath %s\n", filePath)
 		if err := sh.RunV("mkdir", "-p", filePath); err != nil {
 			return err
 		}
@@ -150,9 +158,11 @@ func Package() error {
 			"GOOS":   "linux",
 			"GOARCH": "amd64",
 		}
+		fmt.Println("Building inputrunner binary")
 		if err := sh.RunWithV(envMap, "go", "build", "-o", executable); err != nil {
 			return err
 		}
+		fmt.Println("Copying Dockerfile")
 		if err := sh.RunV("cp", "Dockerfile.reference", dockerfile); err != nil {
 			return err
 		}
