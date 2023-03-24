@@ -40,7 +40,7 @@ func collectVPCAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 	}
 
 	for _, vpc := range vpcs {
-		internal.Publish(publisher,
+		internal.Publish(publisher, "aws",
 			internal.WithAssetCloudProvider("aws"),
 			internal.WithAssetRegion(cfg.Region),
 			internal.WithAssetAccountID(*vpc.OwnerId),
@@ -63,7 +63,7 @@ func collectSubnetAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, 
 	}
 
 	for _, subnet := range subnets {
-		internal.Publish(publisher,
+		internal.Publish(publisher, "aws",
 			internal.WithAssetRegion(cfg.Region),
 			internal.WithAssetAccountID(*subnet.OwnerId),
 			internal.WithAssetTypeAndID("aws.subnet", *subnet.SubnetId),

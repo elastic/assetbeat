@@ -54,6 +54,7 @@ func collectEC2Assets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 			parents = []string{instance.SubnetID}
 		}
 		internal.Publish(publisher,
+			"aws",
 			internal.WithAssetCloudProvider("aws"),
 			internal.WithAssetRegion(cfg.Region),
 			internal.WithAssetAccountID(instance.OwnerID),

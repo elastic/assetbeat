@@ -30,13 +30,13 @@ type AssetOption func(beat.Event) beat.Event
 
 // Publish emits a `beat.Event` to the specified publisher, with the provided
 // parameters
-func Publish(publisher stateless.Publisher, opts ...AssetOption) {
-	event := beat.Event{Fields: mapstr.M{}}
-
+func Publish(publisher stateless.Publisher, dataset string, opts ...AssetOption) {
+	event := beat.Event{Fields: mapstr.M{}, Meta: mapstr.M{}}
 	for _, o := range opts {
 		event = o(event)
 	}
-
+	event.Meta["index"] = fmt.Sprintf("%s-%s-%s", "assets",
+		dataset, "default")
 	publisher.Publish(event)
 }
 
