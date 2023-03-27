@@ -33,7 +33,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 )
 
-func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) error {
+func collectEKSAssets(ctx context.Context, cfg aws.Config, dataset string, log *logp.Logger, publisher stateless.Publisher) error {
 	client := eks.NewFromConfig(cfg)
 	clusters, err := listEKSClusters(ctx, client)
 	if err != nil {
@@ -48,7 +48,7 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 			}
 
 			clusterARN, _ := arn.Parse(*clusterDetail.Arn)
-			internal.Publish(publisher, "aws",
+			internal.Publish(publisher,
 				internal.WithAssetCloudProvider("aws"),
 				internal.WithAssetRegion(cfg.Region),
 				internal.WithAssetAccountID(clusterARN.AccountID),
@@ -58,6 +58,7 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 				internal.WithAssetMetadata(mapstr.M{
 					"status": clusterDetail.Status,
 				}),
+				internal.WithIndex(dataset),
 			)
 		}
 	}

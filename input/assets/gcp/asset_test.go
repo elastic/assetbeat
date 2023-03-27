@@ -37,30 +37,32 @@ func TestWithAssetLabels(t *testing.T) {
 		{
 			name: "with valid labels",
 			opts: []internal.AssetOption{
-				internal.WithAssetCloudProvider("aws"),
+				internal.WithAssetCloudProvider("gcp"),
 				WithAssetLabels(map[string]string{"label1": "a", "label2": "b"}),
+				internal.WithIndex("gcp"),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
-				"cloud.provider": "aws",
+				"cloud.provider": "gcp",
 				"asset.metadata": mapstr.M{
 					"labels": map[string]string{"label1": "a", "label2": "b"},
 				},
-			}},
+			}, Meta: mapstr.M{"index": "assets-gcp-default"}},
 		},
 		{
 			name: "with valid labels and metadata",
 			opts: []internal.AssetOption{
-				internal.WithAssetCloudProvider("aws"),
+				internal.WithAssetCloudProvider("gcp"),
 				internal.WithAssetMetadata(mapstr.M{"foo": "bar"}),
 				WithAssetLabels(map[string]string{"label1": "a", "label2": "b"}),
+				internal.WithIndex("gcp"),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
-				"cloud.provider": "aws",
+				"cloud.provider": "gcp",
 				"asset.metadata": mapstr.M{
 					"labels": map[string]string{"label1": "a", "label2": "b"},
 					"foo":    "bar",
 				},
-			}},
+			}, Meta: mapstr.M{"index": "assets-gcp-default"}},
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {

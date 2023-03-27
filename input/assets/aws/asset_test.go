@@ -39,13 +39,14 @@ func TestWithAssetTags(t *testing.T) {
 			opts: []internal.AssetOption{
 				internal.WithAssetCloudProvider("aws"),
 				WithAssetTags(map[string]string{"tag1": "a", "tag2": "b"}),
+				internal.WithIndex("aws"),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
 				"cloud.provider": "aws",
 				"asset.metadata": mapstr.M{
 					"tags": map[string]string{"tag1": "a", "tag2": "b"},
 				},
-			}},
+			}, Meta: mapstr.M{"index": "assets-aws-default"}},
 		},
 		{
 			name: "with valid tags and metadata",
@@ -53,6 +54,7 @@ func TestWithAssetTags(t *testing.T) {
 				internal.WithAssetCloudProvider("aws"),
 				internal.WithAssetMetadata(mapstr.M{"foo": "bar"}),
 				WithAssetTags(map[string]string{"tag1": "a", "tag2": "b"}),
+				internal.WithIndex("aws"),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
 				"cloud.provider": "aws",
@@ -60,7 +62,7 @@ func TestWithAssetTags(t *testing.T) {
 					"tags": map[string]string{"tag1": "a", "tag2": "b"},
 					"foo":  "bar",
 				},
-			}},
+			}, Meta: mapstr.M{"index": "assets-aws-default"}},
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {

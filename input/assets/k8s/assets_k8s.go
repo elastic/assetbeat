@@ -82,6 +82,8 @@ type assetsK8s struct {
 	Config config
 }
 
+func (s *assetsK8s) Dataset() string { return "k8s" }
+
 func (s *assetsK8s) Name() string { return "assets_k8s" }
 
 func (s *assetsK8s) Test(_ input.TestContext) error {
@@ -97,20 +99,20 @@ func (s *assetsK8s) Run(inputCtx input.Context, publisher stateless.Publisher) e
 
 	cfg := s.Config
 	kubeConfigPath := cfg.KubeConfig
-
+	dataset := s.Dataset()
 	ticker := time.NewTicker(cfg.Period)
 	select {
 	case <-ctx.Done():
 		return nil
 	default:
-		collectK8sAssets(ctx, kubeConfigPath, log, cfg, publisher)
+		collectK8sAssets(ctx, dataset, kubeConfigPath, log, cfg, publisher)
 	}
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case <-ticker.C:
-			collectK8sAssets(ctx, kubeConfigPath, log, cfg, publisher)
+			collectK8sAssets(ctx, dataset, kubeConfigPath, log, cfg, publisher)
 		}
 	}
 }
@@ -133,7 +135,7 @@ func getKubernetesClient(kubeconfigPath string, log *logp.Logger) (kubernetes.In
 	return client, nil
 }
 
-func collectK8sAssets(ctx context.Context, kubeconfigPath string, log *logp.Logger, cfg config, publisher stateless.Publisher) {
+func collectK8sAssets(ctx context.Context, dataset string, kubeconfigPath string, log *logp.Logger, cfg config, publisher stateless.Publisher) {
 
 	client, err := getKubernetesClient(kubeconfigPath, log)
 	if err != nil {
@@ -143,7 +145,7 @@ func collectK8sAssets(ctx context.Context, kubeconfigPath string, log *logp.Logg
 	if internal.IsTypeEnabled(cfg.AssetTypes, "node") {
 		log.Info("Node type enabled. Starting collecting")
 		go func() {
-			err := collectK8sNodes(ctx, log, client, publisher)
+			err := collectK8sNodes(ctx, dataset, log, client, publisher)
 			if err != nil {
 				log.Errorf("error collecting Node assets: %w", err)
 			}
@@ -152,7 +154,7 @@ func collectK8sAssets(ctx context.Context, kubeconfigPath string, log *logp.Logg
 	if internal.IsTypeEnabled(cfg.AssetTypes, "pod") {
 		log.Info("Pod type enabled. Starting collecting")
 		go func() {
-			err := collectK8sPods(ctx, log, client, publisher)
+			err := collectK8sPods(ctx, dataset, log, client, publisher)
 			if err != nil {
 				log.Errorf("error collecting Pod assets: %w", err)
 			}
@@ -161,7 +163,7 @@ func collectK8sAssets(ctx context.Context, kubeconfigPath string, log *logp.Logg
 }
 
 // collect the kubernetes nodes
-func collectK8sNodes(ctx context.Context, log *logp.Logger, client kubernetes.Interface, publisher stateless.Publisher) error {
+func collectK8sNodes(ctx context.Context, dataset string, log *logp.Logger, client kubernetes.Interface, publisher stateless.Publisher) error {
 
 	// collect the nodes using the client
 	nodes, err := client.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
@@ -179,15 +181,17 @@ func collectK8sNodes(ctx context.Context, log *logp.Logger, client kubernetes.In
 
 		log.Info("Publishing nodes assets\n")
 		internal.Publish(publisher,
+
 			internal.WithAssetTypeAndID("k8s.node", assetId),
 			internal.WithAssetParents(assetParents),
 			internal.WithNodeData(node.Name, assetProviderId, &assetStartTime),
+			internal.WithIndex(dataset),
 		)
 	}
 	return nil
 }
 
-func collectK8sPods(ctx context.Context, log *logp.Logger, client kubernetes.Interface, publisher stateless.Publisher) error {
+func collectK8sPods(ctx context.Context, dataset string, log *logp.Logger, client kubernetes.Interface, publisher stateless.Publisher) error {
 	pods, err := client.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		log.Errorf("Cannot list k8s pods: %w", err)
@@ -214,6 +218,7 @@ func collectK8sPods(ctx context.Context, log *logp.Logger, client kubernetes.Int
 			internal.WithAssetTypeAndID("k8s.pod", assetId),
 			internal.WithAssetParents(assetParents),
 			internal.WithPodData(assetName, assetId, namespace, assetStartTime),
+			internal.WithIndex(dataset),
 		)
 	}
 

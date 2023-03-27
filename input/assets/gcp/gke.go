@@ -37,7 +37,7 @@ type containerCluster struct {
 	Metadata mapstr.M
 }
 
-func collectGKEAssets(ctx context.Context, cfg config, publisher stateless.Publisher) error {
+func collectGKEAssets(ctx context.Context, dataset string, cfg config, publisher stateless.Publisher) error {
 	svc, err := container.NewService(ctx, buildClientOptions(cfg)...)
 	if err != nil {
 		return err
@@ -62,6 +62,7 @@ func collectGKEAssets(ctx context.Context, cfg config, publisher stateless.Publi
 			internal.WithAssetParents(parents),
 			WithAssetLabels(cluster.Labels),
 			internal.WithAssetMetadata(cluster.Metadata),
+			internal.WithIndex(dataset),
 		)
 	}
 

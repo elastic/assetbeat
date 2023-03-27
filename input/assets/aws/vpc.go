@@ -32,7 +32,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 )
 
-func collectVPCAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) error {
+func collectVPCAssets(ctx context.Context, cfg aws.Config, dataset string, log *logp.Logger, publisher stateless.Publisher) error {
 	client := ec2.NewFromConfig(cfg)
 	vpcs, err := describeVPCs(ctx, client)
 	if err != nil {
@@ -40,7 +40,7 @@ func collectVPCAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 	}
 
 	for _, vpc := range vpcs {
-		internal.Publish(publisher, "aws",
+		internal.Publish(publisher,
 			internal.WithAssetCloudProvider("aws"),
 			internal.WithAssetRegion(cfg.Region),
 			internal.WithAssetAccountID(*vpc.OwnerId),
@@ -49,13 +49,14 @@ func collectVPCAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 			internal.WithAssetMetadata(mapstr.M{
 				"isDefault": vpc.IsDefault,
 			}),
+			internal.WithIndex(dataset),
 		)
 	}
 
 	return nil
 }
 
-func collectSubnetAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) error {
+func collectSubnetAssets(ctx context.Context, cfg aws.Config, dataset string, log *logp.Logger, publisher stateless.Publisher) error {
 	client := ec2.NewFromConfig(cfg)
 	subnets, err := describeSubnets(ctx, client)
 	if err != nil {
@@ -63,7 +64,7 @@ func collectSubnetAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, 
 	}
 
 	for _, subnet := range subnets {
-		internal.Publish(publisher, "aws",
+		internal.Publish(publisher,
 			internal.WithAssetRegion(cfg.Region),
 			internal.WithAssetAccountID(*subnet.OwnerId),
 			internal.WithAssetTypeAndID("aws.subnet", *subnet.SubnetId),
@@ -72,6 +73,7 @@ func collectSubnetAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, 
 			internal.WithAssetMetadata(mapstr.M{
 				"state": string(subnet.State),
 			}),
+			internal.WithIndex(dataset),
 		)
 	}
 
