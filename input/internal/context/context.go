@@ -15,9 +15,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// Package compat provides helpers for integrating the input/v2 API with
-// existing input based features like autodiscovery, config file reloading, or
-// filebeat modules.
 package context
 
 import (
