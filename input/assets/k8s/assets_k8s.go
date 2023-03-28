@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/elastic/inputrunner/input/assets/internal"
+	iContext "github.com/elastic/inputrunner/input/internal/context"
 	input "github.com/elastic/inputrunner/input/v2"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 
@@ -32,7 +33,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 
 	"github.com/elastic/beats/v7/libbeat/feature"
-	"github.com/elastic/go-concert/ctxtool"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -84,13 +84,12 @@ type assetsK8s struct {
 
 func (s *assetsK8s) Name() string { return "assets_k8s" }
 
-func (s *assetsK8s) Test(_ input.TestContext) error {
+func (s *assetsK8s) Test(_ context.Context) error {
 	return nil
 }
 
-func (s *assetsK8s) Run(inputCtx input.Context, publisher stateless.Publisher) error {
-	ctx := ctxtool.FromCanceller(inputCtx.Cancelation)
-	log := inputCtx.Logger.With("assets_k8s")
+func (s *assetsK8s) Run(ctx context.Context, publisher stateless.Publisher) error {
+	log := iContext.Logger(ctx).With("assets_k8s")
 
 	log.Info("k8s asset collector run started")
 	defer log.Info("k8s asset collector run stopped")
