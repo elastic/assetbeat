@@ -41,7 +41,7 @@ type node struct {
 }
 
 // watchK8sNodes initiates a watcher of kubernetes nodes
-func watchK8sNodes(ctx context.Context, log *logp.Logger, client kuberntescli.Interface, publisher stateless.Publisher, nwatcher *node) (*node, error) {
+func watchK8sNodes(ctx context.Context, log *logp.Logger, client kuberntescli.Interface, publisher stateless.Publisher) error {
 	watcher, err := kube.NewNamedWatcher("node", client, &kube.Node{}, kube.WatchOptions{
 		SyncTimeout:  10 * time.Minute,
 		Node:         "",
@@ -51,7 +51,7 @@ func watchK8sNodes(ctx context.Context, log *logp.Logger, client kuberntescli.In
 
 	if err != nil {
 		log.Errorf("could not create kubernetes watcher %v", err)
-		return nil, err
+		return err
 	}
 
 	n := &node{
@@ -64,14 +64,10 @@ func watchK8sNodes(ctx context.Context, log *logp.Logger, client kuberntescli.In
 
 	watcher.AddEventHandler(n)
 
-	if nwatcher != nil {
-		log.Infof("stop previoys watcher for nodes")
-		nwatcher.Stop()
-	}
 	log.Infof("start watching for nodes")
 	go n.Start()
 
-	return n, nil
+	return nil
 }
 
 // Start starts the eventer
@@ -88,27 +84,6 @@ func (n *node) Stop() {
 func (n *node) OnUpdate(obj interface{}) {
 	o := obj.(*kube.Node)
 	n.logger.Infof("Watcher Node update: %+v", o.Name)
-
-	// Get metadata of the object
-	// accessor, err := meta.Accessor(o)
-	// if err != nil {
-	// 	return
-	// }
-	// meta := map[string]string{}
-	// for _, ref := range accessor.GetOwnerReferences() {
-	// 	if ref.Controller != nil && *ref.Controller {
-	// 		switch ref.Kind {
-	// 		// grow this list as we keep adding more `state_*` metricsets
-	// 		case "Deployment",
-	// 			"ReplicaSet",
-	// 			"StatefulSet",
-	// 			"DaemonSet",
-	// 			"Job",
-	// 			"CronJob":
-	// 			meta[strings.ToLower(ref.Kind)+".name"] = ref.Name
-	// 		}
-	// 	}
-	// }
 }
 
 // OnDelete stops pod objects that are deleted.
@@ -116,53 +91,12 @@ func (n *node) OnDelete(obj interface{}) {
 	o := obj.(*kube.Node)
 	n.logger.Infof("Watcher Node delete: %+v", o.Name)
 
-	// Get metadata of the object
-	// accessor, err := meta.Accessor(o)
-	// if err != nil {
-	// 	return
-	// }
-	// meta := map[string]string{}
-	// for _, ref := range accessor.GetOwnerReferences() {
-	// 	if ref.Controller != nil && *ref.Controller {
-	// 		switch ref.Kind {
-	// 		// grow this list as we keep adding more `state_*` metricsets
-	// 		case "Deployment",
-	// 			"ReplicaSet",
-	// 			"StatefulSet",
-	// 			"DaemonSet",
-	// 			"Job",
-	// 			"CronJob":
-	// 			meta[strings.ToLower(ref.Kind)+".name"] = ref.Name
-	// 		}
-	// 	}
-	// }
 }
 
 // OnAdd ensures processing of node objects that are newly added.
 func (n *node) OnAdd(obj interface{}) {
 	o := obj.(*kube.Node)
 	n.logger.Infof("Watcher Node add: %+v", o.Name)
-
-	// // Get metadata of the object
-	// accessor, err := meta.Accessor(o)
-	// if err != nil {
-	// 	return
-	// }
-	// meta := map[string]string{}
-	// for _, ref := range accessor.GetOwnerReferences() {
-	// 	if ref.Controller != nil && *ref.Controller {
-	// 		switch ref.Kind {
-	// 		// grow this list as we keep adding more `state_*` metricsets
-	// 		case "Deployment",
-	// 			"ReplicaSet",
-	// 			"StatefulSet",
-	// 			"DaemonSet",
-	// 			"Job",
-	// 			"CronJob":
-	// 			meta[strings.ToLower(ref.Kind)+".name"] = ref.Name
-	// 		}
-	// 	}
-	// }
 
 	assetProviderId := o.Spec.ProviderID
 	assetId := string(o.ObjectMeta.UID)

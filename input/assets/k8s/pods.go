@@ -42,7 +42,7 @@ type pod struct {
 }
 
 // watchK8sPods initiates a watcher of kubernetes pods
-func watchK8sPods(ctx context.Context, log *logp.Logger, client kuberntescli.Interface, publisher stateless.Publisher, pwatcher *pod) (*pod, error) {
+func watchK8sPods(ctx context.Context, log *logp.Logger, client kuberntescli.Interface, publisher stateless.Publisher) error {
 	watcher, err := kube.NewNamedWatcher("pod", client, &kube.Pod{}, kube.WatchOptions{
 		SyncTimeout:  10 * time.Minute,
 		Node:         "",
@@ -52,7 +52,7 @@ func watchK8sPods(ctx context.Context, log *logp.Logger, client kuberntescli.Int
 
 	if err != nil {
 		log.Errorf("could not create kubernetes watcher %v", err)
-		return nil, err
+		return err
 	}
 
 	p := &pod{
@@ -65,15 +65,10 @@ func watchK8sPods(ctx context.Context, log *logp.Logger, client kuberntescli.Int
 
 	watcher.AddEventHandler(p)
 
-	if pwatcher != nil {
-		log.Infof("stop previoys watcher for pods")
-		pwatcher.Stop()
-	}
-
 	log.Infof("start watching for pods")
 	go p.Start()
 
-	return p, nil
+	return nil
 }
 
 // Start starts the eventer

@@ -42,9 +42,6 @@ type config struct {
 	Period              time.Duration `config:"period"`
 }
 
-var PWatcher *pod
-var NWatcher *node
-
 func Plugin() input.Plugin {
 	return input.Plugin{
 		Name:       "assets_k8s",
@@ -133,21 +130,19 @@ func collectK8sAssets(ctx context.Context, kubeconfigPath string, log *logp.Logg
 	if internal.IsTypeEnabled(cfg.AssetTypes, "node") {
 		log.Info("Node type enabled. Starting collecting")
 		go func() {
-			nodeWatcher, err := watchK8sNodes(ctx, log, client, publisher, NWatcher)
+			err := watchK8sNodes(ctx, log, client, publisher)
 			if err != nil {
 				log.Errorf("error collecting Node assets: %w", err)
 			}
-			NWatcher = nodeWatcher
 		}()
 	}
 	if internal.IsTypeEnabled(cfg.AssetTypes, "pod") {
 		log.Info("Pod type enabled. Starting collecting")
 		go func() {
-			podWatcher, err := watchK8sPods(ctx, log, client, publisher, PWatcher)
+			err := watchK8sPods(ctx, log, client, publisher)
 			if err != nil {
 				log.Errorf("error collecting Pod assets: %w", err)
 			}
-			PWatcher = podWatcher
 		}()
 	}
 }
