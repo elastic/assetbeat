@@ -23,26 +23,24 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elastic/inputrunner/input/assets/internal"
-	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
-
 	kube "github.com/elastic/elastic-agent-autodiscover/kubernetes"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/inputrunner/input/assets/internal"
+	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 
 	"k8s.io/apimachinery/pkg/api/meta"
 	kuberntescli "k8s.io/client-go/kubernetes"
 )
 
 type pod struct {
-	publisher stateless.Publisher
-	watcher   kube.Watcher
-	client    kuberntescli.Interface
-	logger    *logp.Logger
-	ctx       context.Context
+	watcher kube.Watcher
+	client  kuberntescli.Interface
+	logger  *logp.Logger
+	ctx     context.Context
 }
 
 // watchK8sPods initiates a watcher of kubernetes pods
-func watchK8sPods(ctx context.Context, log *logp.Logger, client kuberntescli.Interface, timeout time.Duration, publisher stateless.Publisher) error {
+func watchK8sPods(ctx context.Context, log *logp.Logger, client kuberntescli.Interface, timeout time.Duration) (kube.Watcher, error) {
 	watcher, err := kube.NewNamedWatcher("pod", client, &kube.Pod{}, kube.WatchOptions{
 		SyncTimeout:  timeout,
 		Node:         "",
@@ -52,15 +50,14 @@ func watchK8sPods(ctx context.Context, log *logp.Logger, client kuberntescli.Int
 
 	if err != nil {
 		log.Errorf("could not create kubernetes watcher %v", err)
-		return err
+		return nil, err
 	}
 
 	p := &pod{
-		publisher: publisher,
-		watcher:   watcher,
-		client:    client,
-		logger:    log,
-		ctx:       ctx,
+		watcher: watcher,
+		client:  client,
+		logger:  log,
+		ctx:     ctx,
 	}
 
 	watcher.AddEventHandler(p)
@@ -68,7 +65,7 @@ func watchK8sPods(ctx context.Context, log *logp.Logger, client kuberntescli.Int
 	log.Infof("start watching for pods")
 	go p.Start()
 
-	return nil
+	return watcher, nil
 }
 
 // Start starts the eventer
@@ -84,7 +81,7 @@ func (p *pod) Stop() {
 // OnUpdate handles events for pods that have been updated.
 func (p *pod) OnUpdate(obj interface{}) {
 	o := obj.(*kube.Pod)
-	p.logger.Infof("Watcher Pod update: %+v", o.Name)
+	p.logger.Debugf("Watcher Pod update: %+v", o.Name)
 
 	// Get metadata of the object
 	accessor, err := meta.Accessor(o)
@@ -106,13 +103,12 @@ func (p *pod) OnUpdate(obj interface{}) {
 			}
 		}
 	}
-	// TODO handle pod update
 }
 
 // OnDelete stops pod objects that are deleted.
 func (p *pod) OnDelete(obj interface{}) {
 	o := obj.(*kube.Pod)
-	p.logger.Infof("Watcher Pod delete: %+v", o.Name)
+	p.logger.Debugf("Watcher Pod delete: %+v", o.Name)
 
 	// Get metadata of the object
 	accessor, err := meta.Accessor(o)
@@ -134,51 +130,64 @@ func (p *pod) OnDelete(obj interface{}) {
 			}
 		}
 	}
-	// TODO handle pod update
 }
 
 // OnAdd ensures processing of pod objects that are newly added.
 func (p *pod) OnAdd(obj interface{}) {
 	o := obj.(*kube.Pod)
-	p.logger.Infof("Watcher Pod add: %+v", o.Name)
+	p.logger.Debugf("Watcher Pod add: %+v", o.Name)
+}
 
-	// Get metadata of the object
-	accessor, err := meta.Accessor(o)
-	if err != nil {
-		return
-	}
-	meta := map[string]string{}
-	for _, ref := range accessor.GetOwnerReferences() {
-		if ref.Controller != nil && *ref.Controller {
-			switch ref.Kind {
-			// grow this list as we keep adding more `state_*` metricsets
-			case "Deployment",
-				"ReplicaSet",
-				"StatefulSet",
-				"DaemonSet",
-				"Job",
-				"CronJob":
-				meta[strings.ToLower(ref.Kind)+".name"] = ref.Name
+func publishK8sPods(log *logp.Logger, publisher stateless.Publisher, podWatcher, nodeWatcher kube.Watcher) {
+
+	for _, obj := range podWatcher.Store().List() {
+		o := obj.(*kube.Pod)
+		log.Debugf("Publish Pod: %+v", o.Name)
+
+		// Get metadata of the object
+		accessor, err := meta.Accessor(o)
+		if err != nil {
+			return
+		}
+		meta := map[string]string{}
+		for _, ref := range accessor.GetOwnerReferences() {
+			if ref.Controller != nil && *ref.Controller {
+				switch ref.Kind {
+				// grow this list as we keep adding more `state_*` metricsets
+				case "Deployment",
+					"ReplicaSet",
+					"StatefulSet",
+					"DaemonSet",
+					"Job",
+					"CronJob":
+					meta[strings.ToLower(ref.Kind)+".name"] = ref.Name
+				}
 			}
 		}
+
+		assetName := o.Name
+		assetId := string(o.UID)
+		assetStartTime := o.Status.StartTime
+		namespace := o.Namespace
+		nodeName := o.Spec.NodeName
+
+		assetParents := []string{}
+		if nodeWatcher != nil {
+			nodeId, err := getNodeIdFromName(nodeName, nodeWatcher)
+			if err == nil {
+				nodeAssetName := fmt.Sprintf("%s:%s", "k8s.node", nodeId)
+				assetParents = append(assetParents, nodeAssetName)
+			} else {
+				log.Errorf("pod asset parents not collected: %w", err)
+			}
+		}
+
+		log.Info("Publishing pod assets\n")
+		internal.Publish(publisher,
+			internal.WithAssetTypeAndID("k8s.pod", assetId),
+			internal.WithAssetParents(assetParents),
+			internal.WithPodData(assetName, assetId, namespace, assetStartTime),
+		)
 	}
 
-	assetName := o.Name
-	assetId := string(o.UID)
-	assetStartTime := o.Status.StartTime
-	namespace := o.Namespace
-	nodeName := o.Spec.NodeName
-	nodeId, err := getNodeIdFromName(p.ctx, p.client, nodeName)
-	assetParents := []string{}
-	if err == nil {
-		nodeAssetName := fmt.Sprintf("%s:%s", "k8s.node", nodeId)
-		assetParents = append(assetParents, nodeAssetName)
-	}
-
-	p.logger.Info("Publishing pod assets\n")
-	internal.Publish(p.publisher,
-		internal.WithAssetTypeAndID("k8s.pod", assetId),
-		internal.WithAssetParents(assetParents),
-		internal.WithPodData(assetName, assetId, namespace, assetStartTime),
-	)
 }

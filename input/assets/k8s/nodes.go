@@ -19,7 +19,7 @@ package k8s
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"time"
 
 	kube "github.com/elastic/elastic-agent-autodiscover/kubernetes"
@@ -28,20 +28,18 @@ import (
 
 	"github.com/elastic/elastic-agent-libs/logp"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kuberntescli "k8s.io/client-go/kubernetes"
 )
 
 type node struct {
-	publisher stateless.Publisher
-	watcher   kube.Watcher
-	client    kuberntescli.Interface
-	logger    *logp.Logger
-	ctx       context.Context
+	watcher kube.Watcher
+	client  kuberntescli.Interface
+	logger  *logp.Logger
+	ctx     context.Context
 }
 
 // watchK8sNodes initiates a watcher of kubernetes nodes
-func watchK8sNodes(ctx context.Context, log *logp.Logger, client kuberntescli.Interface, timeout time.Duration, publisher stateless.Publisher) error {
+func watchK8sNodes(ctx context.Context, log *logp.Logger, client kuberntescli.Interface, timeout time.Duration) (kube.Watcher, error) {
 	watcher, err := kube.NewNamedWatcher("node", client, &kube.Node{}, kube.WatchOptions{
 		SyncTimeout:  timeout,
 		Node:         "",
@@ -51,15 +49,14 @@ func watchK8sNodes(ctx context.Context, log *logp.Logger, client kuberntescli.In
 
 	if err != nil {
 		log.Errorf("could not create kubernetes watcher %v", err)
-		return err
+		return nil, err
 	}
 
 	n := &node{
-		publisher: publisher,
-		watcher:   watcher,
-		client:    client,
-		logger:    log,
-		ctx:       ctx,
+		watcher: watcher,
+		client:  client,
+		logger:  log,
+		ctx:     ctx,
 	}
 
 	watcher.AddEventHandler(n)
@@ -67,7 +64,7 @@ func watchK8sNodes(ctx context.Context, log *logp.Logger, client kuberntescli.In
 	log.Infof("start watching for nodes")
 	go n.Start()
 
-	return nil
+	return watcher, nil
 }
 
 // Start starts the eventer
@@ -83,47 +80,51 @@ func (n *node) Stop() {
 // OnUpdate handles events for pods that have been updated.
 func (n *node) OnUpdate(obj interface{}) {
 	o := obj.(*kube.Node)
-	n.logger.Infof("Watcher Node update: %+v", o.Name)
-	// TODO handle node update
+	n.logger.Debugf("Watcher Node update: %+v", o.Name)
 }
 
 // OnDelete stops pod objects that are deleted.
 func (n *node) OnDelete(obj interface{}) {
 	o := obj.(*kube.Node)
-	n.logger.Infof("Watcher Node delete: %+v", o.Name)
-	// TODO handle node deletion
+	n.logger.Debugf("Watcher Node delete: %+v", o.Name)
 }
 
 // OnAdd ensures processing of node objects that are newly added.
 func (n *node) OnAdd(obj interface{}) {
 	o := obj.(*kube.Node)
-	n.logger.Infof("Watcher Node add: %+v", o.Name)
-
-	assetProviderId := o.Spec.ProviderID
-	assetId := string(o.ObjectMeta.UID)
-	assetStartTime := o.ObjectMeta.CreationTimestamp
-	assetParents := []string{}
-
-	n.logger.Info("Publishing nodes assets\n")
-	internal.Publish(n.publisher,
-		internal.WithAssetTypeAndID("k8s.node", assetId),
-		internal.WithAssetParents(assetParents),
-		internal.WithNodeData(o.Name, assetProviderId, &assetStartTime),
-	)
+	n.logger.Debugf("Watcher Node add: %+v", o.Name)
 }
 
 // getNodeIdFromName returns kubernetes node id from a provided node name
-func getNodeIdFromName(ctx context.Context, client kuberntescli.Interface, nodeName string) (string, error) {
-	listOptions := metav1.ListOptions{
-		FieldSelector: "metadata.name=" + nodeName,
-	}
-	nodes, err := client.CoreV1().Nodes().List(context.TODO(), listOptions)
+func getNodeIdFromName(nodeName string, nodeWatcher kube.Watcher) (string, error) {
+	node, exists, err := nodeWatcher.Store().GetByKey(nodeName)
 	if err != nil {
 		return "", err
 	}
-	for _, node := range nodes.Items {
-		return string(node.ObjectMeta.UID), nil
+	if !exists {
+		return "", fmt.Errorf("node with name %s does not exist in cache", nodeName)
 	}
-	return "", errors.New("node list is empty for given node name")
+	n := node.(*kube.Node)
+	return string(n.ObjectMeta.UID), nil
+}
+
+func publishK8sNodes(log *logp.Logger, publisher stateless.Publisher, watcher kube.Watcher) {
+
+	for _, obj := range watcher.Store().List() {
+		o := obj.(*kube.Node)
+		log.Infof("Publish Node: %+v", o.Name)
+
+		assetProviderId := o.Spec.ProviderID
+		assetId := string(o.ObjectMeta.UID)
+		assetStartTime := o.ObjectMeta.CreationTimestamp
+		assetParents := []string{}
+
+		log.Info("Publishing nodes assets\n")
+		internal.Publish(publisher,
+			internal.WithAssetTypeAndID("k8s.node", assetId),
+			internal.WithAssetParents(assetParents),
+			internal.WithNodeData(o.Name, assetProviderId, &assetStartTime),
+		)
+	}
 
 }

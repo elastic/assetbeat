@@ -20,6 +20,7 @@ package k8s
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/elastic/inputrunner/input/assets/internal"
@@ -40,6 +41,10 @@ type config struct {
 	internal.BaseConfig `config:",inline"`
 	KubeConfig          string        `config:"kube_config"`
 	Period              time.Duration `config:"period"`
+}
+
+type watchersMap struct {
+	watchers sync.Map
 }
 
 func Plugin() input.Plugin {
@@ -95,9 +100,30 @@ func (s *assetsK8s) Run(inputCtx input.Context, publisher stateless.Publisher) e
 
 	cfg := s.Config
 	kubeConfigPath := cfg.KubeConfig
+	ticker := time.NewTicker(cfg.Period)
 
-	collectK8sAssets(ctx, kubeConfigPath, log, cfg, publisher)
-	<-ctx.Done()
+	client, err := getKubernetesClient(kubeConfigPath, log)
+	if err != nil {
+		log.Errorf("unable to build kubernetes clientset: %w", err)
+	}
+
+	// var watchers map[string]kube.Watcher
+	watchersMap := &watchersMap{}
+	select {
+	case <-ctx.Done():
+		return nil
+	default:
+		initK8sWatchers(ctx, client, log, cfg, publisher, watchersMap)
+		collectK8sAssets(ctx, log, cfg, publisher, watchersMap)
+	}
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-ticker.C:
+			collectK8sAssets(ctx, log, cfg, publisher, watchersMap)
+		}
+	}
 	return nil
 
 }
@@ -121,29 +147,60 @@ func getKubernetesClient(kubeconfigPath string, log *logp.Logger) (kuberntescli.
 }
 
 // collectK8sAssets initiates watchers for kubernetes nodes and pods, which watch for resources in kubernetes cluster
-func collectK8sAssets(ctx context.Context, kubeconfigPath string, log *logp.Logger, cfg config, publisher stateless.Publisher) {
-
-	client, err := getKubernetesClient(kubeconfigPath, log)
-	if err != nil {
-		log.Errorf("unable to build kubernetes clientset: %w", err)
-	}
-
+func collectK8sAssets(ctx context.Context, log *logp.Logger, cfg config, publisher stateless.Publisher, watchersMap *watchersMap) {
 	if internal.IsTypeEnabled(cfg.AssetTypes, "node") {
 		log.Info("Node type enabled. Starting collecting")
 		go func() {
-			err := watchK8sNodes(ctx, log, client, cfg.Period, publisher)
-			if err != nil {
-				log.Errorf("error collecting Node assets: %w", err)
+			if nodeWatcher, ok := watchersMap.watchers.Load("node"); ok {
+				publishK8sNodes(log, publisher, nodeWatcher.(kube.Watcher))
+			} else {
+				log.Error("Node watcher not found")
 			}
+
 		}()
 	}
 	if internal.IsTypeEnabled(cfg.AssetTypes, "pod") {
 		log.Info("Pod type enabled. Starting collecting")
 		go func() {
-			err := watchK8sPods(ctx, log, client, cfg.Period, publisher)
-			if err != nil {
-				log.Errorf("error collecting Pod assets: %w", err)
+			if podWatcher, ok := watchersMap.watchers.Load("pod"); ok {
+				if internal.IsTypeEnabled(cfg.AssetTypes, "node") {
+					if nodeWatcher, ok := watchersMap.watchers.Load("node"); ok {
+						publishK8sPods(log, publisher, podWatcher.(kube.Watcher), nodeWatcher.(kube.Watcher))
+					} else {
+						publishK8sPods(log, publisher, podWatcher.(kube.Watcher), nil)
+					}
+				} else {
+					publishK8sPods(log, publisher, podWatcher.(kube.Watcher), nil)
+				}
+			} else {
+				log.Error("Pod watcher not found")
 			}
+
+		}()
+	}
+}
+
+// initK8sWatchers initiates watchers for kubernetes nodes and pods, which watch for resources in kubernetes cluster
+func initK8sWatchers(ctx context.Context, client kuberntescli.Interface, log *logp.Logger, cfg config, publisher stateless.Publisher, watchersMap *watchersMap) {
+
+	if internal.IsTypeEnabled(cfg.AssetTypes, "node") {
+		log.Info("Node type enabled. Initiate node watcher")
+		go func() {
+			nodeWatcher, err := watchK8sNodes(ctx, log, client, time.Second*60)
+			if err != nil {
+				log.Errorf("error initiating Node watcher: %w", err)
+			}
+			watchersMap.watchers.Store("node", nodeWatcher)
+		}()
+	}
+	if internal.IsTypeEnabled(cfg.AssetTypes, "pod") {
+		log.Info("Pod type enabled. Initiate pod watcher")
+		go func() {
+			podWatcher, err := watchK8sPods(ctx, log, client, time.Second*60)
+			if err != nil {
+				log.Errorf("error initiating Pod watcher: %w", err)
+			}
+			watchersMap.watchers.Store("pod", podWatcher)
 		}()
 	}
 }
