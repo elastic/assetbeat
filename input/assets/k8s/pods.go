@@ -42,9 +42,9 @@ type pod struct {
 }
 
 // watchK8sPods initiates a watcher of kubernetes pods
-func watchK8sPods(ctx context.Context, log *logp.Logger, client kuberntescli.Interface, publisher stateless.Publisher) error {
+func watchK8sPods(ctx context.Context, log *logp.Logger, client kuberntescli.Interface, timeout time.Duration, publisher stateless.Publisher) error {
 	watcher, err := kube.NewNamedWatcher("pod", client, &kube.Pod{}, kube.WatchOptions{
-		SyncTimeout:  10 * time.Minute,
+		SyncTimeout:  timeout,
 		Node:         "",
 		Namespace:    "",
 		HonorReSyncs: true,
@@ -106,6 +106,7 @@ func (p *pod) OnUpdate(obj interface{}) {
 			}
 		}
 	}
+	// TODO handle pod update
 }
 
 // OnDelete stops pod objects that are deleted.
@@ -133,6 +134,7 @@ func (p *pod) OnDelete(obj interface{}) {
 			}
 		}
 	}
+	// TODO handle pod update
 }
 
 // OnAdd ensures processing of pod objects that are newly added.

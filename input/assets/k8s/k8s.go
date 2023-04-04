@@ -120,6 +120,7 @@ func getKubernetesClient(kubeconfigPath string, log *logp.Logger) (kuberntescli.
 	return client, nil
 }
 
+// collectK8sAssets initiates watchers for kubernetes nodes and pods, which watch for resources in kubernetes cluster
 func collectK8sAssets(ctx context.Context, kubeconfigPath string, log *logp.Logger, cfg config, publisher stateless.Publisher) {
 
 	client, err := getKubernetesClient(kubeconfigPath, log)
@@ -130,7 +131,7 @@ func collectK8sAssets(ctx context.Context, kubeconfigPath string, log *logp.Logg
 	if internal.IsTypeEnabled(cfg.AssetTypes, "node") {
 		log.Info("Node type enabled. Starting collecting")
 		go func() {
-			err := watchK8sNodes(ctx, log, client, publisher)
+			err := watchK8sNodes(ctx, log, client, cfg.Period, publisher)
 			if err != nil {
 				log.Errorf("error collecting Node assets: %w", err)
 			}
@@ -139,7 +140,7 @@ func collectK8sAssets(ctx context.Context, kubeconfigPath string, log *logp.Logg
 	if internal.IsTypeEnabled(cfg.AssetTypes, "pod") {
 		log.Info("Pod type enabled. Starting collecting")
 		go func() {
-			err := watchK8sPods(ctx, log, client, publisher)
+			err := watchK8sPods(ctx, log, client, cfg.Period, publisher)
 			if err != nil {
 				log.Errorf("error collecting Pod assets: %w", err)
 			}
