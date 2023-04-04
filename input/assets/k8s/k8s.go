@@ -43,6 +43,8 @@ type config struct {
 	Period              time.Duration `config:"period"`
 }
 
+// watchersMap struct containt a sync.Map object to effectively handle
+// concurrent writes and reads of the map values
 type watchersMap struct {
 	watchers sync.Map
 }
@@ -107,14 +109,15 @@ func (s *assetsK8s) Run(inputCtx input.Context, publisher stateless.Publisher) e
 		log.Errorf("unable to build kubernetes clientset: %w", err)
 	}
 
-	// var watchers map[string]kube.Watcher
 	watchersMap := &watchersMap{}
 	select {
 	case <-ctx.Done():
 		return nil
 	default:
 		initK8sWatchers(ctx, client, log, cfg, publisher, watchersMap)
-		collectK8sAssets(ctx, log, cfg, publisher, watchersMap)
+		// wait 10 seconds for cache to be filled. Only applicable on first run
+		// TODO find a better way
+		time.AfterFunc(10*time.Second, func() { collectK8sAssets(ctx, log, cfg, publisher, watchersMap) })
 	}
 	for {
 		select {
@@ -146,7 +149,7 @@ func getKubernetesClient(kubeconfigPath string, log *logp.Logger) (kuberntescli.
 	return client, nil
 }
 
-// collectK8sAssets initiates watchers for kubernetes nodes and pods, which watch for resources in kubernetes cluster
+// collectK8sAssets collects kubernetes resources from watchers cache and publishes them
 func collectK8sAssets(ctx context.Context, log *logp.Logger, cfg config, publisher stateless.Publisher, watchersMap *watchersMap) {
 	if internal.IsTypeEnabled(cfg.AssetTypes, "node") {
 		log.Info("Node type enabled. Starting collecting")
@@ -163,15 +166,13 @@ func collectK8sAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 		log.Info("Pod type enabled. Starting collecting")
 		go func() {
 			if podWatcher, ok := watchersMap.watchers.Load("pod"); ok {
+				var nw kube.Watcher
 				if internal.IsTypeEnabled(cfg.AssetTypes, "node") {
 					if nodeWatcher, ok := watchersMap.watchers.Load("node"); ok {
-						publishK8sPods(log, publisher, podWatcher.(kube.Watcher), nodeWatcher.(kube.Watcher))
-					} else {
-						publishK8sPods(log, publisher, podWatcher.(kube.Watcher), nil)
+						nw = nodeWatcher.(kube.Watcher)
 					}
-				} else {
-					publishK8sPods(log, publisher, podWatcher.(kube.Watcher), nil)
 				}
+				publishK8sPods(log, publisher, podWatcher.(kube.Watcher), nw)
 			} else {
 				log.Error("Pod watcher not found")
 			}

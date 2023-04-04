@@ -138,6 +138,7 @@ func (p *pod) OnAdd(obj interface{}) {
 	p.logger.Debugf("Watcher Pod add: %+v", o.Name)
 }
 
+// publishK8sPods publishes the pod assets stored in pod watcher cache
 func publishK8sPods(log *logp.Logger, publisher stateless.Publisher, podWatcher, nodeWatcher kube.Watcher) {
 
 	for _, obj := range podWatcher.Store().List() {

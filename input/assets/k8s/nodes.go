@@ -108,6 +108,7 @@ func getNodeIdFromName(nodeName string, nodeWatcher kube.Watcher) (string, error
 	return string(n.ObjectMeta.UID), nil
 }
 
+// publishK8sNodes publishes the node assets stored in node watcher cache
 func publishK8sNodes(log *logp.Logger, publisher stateless.Publisher, watcher kube.Watcher) {
 
 	for _, obj := range watcher.Store().List() {
