@@ -20,7 +20,6 @@ package k8s
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	kube "github.com/elastic/elastic-agent-autodiscover/kubernetes"
@@ -28,7 +27,6 @@ import (
 	"github.com/elastic/inputrunner/input/assets/internal"
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 
-	"k8s.io/apimachinery/pkg/api/meta"
 	kuberntescli "k8s.io/client-go/kubernetes"
 )
 
@@ -39,8 +37,8 @@ type pod struct {
 	ctx     context.Context
 }
 
-// watchK8sPods initiates a watcher of kubernetes pods
-func watchK8sPods(ctx context.Context, log *logp.Logger, client kuberntescli.Interface, timeout time.Duration) (kube.Watcher, error) {
+// getPodWatcher initiates and returns a watcher of kubernetes pods
+func getPodWatcher(ctx context.Context, log *logp.Logger, client kuberntescli.Interface, timeout time.Duration) (kube.Watcher, error) {
 	watcher, err := kube.NewNamedWatcher("pod", client, &kube.Pod{}, kube.WatchOptions{
 		SyncTimeout:  timeout,
 		Node:         "",
@@ -79,60 +77,18 @@ func (p *pod) Stop() {
 func (p *pod) OnUpdate(obj interface{}) {
 	o := obj.(*kube.Pod)
 	p.logger.Debugf("Watcher Pod update: %+v", o.Name)
-
-	// Get metadata of the object
-	accessor, err := meta.Accessor(o)
-	if err != nil {
-		return
-	}
-	meta := map[string]string{}
-	for _, ref := range accessor.GetOwnerReferences() {
-		if ref.Controller != nil && *ref.Controller {
-			switch ref.Kind {
-			// grow this list as we keep adding more `state_*` metricsets
-			case "Deployment",
-				"ReplicaSet",
-				"StatefulSet",
-				"DaemonSet",
-				"Job",
-				"CronJob":
-				meta[strings.ToLower(ref.Kind)+".name"] = ref.Name
-			}
-		}
-	}
 }
 
 // OnDelete stops pod objects that are deleted.
 func (p *pod) OnDelete(obj interface{}) {
 	o := obj.(*kube.Pod)
 	p.logger.Debugf("Watcher Pod delete: %+v", o.Name)
-
-	// Get metadata of the object
-	accessor, err := meta.Accessor(o)
-	if err != nil {
-		return
-	}
-	meta := map[string]string{}
-	for _, ref := range accessor.GetOwnerReferences() {
-		if ref.Controller != nil && *ref.Controller {
-			switch ref.Kind {
-			// grow this list as we keep adding more `state_*` metricsets
-			case "Deployment",
-				"ReplicaSet",
-				"StatefulSet",
-				"DaemonSet",
-				"Job",
-				"CronJob":
-				meta[strings.ToLower(ref.Kind)+".name"] = ref.Name
-			}
-		}
-	}
 }
 
 // OnAdd ensures processing of pod objects that are newly added.
 func (p *pod) OnAdd(obj interface{}) {
 	o := obj.(*kube.Pod)
-	p.logger.Debugf("Watcher Pod add: %+v", o.Name)
+	p.logger.Infof("Watcher Pod add: %+v", o.Name)
 }
 
 // publishK8sPods publishes the pod assets stored in pod watcher cache
@@ -143,28 +99,6 @@ func publishK8sPods(ctx context.Context, log *logp.Logger, publisher stateless.P
 		o, ok := obj.(*kube.Pod)
 		if ok {
 			log.Debugf("Publish Pod: %+v", o.Name)
-
-			// Get metadata of the object
-			accessor, err := meta.Accessor(o)
-			if err != nil {
-				return
-			}
-			meta := map[string]string{}
-			for _, ref := range accessor.GetOwnerReferences() {
-				if ref.Controller != nil && *ref.Controller {
-					switch ref.Kind {
-					// grow this list as we keep adding more `state_*` metricsets
-					case "Deployment",
-						"ReplicaSet",
-						"StatefulSet",
-						"DaemonSet",
-						"Job",
-						"CronJob":
-						meta[strings.ToLower(ref.Kind)+".name"] = ref.Name
-					}
-				}
-			}
-
 			assetName := o.Name
 			assetId := string(o.UID)
 			assetStartTime := o.Status.StartTime

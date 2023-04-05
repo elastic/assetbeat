@@ -38,8 +38,8 @@ type node struct {
 	ctx     context.Context
 }
 
-// watchK8sNodes initiates a watcher of kubernetes nodes
-func watchK8sNodes(ctx context.Context, log *logp.Logger, client kuberntescli.Interface, timeout time.Duration) (kube.Watcher, error) {
+// getNodeWatcher initiates and returns a watcher of kubernetes nodes
+func getNodeWatcher(ctx context.Context, log *logp.Logger, client kuberntescli.Interface, timeout time.Duration) (kube.Watcher, error) {
 	watcher, err := kube.NewNamedWatcher("node", client, &kube.Node{}, kube.WatchOptions{
 		SyncTimeout:  timeout,
 		Node:         "",

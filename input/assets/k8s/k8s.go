@@ -120,6 +120,8 @@ func (s *assetsK8s) Run(inputCtx input.Context, publisher stateless.Publisher) e
 		}
 		// Start the watchers
 		if err = startK8sWatchers(ctx, log, cfg, watchersMap); err != nil {
+			// stop any running watcher
+			stopK8sWatchers(ctx, log, watchersMap)
 			return err
 		}
 		// wait 10 seconds for cache to be filled. Only applicable on first run
@@ -206,7 +208,7 @@ func initK8sWatchers(ctx context.Context, client kuberntescli.Interface, log *lo
 
 	if internal.IsTypeEnabled(cfg.AssetTypes, "node") {
 		log.Info("Node type enabled. Initiate node watcher")
-		nodeWatcher, err := watchK8sNodes(ctx, log, client, time.Second*60)
+		nodeWatcher, err := getNodeWatcher(ctx, log, client, time.Second*60)
 		if err != nil {
 			log.Errorf("error initiating Node watcher: %w", err)
 			return err
@@ -216,7 +218,7 @@ func initK8sWatchers(ctx context.Context, client kuberntescli.Interface, log *lo
 
 	if internal.IsTypeEnabled(cfg.AssetTypes, "pod") {
 		log.Info("Pod type enabled. Initiate pod watcher")
-		podWatcher, err := watchK8sPods(ctx, log, client, time.Second*60)
+		podWatcher, err := getPodWatcher(ctx, log, client, time.Second*60)
 		if err != nil {
 			log.Errorf("error initiating Pod watcher: %w", err)
 			return err
@@ -228,6 +230,7 @@ func initK8sWatchers(ctx context.Context, client kuberntescli.Interface, log *lo
 
 // startK8sWatchers starts the given watchers
 func startK8sWatchers(ctx context.Context, log *logp.Logger, cfg config, watchersMap *watchersMap) error {
+
 	if internal.IsTypeEnabled(cfg.AssetTypes, "node") {
 		log.Info("Starting node watcher")
 		if nodeWatcher, ok := watchersMap.watchers.Load("node"); ok {
@@ -263,4 +266,31 @@ func startK8sWatchers(ctx context.Context, log *logp.Logger, cfg config, watcher
 	}
 
 	return nil
+}
+
+// stopK8sWatchers starts the given watchers
+func stopK8sWatchers(ctx context.Context, log *logp.Logger, watchersMap *watchersMap) {
+
+	log.Info("Stoping watchers")
+	if podWatcher, ok := watchersMap.watchers.Load("pod"); ok {
+		pw, ok := podWatcher.(kube.Watcher)
+		if ok {
+			pw.Stop()
+		} else {
+			log.Error("pod watcher type assertion failed")
+		}
+	} else {
+		log.Error("pod watcher not found")
+	}
+
+	if nodeWatcher, ok := watchersMap.watchers.Load("node"); ok {
+		nw, ok := nodeWatcher.(kube.Watcher)
+		if ok {
+			nw.Stop()
+		} else {
+			log.Error("node watcher type assertion failed")
+		}
+	} else {
+		log.Error("node watcher not found")
+	}
 }
