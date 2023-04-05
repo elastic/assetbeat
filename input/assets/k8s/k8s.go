@@ -135,8 +135,6 @@ func (s *assetsK8s) Run(inputCtx input.Context, publisher stateless.Publisher) e
 			collectK8sAssets(ctx, log, cfg, publisher, watchersMap)
 		}
 	}
-	return nil
-
 }
 
 // getKubernetesClient returns a kubernetes client. If inCluster is true, it returns an

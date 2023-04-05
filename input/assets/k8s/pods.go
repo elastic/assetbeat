@@ -122,7 +122,7 @@ func publishK8sPods(ctx context.Context, log *logp.Logger, publisher stateless.P
 				internal.WithPodData(assetName, assetId, namespace, assetStartTime),
 			)
 		} else {
-			log.Error("Publishing pod assets. Type assertion of pod object failed")
+			log.Error("Publishing pod assets failed. Type assertion of pod object failed")
 		}
 
 	}
