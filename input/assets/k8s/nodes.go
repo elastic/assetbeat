@@ -61,9 +61,6 @@ func watchK8sNodes(ctx context.Context, log *logp.Logger, client kuberntescli.In
 
 	watcher.AddEventHandler(n)
 
-	log.Infof("start watching for nodes")
-	go n.Start()
-
 	return watcher, nil
 }
 
@@ -109,23 +106,27 @@ func getNodeIdFromName(nodeName string, nodeWatcher kube.Watcher) (string, error
 }
 
 // publishK8sNodes publishes the node assets stored in node watcher cache
-func publishK8sNodes(log *logp.Logger, publisher stateless.Publisher, watcher kube.Watcher) {
-
+func publishK8sNodes(ctx context.Context, log *logp.Logger, publisher stateless.Publisher, watcher kube.Watcher) {
+	log.Info("Publishing nodes assets\n")
 	for _, obj := range watcher.Store().List() {
-		o := obj.(*kube.Node)
-		log.Infof("Publish Node: %+v", o.Name)
+		o, ok := obj.(*kube.Node)
+		if ok {
+			log.Debug("Publish Node: %+v", o.Name)
 
-		assetProviderId := o.Spec.ProviderID
-		assetId := string(o.ObjectMeta.UID)
-		assetStartTime := o.ObjectMeta.CreationTimestamp
-		assetParents := []string{}
+			assetProviderId := o.Spec.ProviderID
+			assetId := string(o.ObjectMeta.UID)
+			assetStartTime := o.ObjectMeta.CreationTimestamp
+			assetParents := []string{}
 
-		log.Info("Publishing nodes assets\n")
-		internal.Publish(publisher,
-			internal.WithAssetTypeAndID("k8s.node", assetId),
-			internal.WithAssetParents(assetParents),
-			internal.WithNodeData(o.Name, assetProviderId, &assetStartTime),
-		)
+			internal.Publish(publisher,
+				internal.WithAssetTypeAndID("k8s.node", assetId),
+				internal.WithAssetParents(assetParents),
+				internal.WithNodeData(o.Name, assetProviderId, &assetStartTime),
+			)
+		} else {
+			log.Error("Publishing nodes assets failed. Type assertion of node object failed")
+		}
+
 	}
 
 }

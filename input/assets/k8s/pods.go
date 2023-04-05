@@ -62,9 +62,6 @@ func watchK8sPods(ctx context.Context, log *logp.Logger, client kuberntescli.Int
 
 	watcher.AddEventHandler(p)
 
-	log.Infof("start watching for pods")
-	go p.Start()
-
 	return watcher, nil
 }
 
@@ -139,56 +136,61 @@ func (p *pod) OnAdd(obj interface{}) {
 }
 
 // publishK8sPods publishes the pod assets stored in pod watcher cache
-func publishK8sPods(log *logp.Logger, publisher stateless.Publisher, podWatcher, nodeWatcher kube.Watcher) {
+func publishK8sPods(ctx context.Context, log *logp.Logger, publisher stateless.Publisher, podWatcher, nodeWatcher kube.Watcher) {
 
+	log.Info("Publishing pod assets\n")
 	for _, obj := range podWatcher.Store().List() {
-		o := obj.(*kube.Pod)
-		log.Debugf("Publish Pod: %+v", o.Name)
+		o, ok := obj.(*kube.Pod)
+		if ok {
+			log.Debugf("Publish Pod: %+v", o.Name)
 
-		// Get metadata of the object
-		accessor, err := meta.Accessor(o)
-		if err != nil {
-			return
-		}
-		meta := map[string]string{}
-		for _, ref := range accessor.GetOwnerReferences() {
-			if ref.Controller != nil && *ref.Controller {
-				switch ref.Kind {
-				// grow this list as we keep adding more `state_*` metricsets
-				case "Deployment",
-					"ReplicaSet",
-					"StatefulSet",
-					"DaemonSet",
-					"Job",
-					"CronJob":
-					meta[strings.ToLower(ref.Kind)+".name"] = ref.Name
+			// Get metadata of the object
+			accessor, err := meta.Accessor(o)
+			if err != nil {
+				return
+			}
+			meta := map[string]string{}
+			for _, ref := range accessor.GetOwnerReferences() {
+				if ref.Controller != nil && *ref.Controller {
+					switch ref.Kind {
+					// grow this list as we keep adding more `state_*` metricsets
+					case "Deployment",
+						"ReplicaSet",
+						"StatefulSet",
+						"DaemonSet",
+						"Job",
+						"CronJob":
+						meta[strings.ToLower(ref.Kind)+".name"] = ref.Name
+					}
 				}
 			}
-		}
 
-		assetName := o.Name
-		assetId := string(o.UID)
-		assetStartTime := o.Status.StartTime
-		namespace := o.Namespace
-		nodeName := o.Spec.NodeName
+			assetName := o.Name
+			assetId := string(o.UID)
+			assetStartTime := o.Status.StartTime
+			namespace := o.Namespace
+			nodeName := o.Spec.NodeName
 
-		assetParents := []string{}
-		if nodeWatcher != nil {
-			nodeId, err := getNodeIdFromName(nodeName, nodeWatcher)
-			if err == nil {
-				nodeAssetName := fmt.Sprintf("%s:%s", "k8s.node", nodeId)
-				assetParents = append(assetParents, nodeAssetName)
-			} else {
-				log.Errorf("pod asset parents not collected: %w", err)
+			assetParents := []string{}
+			if nodeWatcher != nil {
+				nodeId, err := getNodeIdFromName(nodeName, nodeWatcher)
+				if err == nil {
+					nodeAssetName := fmt.Sprintf("%s:%s", "k8s.node", nodeId)
+					assetParents = append(assetParents, nodeAssetName)
+				} else {
+					log.Errorf("pod asset parents not collected: %w", err)
+				}
 			}
+
+			internal.Publish(publisher,
+				internal.WithAssetTypeAndID("k8s.pod", assetId),
+				internal.WithAssetParents(assetParents),
+				internal.WithPodData(assetName, assetId, namespace, assetStartTime),
+			)
+		} else {
+			log.Error("Publishing pod assets. Type assertion of pod object failed")
 		}
 
-		log.Info("Publishing pod assets\n")
-		internal.Publish(publisher,
-			internal.WithAssetTypeAndID("k8s.pod", assetId),
-			internal.WithAssetParents(assetParents),
-			internal.WithPodData(assetName, assetId, namespace, assetStartTime),
-		)
 	}
 
 }
