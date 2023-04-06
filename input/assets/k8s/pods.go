@@ -126,5 +126,4 @@ func publishK8sPods(ctx context.Context, log *logp.Logger, publisher stateless.P
 		}
 
 	}
-
 }
