@@ -102,9 +102,9 @@ func TestGetNodeIdFromName(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			client := k8sfake.NewSimpleClientset()
 			log := logp.NewLogger("mylogger")
-			nodeWatcher, err := getNodeWatcher(context.Background(), log, client, time.Second*60)
-			nodeWatcher.Store().Add(tt.input)
-			_, err = getNodeIdFromName(tt.nodeName, nodeWatcher)
+			nodeWatcher, _ := getNodeWatcher(context.Background(), log, client, time.Second*60)
+			_ = nodeWatcher.Store().Add(tt.input)
+			_, err := getNodeIdFromName(tt.nodeName, nodeWatcher)
 			assert.Equal(t, err, tt.output)
 		})
 	}
@@ -136,7 +136,7 @@ func TestPublishK8sNodes(t *testing.T) {
 			Addresses: []v1.NodeAddress{{Type: v1.NodeHostName, Address: "node1"}},
 		},
 	}
-	nodeWatcher.Store().Add(input)
+	_ = nodeWatcher.Store().Add(input)
 	publisher := testutil.NewInMemoryPublisher()
 	publishK8sNodes(context.Background(), log, publisher, nodeWatcher)
 

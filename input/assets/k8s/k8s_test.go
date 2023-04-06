@@ -155,7 +155,7 @@ func TestCollectK8sAssets(t *testing.T) {
 		},
 		Status: v1.PodStatus{PodIP: "127.0.0.5"},
 	}
-	podWatcher.Store().Add(input)
+	_ = podWatcher.Store().Add(input)
 
 	watchersMap := &watchersMap{}
 	watchersMap.watchers.Store("pod", podWatcher)

@@ -68,7 +68,7 @@ func TestPublishK8sPods(t *testing.T) {
 		},
 		Status: v1.PodStatus{PodIP: "127.0.0.5"},
 	}
-	podWatcher.Store().Add(input)
+	_ = podWatcher.Store().Add(input)
 	publisher := testutil.NewInMemoryPublisher()
 	publishK8sPods(context.Background(), log, publisher, podWatcher, nil)
 
