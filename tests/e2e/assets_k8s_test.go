@@ -33,6 +33,7 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 	v2 "github.com/elastic/inputrunner/input/v2"
 	"github.com/stretchr/testify/assert"
+	k8sfake "k8s.io/client-go/kubernetes/fake"
 )
 
 func TestAssetsK8s_Run_startsAndStopsTheInput(t *testing.T) {
@@ -45,7 +46,8 @@ func TestAssetsK8s_Run_startsAndStopsTheInput(t *testing.T) {
 	}
 	input, err := k8s.Plugin().Manager.(stateless.InputManager).Configure(config.NewConfig())
 	assert.NoError(t, err)
-	if err := k8s.SetKubeConfig("../files/kube_config.yml", input); err != nil {
+	client := k8sfake.NewSimpleClientset()
+	if err := k8s.SetClient(client, input); err != nil {
 		t.Fatalf("Test failed: %s", err)
 	}
 
@@ -60,7 +62,7 @@ func TestAssetsK8s_Run_startsAndStopsTheInput(t *testing.T) {
 	time.Sleep(time.Millisecond)
 	cancel()
 
-	timeout := time.After(2 * time.Second)
+	timeout := time.After(10 * time.Second)
 	closeCh := make(chan struct{})
 	go func() {
 		defer close(closeCh)

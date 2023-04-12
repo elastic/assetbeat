@@ -29,7 +29,7 @@ import (
 )
 
 func TestGetConfigFiles_File(t *testing.T) {
-	absPath, err := filepath.Abs("../tests/files/configs")
+	absPath, err := filepath.Abs("../tests/files")
 
 	assert.NotNil(t, absPath)
 	assert.NoError(t, err)
@@ -43,7 +43,7 @@ func TestGetConfigFiles_File(t *testing.T) {
 }
 
 func TestGetConfigFiles_Dir(t *testing.T) {
-	absPath, err := filepath.Abs("../tests/files/configs")
+	absPath, err := filepath.Abs("../tests/files")
 
 	assert.NotNil(t, absPath)
 	assert.NoError(t, err)
@@ -70,7 +70,7 @@ func TestGetConfigFiles_EmptyDir(t *testing.T) {
 }
 
 func TestGetConfigFiles_Invalid(t *testing.T) {
-	absPath, err := filepath.Abs("../tests/files/configs")
+	absPath, err := filepath.Abs("../tests/files")
 
 	assert.NotNil(t, absPath)
 	assert.NoError(t, err)
@@ -83,7 +83,7 @@ func TestGetConfigFiles_Invalid(t *testing.T) {
 }
 
 func TestMergeConfigFiles(t *testing.T) {
-	absPath, err := filepath.Abs("../tests/files/configs")
+	absPath, err := filepath.Abs("../tests/files")
 
 	assert.NotNil(t, absPath)
 	assert.NoError(t, err)
