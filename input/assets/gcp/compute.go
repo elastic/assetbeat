@@ -57,7 +57,7 @@ func collectComputeAssets(ctx context.Context, dataset string, cfg config, publi
 			internal.WithAssetAccountID(instance.Account),
 			internal.WithAssetTypeAndID("gcp.compute.instance", instance.ID),
 			internal.WithAssetParents(parents),
-			WithAssetLabels(instance.Labels),
+			WithAssetLabels(internal.ToMapstr(instance.Labels)),
 			internal.WithAssetMetadata(instance.Metadata),
 			internal.WithIndex(dataset),
 		)

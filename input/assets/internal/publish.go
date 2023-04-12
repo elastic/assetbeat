@@ -91,13 +91,10 @@ func WithAssetChildren(value []string) AssetOption {
 
 func WithAssetMetadata(value mapstr.M) AssetOption {
 	return func(e beat.Event) beat.Event {
-		m := mapstr.M{}
-		if e.Fields["asset.metadata"] != nil {
-			m = e.Fields["asset.metadata"].(mapstr.M)
+		flattenedValue := value.Flatten()
+		for k, v := range flattenedValue {
+			e.Fields["asset.metadata."+k] = v
 		}
-
-		m.Update(value)
-		e.Fields["asset.metadata"] = m
 		return e
 	}
 }
@@ -119,4 +116,12 @@ func WithPodData(name, uid, namespace string, startTime *metav1.Time) AssetOptio
 		e.Fields["kubernetes.namespace"] = namespace
 		return e
 	}
+}
+
+func ToMapstr(input map[string]string) mapstr.M {
+	out := mapstr.M{}
+	for k, v := range input {
+		out[k] = v
+	}
+	return out
 }

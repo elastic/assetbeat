@@ -60,7 +60,7 @@ func collectGKEAssets(ctx context.Context, dataset string, cfg config, publisher
 			internal.WithAssetAccountID(cluster.Account),
 			internal.WithAssetTypeAndID("k8s.cluster", cluster.ID),
 			internal.WithAssetParents(parents),
-			WithAssetLabels(cluster.Labels),
+			WithAssetLabels(internal.ToMapstr(cluster.Labels)),
 			internal.WithAssetMetadata(cluster.Metadata),
 			internal.WithIndex(dataset),
 		)

@@ -18,10 +18,8 @@
 package cmd
 
 import (
-	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"github.com/elastic/beats/v7/libbeat/cmd"
 	"github.com/elastic/beats/v7/libbeat/cmd/instance"
-	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/inputrunner/beater"
 	"github.com/spf13/pflag"
 )
@@ -32,15 +30,6 @@ const Name = "inputrunner"
 // RootCmd to handle beats cli
 var RootCmd *cmd.BeatsRootCmd
 
-var always = func(_ *conf.C) bool {
-	return true
-}
-
-var configOverrides = conf.MustNewConfigFrom(map[string]interface{}{
-	"setup.ilm.enabled":      false,
-	"setup.template.enabled": false,
-})
-
 // InputrunnerSettings contains the default settings for inputrunner
 func InputrunnerSettings() instance.Settings {
 	runFlags := pflag.NewFlagSet(Name, pflag.ExitOnError)
@@ -48,11 +37,6 @@ func InputrunnerSettings() instance.Settings {
 		RunFlags:      runFlags,
 		Name:          Name,
 		HasDashboards: false,
-		ConfigOverrides: []cfgfile.ConditionalOverride{
-			{
-				Check:  always,
-				Config: configOverrides,
-			}},
 	}
 }
 

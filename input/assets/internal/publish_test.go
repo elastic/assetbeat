@@ -120,8 +120,8 @@ func TestPublish(t *testing.T) {
 				WithAssetMetadata(mapstr.M{"foo": "bar"}),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
-				"cloud.provider": "aws",
-				"asset.metadata": mapstr.M{"foo": "bar"},
+				"cloud.provider":     "aws",
+				"asset.metadata.foo": "bar",
 			}, Meta: mapstr.M{}},
 		},
 		{

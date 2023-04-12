@@ -97,8 +97,8 @@ func describeEC2Instances(ctx context.Context, client *ec2.Client) ([]EC2Instanc
 }
 
 // flattenEC2Tags converts the EC2 tag format to a simple `map[string]string`
-func flattenEC2Tags(tags []types.Tag) map[string]string {
-	out := make(map[string]string)
+func flattenEC2Tags(tags []types.Tag) mapstr.M {
+	out := mapstr.M{}
 	for _, t := range tags {
 		out[*t.Key] = *t.Value
 	}
