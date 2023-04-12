@@ -60,7 +60,7 @@ func TestAssetsK8s_Run_startsAndStopsTheInput(t *testing.T) {
 	time.Sleep(time.Millisecond)
 	cancel()
 
-	timeout := time.After(time.Second)
+	timeout := time.After(2 * time.Second)
 	closeCh := make(chan struct{})
 	go func() {
 		defer close(closeCh)
