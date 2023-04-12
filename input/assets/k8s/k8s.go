@@ -106,7 +106,7 @@ func (s *assetsK8s) Run(inputCtx input.Context, publisher stateless.Publisher) e
 
 	client, err := getKubernetesClient(kubeConfigPath, log)
 	if err != nil {
-		log.Errorf("unable to build kubernetes clientset: %w", err)
+		return fmt.Errorf("unable to build kubernetes clientset: %w", err)
 	}
 
 	watchersMap := &watchersMap{}
@@ -291,4 +291,14 @@ func stopK8sWatchers(ctx context.Context, log *logp.Logger, watchersMap *watcher
 	} else {
 		log.Error("node watcher not found")
 	}
+}
+
+// SetKubeConfig sets the kubeconfigFilePath. Used for e2e tests
+func SetKubeConfig(kubeconfigFilePath string, s stateless.Input) error {
+	i, ok := s.(*assetsK8s)
+	if !ok {
+		return fmt.Errorf("stateless.Input to assetsK8s type assertion failed")
+	}
+	i.Config.KubeConfig = kubeconfigFilePath
+	return nil
 }
