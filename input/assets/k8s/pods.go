@@ -88,7 +88,7 @@ func (p *pod) OnDelete(obj interface{}) {
 // OnAdd ensures processing of pod objects that are newly added.
 func (p *pod) OnAdd(obj interface{}) {
 	o := obj.(*kube.Pod)
-	p.logger.Infof("Watcher Pod add: %+v", o.Name)
+	p.logger.Debugf("Watcher Pod add: %+v", o.Name)
 }
 
 // publishK8sPods publishes the pod assets stored in pod watcher cache
