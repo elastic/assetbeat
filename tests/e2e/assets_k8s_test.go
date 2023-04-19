@@ -30,8 +30,6 @@ import (
 	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 
 	"github.com/elastic/elastic-agent-libs/config"
-	"github.com/elastic/elastic-agent-libs/logp"
-	v2 "github.com/elastic/inputrunner/input/v2"
 	"github.com/stretchr/testify/assert"
 	k8sfake "k8s.io/client-go/kubernetes/fake"
 )
@@ -40,10 +38,6 @@ func TestAssetsK8s_Run_startsAndStopsTheInput(t *testing.T) {
 	publisher := testutil.NewInMemoryPublisher()
 
 	ctx, cancel := context.WithCancel(context.Background())
-	inputCtx := v2.Context{
-		Logger:      logp.NewLogger("test"),
-		Cancelation: ctx,
-	}
 	input, err := k8s.Plugin().Manager.(stateless.InputManager).Configure(config.NewConfig())
 	assert.NoError(t, err)
 	client := k8sfake.NewSimpleClientset()
@@ -55,7 +49,7 @@ func TestAssetsK8s_Run_startsAndStopsTheInput(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		err = input.Run(inputCtx, publisher)
+		err = input.Run(ctx, publisher)
 		assert.NoError(t, err)
 	}()
 
