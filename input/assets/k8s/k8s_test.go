@@ -18,15 +18,19 @@
 package k8s
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/inputrunner/input/assets/internal"
 	"github.com/elastic/inputrunner/input/testutil"
 	"github.com/stretchr/testify/assert"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8sfake "k8s.io/client-go/kubernetes/fake"
 )
 
 var startTime = metav1.Time{Time: time.Date(2021, 8, 15, 14, 30, 45, 100, time.Local)}
@@ -120,4 +124,45 @@ func TestPublishK8sNodeAsset(t *testing.T) {
 			assert.Equal(t, tt.event, publisher.Events[0])
 		})
 	}
+}
+
+func TestCollectK8sAssets(t *testing.T) {
+	client := k8sfake.NewSimpleClientset()
+	log := logp.NewLogger("mylogger")
+	podWatcher, err := getPodWatcher(context.Background(), log, client, time.Second*60)
+	if err != nil {
+		t.Fatalf("error initiating Pod watcher")
+	}
+
+	input := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "mypod",
+			UID:       "a375d24b-fa20-4ea6-a0ee-1d38671d2c09",
+			Namespace: "default",
+			Labels: map[string]string{
+				"foo": "bar",
+			},
+			Annotations: map[string]string{
+				"app": "production",
+			},
+		},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Pod",
+			APIVersion: "v1",
+		},
+		Spec: v1.PodSpec{
+			NodeName: "testnode",
+		},
+		Status: v1.PodStatus{PodIP: "127.0.0.5"},
+	}
+	_ = podWatcher.Store().Add(input)
+
+	watchersMap := &watchersMap{}
+	watchersMap.watchers.Store("pod", podWatcher)
+	publisher := testutil.NewInMemoryPublisher()
+	cfg := defaultConfig()
+	cfg.AssetTypes = []string{"pod"}
+	collectK8sAssets(context.Background(), log, cfg, publisher, watchersMap)
+	time.Sleep(1 * time.Second)
+	assert.Equal(t, 1, len(publisher.Events))
 }
