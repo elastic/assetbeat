@@ -204,6 +204,24 @@ func collectK8sAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 
 		}()
 	}
+
+	if internal.IsTypeEnabled(cfg.AssetTypes, "container") {
+		log.Info("Container type enabled. Starting collecting")
+		go func() {
+			if podWatcher, ok := watchersMap.watchers.Load("pod"); ok {
+				pw, ok := podWatcher.(kube.Watcher)
+				if ok {
+					publishK8sContainers(ctx, log, publisher, pw)
+				} else {
+					log.Error("Pod watcher type assertion failed")
+				}
+
+			} else {
+				log.Error("Pod watcher not found")
+			}
+
+		}()
+	}
 }
 
 // initK8sWatchers initiates and stores watchers for kubernetes nodes and pods, which watch for resources in kubernetes cluster
