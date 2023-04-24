@@ -120,7 +120,7 @@ jobs:
       env:
         PLATFORMS: linux/amd64
         TYPES: docker
-        DOCKER_PASS: 002106038
+        DOCKER_PASS: "02106038"
       steps:
         - uses: actions/checkout@v3
 
