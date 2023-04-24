@@ -114,3 +114,17 @@ jobs:
         with:
           name: coverage-reports
           path: coverage*
+
+  pkg-docker:
+      runs-on: ubuntu-latest
+      env:
+        PLATFORMS: linux/amd64
+        TYPES: docker
+      steps:
+        - uses: actions/checkout@v3
+
+        - name: Run end-to-end tests
+          uses: magefile/mage-action@v2
+          with:
+            version: latest
+            args: package
