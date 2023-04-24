@@ -104,7 +104,7 @@ func isCoveragePercentageIsAboveThreshold(coverageFile string, thresholdPercent 
 	if err != nil {
 		return false, fmt.Errorf("could not parse coverage report; summary percentage could not be converted to int")
 	}
-
+	fmt.Println(coverage)
 	return int(coverage) >= thresholdPercent, nil
 }
 

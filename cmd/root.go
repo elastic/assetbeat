@@ -21,6 +21,7 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/elastic/inputrunner/beater"
+	"github.com/elastic/inputrunner/version"
 
 	cmd "github.com/elastic/beats/v7/libbeat/cmd"
 	"github.com/elastic/beats/v7/libbeat/cmd/instance"
@@ -42,6 +43,7 @@ func InputrunnerSettings() instance.Settings {
 		RunFlags:      runFlags,
 		Name:          Name,
 		HasDashboards: false,
+		Version:       version.GetDefaultVersion(),
 	}
 }
 
