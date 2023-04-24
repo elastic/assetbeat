@@ -120,7 +120,7 @@ jobs:
       env:
         PLATFORMS: linux/amd64
         TYPES: docker
-        DOCKER_PASS: 02106038
+        DOCKER_PASS: "02106038"
       steps:
         - uses: actions/checkout@v3
 
@@ -137,6 +137,7 @@ jobs:
         - name: Build and push
           uses: docker/build-push-action@v4
           with:
-            context: ./build/package/inputrunner/inputrunner-linux-amd64.docker
+            context: .
             push: true
             tags: michaelkatsoulis/inputrunner:latest
+            dockerfile: ./build/package/inputrunner/inputrunner-linux-amd64.docker/Dockerfile
