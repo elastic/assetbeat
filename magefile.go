@@ -5,6 +5,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -164,6 +165,44 @@ func Package() error {
 		}
 		fmt.Println("Copying Dockerfile")
 		if err := sh.RunV("cp", "Dockerfile.reference", dockerfile); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// GetVersion returns the version of inputrunner
+func GetVersion() error {
+	if err := sh.RunV("go", "mod", "download"); err != nil {
+		return err
+	}
+
+	out, err := sh.Output("go", "run", "main.go", "version")
+	if err != nil {
+		return err
+	}
+	awk := exec.Command("awk", "$2 == \"version\" {print $3}")
+	reader := strings.NewReader(out)
+	awk.Stdin = reader
+
+	v, err := awk.CombinedOutput()
+	if err != nil {
+		return err
+	}
+	// trim trailing line
+	version := strings.TrimSuffix(string(v), "\n")
+	fmt.Println(version)
+	gOutput := fmt.Sprintf("VERSION=%s\n", version)
+	file, ok := os.LookupEnv("GITHUB_OUTPUT")
+	if ok {
+		f, err := os.OpenFile(file,
+			os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		if _, err := f.WriteString(gOutput); err != nil {
 			return err
 		}
 	}
