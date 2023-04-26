@@ -22,10 +22,10 @@ import (
 	"fmt"
 	"time"
 
+	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	kube "github.com/elastic/elastic-agent-autodiscover/kubernetes"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/inputrunner/input/assets/internal"
-	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 
 	kuberntescli "k8s.io/client-go/kubernetes"
 )

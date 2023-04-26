@@ -23,10 +23,10 @@ import (
 
 	"github.com/dustin/go-humanize"
 
+	input "github.com/elastic/beats/v7/filebeat/input/v2"
+	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/beats/v7/libbeat/beat" // TODO: Replace with sync/atomic when go1.19 is supported.
 	"github.com/elastic/beats/v7/libbeat/feature"
-	input "github.com/elastic/inputrunner/input/v2"
-	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 	"github.com/elastic/inputrunner/inputsource"
 	"github.com/elastic/inputrunner/inputsource/udp"
 

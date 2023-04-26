@@ -20,6 +20,7 @@ package beater
 import (
 	"flag"
 	"fmt"
+	v2 "github.com/elastic/beats/v7/filebeat/input/v2"
 	"strings"
 	"sync"
 	"time"
@@ -37,8 +38,8 @@ import (
 	"github.com/elastic/go-concert/unison"
 	"github.com/elastic/inputrunner/channel"
 	cfg "github.com/elastic/inputrunner/config"
-	v2 "github.com/elastic/inputrunner/input/v2"
-	"github.com/elastic/inputrunner/input/v2/compat"
+
+	"github.com/elastic/beats/v7/filebeat/input/v2/compat"
 
 	// Add filebeat level processors
 	_ "github.com/elastic/beats/v7/libbeat/processors/decode_csv_fields"
