@@ -73,8 +73,6 @@ type config struct {
 	Config `config:",inline"`
 }
 
-func (s *execCmd) Dataset() string { return "exec" }
-
 func (s *execCmd) Name() string { return "exec" }
 
 func (s *execCmd) Test(_ input.TestContext) error {

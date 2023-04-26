@@ -28,6 +28,11 @@ import (
 
 type AssetOption func(beat.Event) beat.Event
 
+// Assets data is published to indexes following the same name pattern used in Agent
+// type-dataset-namespace, and has its own index type.
+const indexType = "assets"
+const indexDefaultNamespace = "default"
+
 // Publish emits a `beat.Event` to the specified publisher, with the provided
 // parameters
 func Publish(publisher stateless.Publisher, opts ...AssetOption) {
@@ -40,7 +45,7 @@ func Publish(publisher stateless.Publisher, opts ...AssetOption) {
 
 func WithIndex(value string) AssetOption {
 	return func(e beat.Event) beat.Event {
-		e.Meta["index"] = fmt.Sprintf("%s-%s-%s", "assets", value, "default")
+		e.Meta["index"] = fmt.Sprintf("%s-%s-%s", indexType, value, indexDefaultNamespace)
 		return e
 	}
 }

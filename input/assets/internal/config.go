@@ -17,11 +17,22 @@
 
 package internal
 
-import "time"
+import (
+	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
+	"time"
+)
 
 type BaseConfig struct {
 	Period     time.Duration `config:"period"`
 	AssetTypes []string      `config:"asset_types"`
+}
+
+// Asset defines assets-related stateless inputs. The Input interface is extended with Dataset(), since index type and dataset
+// are not user-configurable.
+// Each input that publishes assets-related data must implement this interface
+type Asset interface {
+	stateless.Input
+	Dataset() string
 }
 
 func IsTypeEnabled(configuredTypes []string, currentType string) bool {

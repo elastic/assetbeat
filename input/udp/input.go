@@ -78,8 +78,6 @@ func newServer(config config) (*server, error) {
 	return &server{config: config}, nil
 }
 
-func (s *server) Dataset() string { return "udp" }
-
 func (s *server) Name() string { return "udp" }
 
 func (s *server) Test(_ input.TestContext) error {
