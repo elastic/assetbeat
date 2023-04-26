@@ -64,12 +64,17 @@ func configure(inputCfg *conf.C) (stateless.Input, error) {
 	if err := inputCfg.Unpack(&cfg); err != nil {
 		return nil, err
 	}
+	log := logp.NewLogger("assets_k8s")
+	client, err := getKubernetesClient(cfg.KubeConfig, log)
+	if err != nil {
+		log.Errorf("unable to build kubernetes clientset: %w", err)
+	}
 
-	return newAssetsK8s(cfg)
+	return newAssetsK8s(cfg, client)
 }
 
-func newAssetsK8s(cfg config) (*assetsK8s, error) {
-	return &assetsK8s{cfg}, nil
+func newAssetsK8s(cfg config, client kuberntescli.Interface) (*assetsK8s, error) {
+	return &assetsK8s{cfg, client}, nil
 }
 
 func defaultConfig() config {
@@ -85,6 +90,7 @@ func defaultConfig() config {
 
 type assetsK8s struct {
 	Config config
+	Client kuberntescli.Interface
 }
 
 func (s *assetsK8s) Name() string { return "assets_k8s" }
@@ -101,12 +107,11 @@ func (s *assetsK8s) Run(inputCtx input.Context, publisher stateless.Publisher) e
 	defer log.Info("k8s asset collector run stopped")
 
 	cfg := s.Config
-	kubeConfigPath := cfg.KubeConfig
 	ticker := time.NewTicker(cfg.Period)
 
-	client, err := getKubernetesClient(kubeConfigPath, log)
-	if err != nil {
-		log.Errorf("unable to build kubernetes clientset: %w", err)
+	client := s.Client
+	if client == nil {
+		return fmt.Errorf("Kubernetes client is nil")
 	}
 
 	watchersMap := &watchersMap{}
@@ -115,11 +120,11 @@ func (s *assetsK8s) Run(inputCtx input.Context, publisher stateless.Publisher) e
 		return nil
 	default:
 		// Init the watchers
-		if err = initK8sWatchers(ctx, client, log, cfg, publisher, watchersMap); err != nil {
+		if err := initK8sWatchers(ctx, client, log, cfg, publisher, watchersMap); err != nil {
 			return err
 		}
 		// Start the watchers
-		if err = startK8sWatchers(ctx, log, cfg, watchersMap); err != nil {
+		if err := startK8sWatchers(ctx, log, cfg, watchersMap); err != nil {
 			// stop any running watcher
 			stopK8sWatchers(ctx, log, watchersMap)
 			return err
@@ -291,4 +296,14 @@ func stopK8sWatchers(ctx context.Context, log *logp.Logger, watchersMap *watcher
 	} else {
 		log.Error("node watcher not found")
 	}
+}
+
+// SetClient sets the Kubernetes Client. Used for e2e tests
+func SetClient(client kuberntescli.Interface, s stateless.Input) error {
+	i, ok := s.(*assetsK8s)
+	if !ok {
+		return fmt.Errorf("stateless.Input to assetsK8s type assertion failed")
+	}
+	i.Client = client
+	return nil
 }
