@@ -22,10 +22,10 @@ import (
 	"fmt"
 	"time"
 
+	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	kube "github.com/elastic/elastic-agent-autodiscover/kubernetes"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/inputrunner/input/assets/internal"
-	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 
 	kuberntescli "k8s.io/client-go/kubernetes"
 )
@@ -88,7 +88,7 @@ func (p *pod) OnDelete(obj interface{}) {
 // OnAdd ensures processing of pod objects that are newly added.
 func (p *pod) OnAdd(obj interface{}) {
 	o := obj.(*kube.Pod)
-	p.logger.Infof("Watcher Pod add: %+v", o.Name)
+	p.logger.Debugf("Watcher Pod add: %+v", o.Name)
 }
 
 // publishK8sPods publishes the pod assets stored in pod watcher cache

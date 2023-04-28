@@ -21,13 +21,13 @@ import (
 	"net"
 	"time"
 
+	input "github.com/elastic/beats/v7/filebeat/input/v2"
+	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/feature"
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/go-concert/ctxtool"
-	input "github.com/elastic/inputrunner/input/v2"
-	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 	"github.com/elastic/inputrunner/inputsource"
 	"github.com/elastic/inputrunner/inputsource/unix"
 )

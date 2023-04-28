@@ -20,9 +20,9 @@ package internal
 import (
 	"fmt"
 
+	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/mapstr"
-	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

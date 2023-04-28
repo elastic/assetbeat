@@ -15,7 +15,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package gcp
+//go:build e2e
+
+package e2e
 
 import (
 	"context"
@@ -24,19 +26,16 @@ import (
 	"time"
 
 	v2 "github.com/elastic/beats/v7/filebeat/input/v2"
+	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
+	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/inputrunner/input/assets/k8s"
 	"github.com/elastic/inputrunner/input/testutil"
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/api/option"
+	k8sfake "k8s.io/client-go/kubernetes/fake"
 )
 
-func TestPlugin(t *testing.T) {
-	p := Plugin()
-	assert.Equal(t, "assets_gcp", p.Name)
-	assert.NotNil(t, p.Manager)
-}
-
-func TestAssetsGCP_Run(t *testing.T) {
+func TestAssetsK8s_Run_startsAndStopsTheInput(t *testing.T) {
 	publisher := testutil.NewInMemoryPublisher()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -44,9 +43,12 @@ func TestAssetsGCP_Run(t *testing.T) {
 		Logger:      logp.NewLogger("test"),
 		Cancelation: ctx,
 	}
-
-	input, err := newAssetsGCP(defaultConfig())
+	input, err := k8s.Plugin().Manager.(stateless.InputManager).Configure(config.NewConfig())
 	assert.NoError(t, err)
+	client := k8sfake.NewSimpleClientset()
+	if err := k8s.SetClient(client, input); err != nil {
+		t.Fatalf("Test failed: %s", err)
+	}
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -58,57 +60,18 @@ func TestAssetsGCP_Run(t *testing.T) {
 
 	time.Sleep(time.Millisecond)
 	cancel()
-	timeout := time.After(time.Second)
+
+	timeout := time.After(10 * time.Second)
 	closeCh := make(chan struct{})
 	go func() {
 		defer close(closeCh)
 		wg.Wait()
 	}()
+
 	select {
 	case <-timeout:
 		t.Fatal("Test timed out")
 	case <-closeCh:
 		// Waitgroup finished in time, nothing to do
-	}
-}
-
-func TestAssetsGCP_CollectAll(t *testing.T) {
-	publisher := testutil.NewInMemoryPublisher()
-
-	ctx := context.Background()
-	logger := logp.NewLogger("test")
-
-	input, err := newAssetsGCP(defaultConfig())
-	assert.NoError(t, err)
-
-	err = input.collectAll(ctx, logger, publisher)
-	assert.NoError(t, err)
-}
-
-func TestBuildClientOptions(t *testing.T) {
-	for _, tt := range []struct {
-		name string
-
-		cfg          config
-		expectedOpts []option.ClientOption
-	}{
-		{
-			name: "with an empty config",
-		},
-		{
-			name: "with a credentials file path",
-
-			cfg: config{
-				CredsFilePath: "/tmp/file_path",
-			},
-			expectedOpts: []option.ClientOption{
-				option.WithCredentialsFile("/tmp/file_path"),
-			},
-		},
-	} {
-		t.Run(tt.name, func(t *testing.T) {
-			opts := buildClientOptions(tt.cfg)
-			assert.Equal(t, tt.expectedOpts, opts)
-		})
 	}
 }
