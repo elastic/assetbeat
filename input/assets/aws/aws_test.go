@@ -19,6 +19,10 @@ package aws
 
 import (
 	"context"
+	v2 "github.com/elastic/beats/v7/filebeat/input/v2"
+	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/inputrunner/input/testutil"
+	"sync"
 	"testing"
 	"time"
 
@@ -100,5 +104,47 @@ func TestGetAWSConfigForRegion(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedCreds, retrievedAWSCreds)
 		})
+	}
+}
+
+func TestPlugin(t *testing.T) {
+	p := Plugin()
+	assert.Equal(t, "assets_aws", p.Name)
+	assert.NotNil(t, p.Manager)
+}
+
+func TestAssetsAWS_Run(t *testing.T) {
+	publisher := testutil.NewInMemoryPublisher()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	inputCtx := v2.Context{
+		Logger:      logp.NewLogger("test"),
+		Cancelation: ctx,
+	}
+
+	input, err := newAssetsAWS(defaultConfig())
+	assert.NoError(t, err)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		err = input.Run(inputCtx, publisher)
+		assert.NoError(t, err)
+	}()
+
+	time.Sleep(time.Millisecond)
+	cancel()
+	timeout := time.After(time.Second)
+	closeCh := make(chan struct{})
+	go func() {
+		defer close(closeCh)
+		wg.Wait()
+	}()
+	select {
+	case <-timeout:
+		t.Fatal("Test timed out")
+	case <-closeCh:
+		// Waitgroup finished in time, nothing to do
 	}
 }
