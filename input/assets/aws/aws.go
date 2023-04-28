@@ -83,8 +83,6 @@ type assetsAWS struct {
 	Config config
 }
 
-func (s *assetsAWS) Dataset() string { return "aws" }
-
 func (s *assetsAWS) Name() string { return "assets_aws" }
 
 func (s *assetsAWS) Test(_ input.TestContext) error {

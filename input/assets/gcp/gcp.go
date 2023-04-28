@@ -74,8 +74,6 @@ type assetsGCP struct {
 	config
 }
 
-func (s *assetsGCP) Dataset() string { return "gcp" }
-
 func (s *assetsGCP) Name() string { return "assets_gcp" }
 
 func (s *assetsGCP) Test(_ input.TestContext) error {
