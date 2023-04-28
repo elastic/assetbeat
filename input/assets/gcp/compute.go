@@ -36,7 +36,7 @@ type computeInstance struct {
 	Metadata mapstr.M
 }
 
-func collectComputeAssets(ctx context.Context, dataset string, cfg config, publisher stateless.Publisher) error {
+func collectComputeAssets(ctx context.Context, cfg config, publisher stateless.Publisher) error {
 	svc, err := compute.NewService(ctx, buildClientOptions(cfg)...)
 	if err != nil {
 		return err
@@ -59,7 +59,6 @@ func collectComputeAssets(ctx context.Context, dataset string, cfg config, publi
 			internal.WithAssetParents(parents),
 			WithAssetLabels(internal.ToMapstr(instance.Labels)),
 			internal.WithAssetMetadata(instance.Metadata),
-			internal.WithIndex(dataset),
 		)
 	}
 

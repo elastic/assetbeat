@@ -43,13 +43,6 @@ func Publish(publisher stateless.Publisher, opts ...AssetOption) {
 	publisher.Publish(event)
 }
 
-func WithIndex(value string) AssetOption {
-	return func(e beat.Event) beat.Event {
-		e.Meta["index"] = fmt.Sprintf("%s-%s-%s", indexType, value, indexDefaultNamespace)
-		return e
-	}
-}
-
 func WithAssetCloudProvider(value string) AssetOption {
 	return func(e beat.Event) beat.Event {
 		e.Fields["cloud.provider"] = value
@@ -76,6 +69,7 @@ func WithAssetTypeAndID(t, id string) AssetOption {
 		e.Fields["asset.type"] = t
 		e.Fields["asset.id"] = id
 		e.Fields["asset.ean"] = fmt.Sprintf("%s:%s", t, id)
+		e.Meta["index"] = fmt.Sprintf("%s-%s-%s", indexType, t, indexDefaultNamespace)
 		return e
 	}
 }

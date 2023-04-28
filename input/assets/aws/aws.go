@@ -100,21 +100,20 @@ func (s *assetsAWS) Run(inputCtx input.Context, publisher stateless.Publisher) e
 
 	cfg := s.Config
 	period := cfg.Period
-	dataset := s.Dataset()
 
 	ticker := time.NewTicker(period)
 	select {
 	case <-ctx.Done():
 		return nil
 	default:
-		collectAWSAssets(ctx, dataset, log, cfg, publisher)
+		collectAWSAssets(ctx, log, cfg, publisher)
 	}
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case <-ticker.C:
-			collectAWSAssets(ctx, dataset, log, cfg, publisher)
+			collectAWSAssets(ctx, log, cfg, publisher)
 		}
 	}
 }
@@ -135,7 +134,7 @@ func getAWSConfigForRegion(ctx context.Context, cfg config, region string) (aws.
 	return aws_config.LoadDefaultConfig(ctx, options...)
 }
 
-func collectAWSAssets(ctx context.Context, dataset string, log *logp.Logger, cfg config, publisher stateless.Publisher) {
+func collectAWSAssets(ctx context.Context, log *logp.Logger, cfg config, publisher stateless.Publisher) {
 	for _, region := range cfg.Regions {
 		awsCfg, err := getAWSConfigForRegion(ctx, cfg, region)
 		if err != nil {
@@ -146,7 +145,7 @@ func collectAWSAssets(ctx context.Context, dataset string, log *logp.Logger, cfg
 		// these strings need careful documentation
 		if internal.IsTypeEnabled(cfg.AssetTypes, "eks") {
 			go func() {
-				err := collectEKSAssets(ctx, awsCfg, dataset, log, publisher)
+				err := collectEKSAssets(ctx, awsCfg, log, publisher)
 				if err != nil {
 					log.Errorf("error collecting EKS assets: %w", err)
 				}
@@ -154,7 +153,7 @@ func collectAWSAssets(ctx context.Context, dataset string, log *logp.Logger, cfg
 		}
 		if internal.IsTypeEnabled(cfg.AssetTypes, "ec2") {
 			go func() {
-				err := collectEC2Assets(ctx, awsCfg, dataset, log, publisher)
+				err := collectEC2Assets(ctx, awsCfg, log, publisher)
 				if err != nil {
 					log.Errorf("error collecting EC2 assets: %w", err)
 				}
@@ -163,13 +162,13 @@ func collectAWSAssets(ctx context.Context, dataset string, log *logp.Logger, cfg
 		if internal.IsTypeEnabled(cfg.AssetTypes, "vpc") {
 			// should these just go in the same function??
 			go func() {
-				err := collectVPCAssets(ctx, awsCfg, dataset, log, publisher)
+				err := collectVPCAssets(ctx, awsCfg, log, publisher)
 				if err != nil {
 					log.Errorf("error collecting VPC assets: %w", err)
 				}
 			}()
 			go func() {
-				err := collectSubnetAssets(ctx, awsCfg, dataset, log, publisher)
+				err := collectSubnetAssets(ctx, awsCfg, log, publisher)
 				if err != nil {
 					log.Errorf("error collecting Subnet assets: %w", err)
 				}

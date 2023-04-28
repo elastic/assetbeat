@@ -32,7 +32,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 )
 
-func collectVPCAssets(ctx context.Context, cfg aws.Config, dataset string, log *logp.Logger, publisher stateless.Publisher) error {
+func collectVPCAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) error {
 	client := ec2.NewFromConfig(cfg)
 	vpcs, err := describeVPCs(ctx, client)
 	if err != nil {
@@ -49,14 +49,13 @@ func collectVPCAssets(ctx context.Context, cfg aws.Config, dataset string, log *
 			internal.WithAssetMetadata(mapstr.M{
 				"isDefault": vpc.IsDefault,
 			}),
-			internal.WithIndex(dataset),
 		)
 	}
 
 	return nil
 }
 
-func collectSubnetAssets(ctx context.Context, cfg aws.Config, dataset string, log *logp.Logger, publisher stateless.Publisher) error {
+func collectSubnetAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) error {
 	client := ec2.NewFromConfig(cfg)
 	subnets, err := describeSubnets(ctx, client)
 	if err != nil {
@@ -73,7 +72,6 @@ func collectSubnetAssets(ctx context.Context, cfg aws.Config, dataset string, lo
 			internal.WithAssetMetadata(mapstr.M{
 				"state": string(subnet.State),
 			}),
-			internal.WithIndex(dataset),
 		)
 	}
 

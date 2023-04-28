@@ -114,13 +114,13 @@ func (s *assetsGCP) Run(inputCtx input.Context, publisher stateless.Publisher) e
 
 func (s *assetsGCP) collectAll(ctx context.Context, log *logp.Logger, publisher stateless.Publisher) error {
 	go func() {
-		err := collectComputeAssets(ctx, s.Dataset(), s.config, publisher)
+		err := collectComputeAssets(ctx, s.config, publisher)
 		if err != nil {
 			log.Errorf("error collecting compute assets: %w", err)
 		}
 	}()
 	go func() {
-		err := collectGKEAssets(ctx, s.Dataset(), s.config, publisher)
+		err := collectGKEAssets(ctx, s.config, publisher)
 		if err != nil {
 			log.Errorf("error collecting GKE assets: %w", err)
 		}

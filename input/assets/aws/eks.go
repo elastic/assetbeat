@@ -33,7 +33,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 )
 
-func collectEKSAssets(ctx context.Context, cfg aws.Config, dataset string, log *logp.Logger, publisher stateless.Publisher) error {
+func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) error {
 	client := eks.NewFromConfig(cfg)
 	clusters, err := listEKSClusters(ctx, client)
 	if err != nil {
@@ -58,7 +58,6 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, dataset string, log *
 				internal.WithAssetMetadata(mapstr.M{
 					"status": clusterDetail.Status,
 				}),
-				internal.WithIndex(dataset),
 			)
 		}
 	}
