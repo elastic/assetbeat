@@ -18,15 +18,10 @@
 package cmd
 
 import (
-	"github.com/spf13/pflag"
-
-	"github.com/elastic/inputrunner/beater"
-
-	cmd "github.com/elastic/beats/v7/libbeat/cmd"
+	"github.com/elastic/beats/v7/libbeat/cmd"
 	"github.com/elastic/beats/v7/libbeat/cmd/instance"
-	//_ "github.com/elastic/beats/v7/x-pack/libbeat/include"
-	// Import processors.
-	//_ "github.com/elastic/beats/v7/libbeat/processors/timestamp"
+	"github.com/elastic/inputrunner/beater"
+	"github.com/spf13/pflag"
 )
 
 // Name of this beat

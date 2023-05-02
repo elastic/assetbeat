@@ -20,23 +20,27 @@ package internal
 import (
 	"fmt"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/mapstr"
-	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type AssetOption func(beat.Event) beat.Event
 
+// Assets data is published to indexes following the same name pattern used in Agent
+// type-dataset-namespace, and has its own index type.
+const indexType = "assets"
+const indexDefaultNamespace = "default"
+
 // Publish emits a `beat.Event` to the specified publisher, with the provided
 // parameters
 func Publish(publisher stateless.Publisher, opts ...AssetOption) {
-	event := beat.Event{Fields: mapstr.M{}}
-
+	event := beat.Event{Fields: mapstr.M{}, Meta: mapstr.M{}}
 	for _, o := range opts {
 		event = o(event)
 	}
-
 	publisher.Publish(event)
 }
 
@@ -66,6 +70,7 @@ func WithAssetTypeAndID(t, id string) AssetOption {
 		e.Fields["asset.type"] = t
 		e.Fields["asset.id"] = id
 		e.Fields["asset.ean"] = fmt.Sprintf("%s:%s", t, id)
+		e.Meta["index"] = fmt.Sprintf("%s-%s-%s", indexType, t, indexDefaultNamespace)
 		return e
 	}
 }
@@ -86,13 +91,10 @@ func WithAssetChildren(value []string) AssetOption {
 
 func WithAssetMetadata(value mapstr.M) AssetOption {
 	return func(e beat.Event) beat.Event {
-		m := mapstr.M{}
-		if e.Fields["asset.metadata"] != nil {
-			m = e.Fields["asset.metadata"].(mapstr.M)
+		flattenedValue := value.Flatten()
+		for k, v := range flattenedValue {
+			e.Fields["asset.metadata."+k] = v
 		}
-
-		m.Update(value)
-		e.Fields["asset.metadata"] = m
 		return e
 	}
 }
@@ -125,4 +127,12 @@ func WithContainerData(name, uid, namespace, state string, startTime *metav1.Tim
 		e.Fields["kubernetes.namespace"] = namespace
 		return e
 	}
+}
+
+func ToMapstr(input map[string]string) mapstr.M {
+	out := mapstr.M{}
+	for k, v := range input {
+		out[k] = v
+	}
+	return out
 }

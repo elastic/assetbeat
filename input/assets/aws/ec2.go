@@ -21,8 +21,8 @@ import (
 	"context"
 	"fmt"
 
+	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/inputrunner/input/assets/internal"
-	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 	"github.com/elastic/inputrunner/util"
 
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -96,8 +96,8 @@ func describeEC2Instances(ctx context.Context, client *ec2.Client) ([]EC2Instanc
 }
 
 // flattenEC2Tags converts the EC2 tag format to a simple `map[string]string`
-func flattenEC2Tags(tags []types.Tag) map[string]string {
-	out := make(map[string]string)
+func flattenEC2Tags(tags []types.Tag) mapstr.M {
+	out := mapstr.M{}
 	for _, t := range tags {
 		out[*t.Key] = *t.Value
 	}

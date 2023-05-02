@@ -25,13 +25,13 @@ import (
 	"testing"
 	"time"
 
+	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/inputrunner/input/assets/gcp"
 	"github.com/elastic/inputrunner/input/testutil"
-	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 
+	v2 "github.com/elastic/beats/v7/filebeat/input/v2"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
-	v2 "github.com/elastic/inputrunner/input/v2"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -17,7 +17,9 @@
 
 package internal
 
-import "time"
+import (
+	"time"
+)
 
 type BaseConfig struct {
 	Period     time.Duration `config:"period"`

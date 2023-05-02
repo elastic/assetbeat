@@ -21,8 +21,8 @@ import (
 	"context"
 	"sync"
 
+	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/inputrunner/input/assets/internal"
-	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
@@ -54,7 +54,7 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 				internal.WithAssetAccountID(clusterARN.AccountID),
 				internal.WithAssetTypeAndID("k8s.cluster", *clusterDetail.Arn),
 				internal.WithAssetParents(parents),
-				WithAssetTags(clusterDetail.Tags),
+				WithAssetTags(internal.ToMapstr(clusterDetail.Tags)),
 				internal.WithAssetMetadata(mapstr.M{
 					"status": clusterDetail.Status,
 				}),

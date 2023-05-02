@@ -59,6 +59,9 @@ func TestPublishK8sPodAsset(t *testing.T) {
 					"kubernetes.pod.start_time": &startTime,
 					"kubernetes.namespace":      "default",
 				},
+				Meta: mapstr.M{
+					"index": "assets-k8s.pod-default",
+				},
 			},
 
 			assetName: "foo",
@@ -103,6 +106,9 @@ func TestPublishK8sNodeAsset(t *testing.T) {
 					"kubernetes.node.name":       "ip-172-31-29-242.us-east-2.compute.internal",
 					"kubernetes.node.providerId": "aws:///us-east-2b/i-0699b78f46f0fa248",
 					"kubernetes.node.start_time": &startTime,
+				},
+				Meta: mapstr.M{
+					"index": "assets-k8s.node-default",
 				},
 			},
 

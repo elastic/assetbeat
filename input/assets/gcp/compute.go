@@ -21,9 +21,9 @@ import (
 	"context"
 	"strconv"
 
+	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/inputrunner/input/assets/internal"
-	stateless "github.com/elastic/inputrunner/input/v2/input-stateless"
 	"google.golang.org/api/compute/v1"
 )
 
@@ -57,7 +57,7 @@ func collectComputeAssets(ctx context.Context, cfg config, publisher stateless.P
 			internal.WithAssetAccountID(instance.Account),
 			internal.WithAssetTypeAndID("gcp.compute.instance", instance.ID),
 			internal.WithAssetParents(parents),
-			WithAssetLabels(instance.Labels),
+			WithAssetLabels(internal.ToMapstr(instance.Labels)),
 			internal.WithAssetMetadata(instance.Metadata),
 		)
 	}

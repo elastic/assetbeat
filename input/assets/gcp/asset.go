@@ -22,7 +22,7 @@ import (
 	"github.com/elastic/inputrunner/input/assets/internal"
 )
 
-func WithAssetLabels(value map[string]string) internal.AssetOption {
+func WithAssetLabels(value mapstr.M) internal.AssetOption {
 	return internal.WithAssetMetadata(mapstr.M{
 		"labels": value,
 	})

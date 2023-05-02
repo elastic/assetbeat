@@ -38,7 +38,7 @@ func TestPublish(t *testing.T) {
 	}{
 		{
 			name:          "with no options",
-			expectedEvent: beat.Event{Fields: mapstr.M{}},
+			expectedEvent: beat.Event{Fields: mapstr.M{}, Meta: mapstr.M{}},
 		},
 		{
 			name: "with a valid cloud provider name",
@@ -47,7 +47,9 @@ func TestPublish(t *testing.T) {
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
 				"cloud.provider": "aws",
-			}},
+			},
+				Meta: mapstr.M{},
+			},
 		},
 		{
 			name: "with a valid region",
@@ -58,7 +60,9 @@ func TestPublish(t *testing.T) {
 			expectedEvent: beat.Event{Fields: mapstr.M{
 				"cloud.provider": "aws",
 				"cloud.region":   "us-east-1",
-			}},
+			},
+				Meta: mapstr.M{},
+			},
 		},
 		{
 			name: "with a valid account ID",
@@ -69,7 +73,9 @@ func TestPublish(t *testing.T) {
 			expectedEvent: beat.Event{Fields: mapstr.M{
 				"cloud.provider":   "aws",
 				"cloud.account.id": "42",
-			}},
+			},
+				Meta: mapstr.M{},
+			},
 		},
 		{
 			name: "with a valid asset type and ID",
@@ -82,7 +88,8 @@ func TestPublish(t *testing.T) {
 				"asset.type":     "aws.ec2.instance",
 				"asset.id":       "i-1234",
 				"asset.ean":      "aws.ec2.instance:i-1234",
-			}},
+			}, Meta: mapstr.M{"index": "assets-aws.ec2.instance-default"},
+			},
 		},
 		{
 			name: "with valid parents",
@@ -93,7 +100,7 @@ func TestPublish(t *testing.T) {
 			expectedEvent: beat.Event{Fields: mapstr.M{
 				"cloud.provider": "aws",
 				"asset.parents":  []string{"5678"},
-			}},
+			}, Meta: mapstr.M{}},
 		},
 		{
 			name: "with valid children",
@@ -104,7 +111,7 @@ func TestPublish(t *testing.T) {
 			expectedEvent: beat.Event{Fields: mapstr.M{
 				"cloud.provider": "aws",
 				"asset.children": []string{"5678"},
-			}},
+			}, Meta: mapstr.M{}},
 		},
 		{
 			name: "with valid metadata",
@@ -113,9 +120,9 @@ func TestPublish(t *testing.T) {
 				WithAssetMetadata(mapstr.M{"foo": "bar"}),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
-				"cloud.provider": "aws",
-				"asset.metadata": mapstr.M{"foo": "bar"},
-			}},
+				"cloud.provider":     "aws",
+				"asset.metadata.foo": "bar",
+			}, Meta: mapstr.M{}},
 		},
 		{
 			name: "with valid node data",
@@ -126,7 +133,7 @@ func TestPublish(t *testing.T) {
 				"kubernetes.node.name":       "ip-172-31-29-242.us-east-2.compute.internal",
 				"kubernetes.node.providerId": "aws:///us-east-2b/i-0699b78f46f0fa248",
 				"kubernetes.node.start_time": &startTime,
-			}},
+			}, Meta: mapstr.M{}},
 		},
 		{
 			name: "with valid pod data",
@@ -138,7 +145,7 @@ func TestPublish(t *testing.T) {
 				"kubernetes.pod.uid":        "a375d24b-fa20-4ea6-a0ee-1d38671d2c09",
 				"kubernetes.pod.start_time": &startTime,
 				"kubernetes.namespace":      "default",
-			}},
+			}, Meta: mapstr.M{}},
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {

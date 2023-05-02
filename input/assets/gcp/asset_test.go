@@ -37,30 +37,28 @@ func TestWithAssetLabels(t *testing.T) {
 		{
 			name: "with valid labels",
 			opts: []internal.AssetOption{
-				internal.WithAssetCloudProvider("aws"),
-				WithAssetLabels(map[string]string{"label1": "a", "label2": "b"}),
+				internal.WithAssetCloudProvider("gcp"),
+				WithAssetLabels(mapstr.M{"label1": "a", "label2": "b"}),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
-				"cloud.provider": "aws",
-				"asset.metadata": mapstr.M{
-					"labels": map[string]string{"label1": "a", "label2": "b"},
-				},
-			}},
+				"cloud.provider":               "gcp",
+				"asset.metadata.labels.label1": "a",
+				"asset.metadata.labels.label2": "b",
+			}, Meta: mapstr.M{}},
 		},
 		{
 			name: "with valid labels and metadata",
 			opts: []internal.AssetOption{
-				internal.WithAssetCloudProvider("aws"),
+				internal.WithAssetCloudProvider("gcp"),
 				internal.WithAssetMetadata(mapstr.M{"foo": "bar"}),
-				WithAssetLabels(map[string]string{"label1": "a", "label2": "b"}),
+				WithAssetLabels(mapstr.M{"label1": "a", "label2": "b"}),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
-				"cloud.provider": "aws",
-				"asset.metadata": mapstr.M{
-					"labels": map[string]string{"label1": "a", "label2": "b"},
-					"foo":    "bar",
-				},
-			}},
+				"cloud.provider":               "gcp",
+				"asset.metadata.foo":           "bar",
+				"asset.metadata.labels.label1": "a",
+				"asset.metadata.labels.label2": "b",
+			}, Meta: mapstr.M{}},
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
