@@ -47,6 +47,8 @@ func collectComputeAssets(ctx context.Context, cfg config, publisher stateless.P
 		return err
 	}
 
+	assetType := "gcp.compute.instance"
+	indexNamespace := cfg.IndexNamespace
 	for _, instance := range instances {
 		var parents []string
 		parents = append(parents, instance.VPCs...)
@@ -55,9 +57,10 @@ func collectComputeAssets(ctx context.Context, cfg config, publisher stateless.P
 			internal.WithAssetCloudProvider("gcp"),
 			internal.WithAssetRegion(instance.Region),
 			internal.WithAssetAccountID(instance.Account),
-			internal.WithAssetTypeAndID("gcp.compute.instance", instance.ID),
+			internal.WithAssetTypeAndID(assetType, instance.ID),
 			internal.WithAssetParents(parents),
 			WithAssetLabels(internal.ToMapstr(instance.Labels)),
+			internal.WithIndex(assetType, indexNamespace),
 			internal.WithAssetMetadata(instance.Metadata),
 		)
 	}

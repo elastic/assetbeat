@@ -138,7 +138,7 @@ func TestPublishK8sNodes(t *testing.T) {
 	}
 	_ = nodeWatcher.Store().Add(input)
 	publisher := testutil.NewInMemoryPublisher()
-	publishK8sNodes(context.Background(), log, publisher, nodeWatcher)
+	publishK8sNodes(context.Background(), log, "", publisher, nodeWatcher)
 
 	assert.Equal(t, 1, len(publisher.Events))
 }

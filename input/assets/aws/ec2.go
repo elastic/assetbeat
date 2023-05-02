@@ -41,7 +41,7 @@ type EC2Instance struct {
 	Metadata   mapstr.M
 }
 
-func collectEC2Assets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) error {
+func collectEC2Assets(ctx context.Context, cfg aws.Config, indexNamespace string, log *logp.Logger, publisher stateless.Publisher) error {
 	client := ec2.NewFromConfig(cfg)
 	instances, err := describeEC2Instances(ctx, client)
 	if err != nil {
@@ -53,13 +53,15 @@ func collectEC2Assets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 		if instance.SubnetID != "" {
 			parents = []string{instance.SubnetID}
 		}
+		assetType := "aws.ec2.instance"
 		internal.Publish(publisher,
 			internal.WithAssetCloudProvider("aws"),
 			internal.WithAssetRegion(cfg.Region),
 			internal.WithAssetAccountID(instance.OwnerID),
-			internal.WithAssetTypeAndID("aws.ec2.instance", instance.InstanceID),
+			internal.WithAssetTypeAndID(assetType, instance.InstanceID),
 			internal.WithAssetParents(parents),
 			WithAssetTags(flattenEC2Tags(instance.Tags)),
+			internal.WithIndex(assetType, indexNamespace),
 			internal.WithAssetMetadata(instance.Metadata),
 		)
 	}

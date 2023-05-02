@@ -48,6 +48,8 @@ func collectGKEAssets(ctx context.Context, cfg config, publisher stateless.Publi
 		return err
 	}
 
+	indexNamespace := cfg.IndexNamespace
+	assetType := "k8s.cluster"
 	for _, cluster := range clusters {
 		var parents []string
 		if len(cluster.VPC) > 0 {
@@ -58,9 +60,10 @@ func collectGKEAssets(ctx context.Context, cfg config, publisher stateless.Publi
 			internal.WithAssetCloudProvider("gcp"),
 			internal.WithAssetRegion(cluster.Region),
 			internal.WithAssetAccountID(cluster.Account),
-			internal.WithAssetTypeAndID("k8s.cluster", cluster.ID),
+			internal.WithAssetTypeAndID(assetType, cluster.ID),
 			internal.WithAssetParents(parents),
 			WithAssetLabels(internal.ToMapstr(cluster.Labels)),
+			internal.WithIndex(assetType, indexNamespace),
 			internal.WithAssetMetadata(cluster.Metadata),
 		)
 	}
