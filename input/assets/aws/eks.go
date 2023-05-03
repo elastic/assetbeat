@@ -69,6 +69,8 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 	return nil
 }
 
+// Gets the underlying EC2 Instance IDs that are assigned to an EKS Node Group.
+// Note: this function returns no instance IDs if EKS Fargate is used, since they are not exposed by AWS.
 func getInstanceIDsFromNodeGroup(ctx context.Context, clusterName string, eksClient *eks.Client, asgClient *autoscaling.Client) ([]string, error) {
 	var result []string
 	resp, err := eksClient.ListNodegroups(ctx, &eks.ListNodegroupsInput{ClusterName: &clusterName})
