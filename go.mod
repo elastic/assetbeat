@@ -6,6 +6,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.18.0
 	github.com/aws/aws-sdk-go-v2/config v1.18.22
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.21
+	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.28.6
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.93.2
 	github.com/aws/aws-sdk-go-v2/service/eks v1.27.10
 	github.com/dustin/go-humanize v1.0.1

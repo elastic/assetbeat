@@ -19,6 +19,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
@@ -29,24 +30,26 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/arn"
+	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 )
 
 func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) error {
-	client := eks.NewFromConfig(cfg)
-	clusters, err := listEKSClusters(ctx, client)
+	eksClient := eks.NewFromConfig(cfg)
+	asgClient := autoscaling.NewFromConfig(cfg)
+	clusters, err := listEKSClusters(ctx, eksClient)
 	if err != nil {
 		return err
 	}
 
-	for _, clusterDetail := range describeEKSClusters(log, ctx, clusters, client) {
+	for _, clusterDetail := range describeEKSClusters(log, ctx, clusters, eksClient) {
 		if clusterDetail != nil {
 			var parents []string
 			if clusterDetail.ResourcesVpcConfig.VpcId != nil {
 				parents = []string{*clusterDetail.ResourcesVpcConfig.VpcId}
 			}
-
+			instances, _ := getInstanceIDsFromNodeGroup(ctx, *clusterDetail.Name, eksClient, asgClient)
 			clusterARN, _ := arn.Parse(*clusterDetail.Arn)
 			internal.Publish(publisher,
 				internal.WithAssetCloudProvider("aws"),
@@ -54,6 +57,7 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 				internal.WithAssetAccountID(clusterARN.AccountID),
 				internal.WithAssetTypeAndID("k8s.cluster", *clusterDetail.Arn),
 				internal.WithAssetParents(parents),
+				internal.WithAssetChildren(instances),
 				WithAssetTags(internal.ToMapstr(clusterDetail.Tags)),
 				internal.WithAssetMetadata(mapstr.M{
 					"status": clusterDetail.Status,
@@ -63,6 +67,48 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 	}
 
 	return nil
+}
+
+func getInstanceIDsFromNodeGroup(ctx context.Context, clusterName string, eksClient *eks.Client, asgClient *autoscaling.Client) ([]string, error) {
+	var result []string
+	resp, err := eksClient.ListNodegroups(ctx, &eks.ListNodegroupsInput{ClusterName: &clusterName})
+	if err != nil {
+		return nil, fmt.Errorf("error while listing Node Groups for cluster %s: %w", clusterName, err)
+	}
+	nodeGroups := resp.Nodegroups
+	for _, nodeGroup := range nodeGroups {
+		resp, err := eksClient.DescribeNodegroup(ctx, &eks.DescribeNodegroupInput{
+			ClusterName:   &clusterName,
+			NodegroupName: &nodeGroup,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("error while describing Node Group %s: %w", nodeGroup, err)
+		}
+		autoscalingGroups := resp.Nodegroup.Resources.AutoScalingGroups
+		instances, _ := getInstanceIDsFromEKSAsg(ctx, autoscalingGroups, asgClient)
+		result = append(result, instances...)
+	}
+	return result, nil
+}
+
+// Autoscaling group exists as a type both for EKS and Autoscaling, in the AWS GO SDK. Given a list of EKS Autoscaling groups, this function
+// converts it to a regular Autoscaling groups list and finds the underlying EC2 instance IDs for each Autoscaling group.
+func getInstanceIDsFromEKSAsg(ctx context.Context, eksAutoscalingGroups []types.AutoScalingGroup, asgClient *autoscaling.Client) ([]string, error) {
+	var instances []string
+	var asgs []string
+	for _, eksAsg := range eksAutoscalingGroups {
+		asgs = append(asgs, *eksAsg.Name)
+	}
+	asgDetails, err := asgClient.DescribeAutoScalingGroups(ctx, &autoscaling.DescribeAutoScalingGroupsInput{AutoScalingGroupNames: asgs})
+	if err != nil {
+		return nil, fmt.Errorf("error while describing Autoscaling groups %q: %w", asgs, err)
+	}
+	for _, asgDetail := range asgDetails.AutoScalingGroups {
+		for _, instance := range asgDetail.Instances {
+			instances = append(instances, *instance.InstanceId)
+		}
+	}
+	return instances, nil
 }
 
 func describeEKSClusters(log *logp.Logger, ctx context.Context, clusters []string, client *eks.Client) []*types.Cluster {
