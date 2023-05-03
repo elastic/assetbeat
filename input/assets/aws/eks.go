@@ -49,7 +49,8 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 			if clusterDetail.ResourcesVpcConfig.VpcId != nil {
 				parents = []string{*clusterDetail.ResourcesVpcConfig.VpcId}
 			}
-			instances, _ := getInstanceIDsFromNodeGroup(ctx, *clusterDetail.Name, eksClient, asgClient)
+			nodeGroups, _ := listNodeGroups(ctx, *clusterDetail.Name, eksClient)
+			instances, _ := getInstanceIDsFromNodeGroup(ctx, *clusterDetail.Name, nodeGroups, eksClient, asgClient)
 			clusterARN, _ := arn.Parse(*clusterDetail.Arn)
 			internal.Publish(publisher,
 				internal.WithAssetCloudProvider("aws"),
@@ -69,15 +70,18 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 	return nil
 }
 
-// Gets the underlying EC2 Instance IDs that are assigned to an EKS Node Group.
-// Note: this function returns no instance IDs if EKS Fargate is used, since they are not exposed by AWS.
-func getInstanceIDsFromNodeGroup(ctx context.Context, clusterName string, eksClient *eks.Client, asgClient *autoscaling.Client) ([]string, error) {
-	var result []string
+func listNodeGroups(ctx context.Context, clusterName string, eksClient eks.ListNodegroupsAPIClient) ([]string, error) {
 	resp, err := eksClient.ListNodegroups(ctx, &eks.ListNodegroupsInput{ClusterName: &clusterName})
 	if err != nil {
 		return nil, fmt.Errorf("error while listing Node Groups for cluster %s: %w", clusterName, err)
 	}
-	nodeGroups := resp.Nodegroups
+	return resp.Nodegroups, nil
+}
+
+// Gets the underlying EC2 Instance IDs that are assigned to an EKS Node Group.
+// Note: this function returns no instance IDs if EKS Fargate is used, since they are not exposed by AWS.
+func getInstanceIDsFromNodeGroup(ctx context.Context, clusterName string, nodeGroups []string, eksClient eks.DescribeNodegroupAPIClient, asgClient autoscaling.DescribeAutoScalingGroupsAPIClient) ([]string, error) {
+	var result []string
 	for _, nodeGroup := range nodeGroups {
 		resp, err := eksClient.DescribeNodegroup(ctx, &eks.DescribeNodegroupInput{
 			ClusterName:   &clusterName,
@@ -95,7 +99,7 @@ func getInstanceIDsFromNodeGroup(ctx context.Context, clusterName string, eksCli
 
 // Autoscaling group exists as a type both for EKS and Autoscaling, in the AWS GO SDK. Given a list of EKS Autoscaling groups, this function
 // converts it to a regular Autoscaling groups list and finds the underlying EC2 instance IDs for each Autoscaling group.
-func getInstanceIDsFromEKSAsg(ctx context.Context, eksAutoscalingGroups []types.AutoScalingGroup, asgClient *autoscaling.Client) ([]string, error) {
+func getInstanceIDsFromEKSAsg(ctx context.Context, eksAutoscalingGroups []types.AutoScalingGroup, asgClient autoscaling.DescribeAutoScalingGroupsAPIClient) ([]string, error) {
 	var instances []string
 	var asgs []string
 	for _, eksAsg := range eksAutoscalingGroups {
@@ -113,7 +117,7 @@ func getInstanceIDsFromEKSAsg(ctx context.Context, eksAutoscalingGroups []types.
 	return instances, nil
 }
 
-func describeEKSClusters(log *logp.Logger, ctx context.Context, clusters []string, client *eks.Client) []*types.Cluster {
+func describeEKSClusters(log *logp.Logger, ctx context.Context, clusters []string, client eks.DescribeClusterAPIClient) []*types.Cluster {
 	wg := &sync.WaitGroup{}
 	results := make([]*types.Cluster, len(clusters))
 	for i, cluster := range clusters {
@@ -134,7 +138,7 @@ func describeEKSClusters(log *logp.Logger, ctx context.Context, clusters []strin
 	return results
 }
 
-func listEKSClusters(ctx context.Context, client *eks.Client) ([]string, error) {
+func listEKSClusters(ctx context.Context, client eks.ListClustersAPIClient) ([]string, error) {
 	clusters := make([]string, 0, 100)
 	paginator := eks.NewListClustersPaginator(client, &eks.ListClustersInput{})
 	for paginator.HasMorePages() {
