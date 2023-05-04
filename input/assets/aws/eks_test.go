@@ -50,7 +50,7 @@ func TestDescribeEKSClusters(t *testing.T) {
 		client   func(t *testing.T) eks.DescribeClusterAPIClient
 	}{
 		{
-			name:     "test",
+			name:     "returns the expected clusters",
 			ctx:      context.Background(),
 			log:      logp.NewLogger("test"),
 			clusters: []string{"test-cluster1", "test-cluster2"},
@@ -91,7 +91,7 @@ func TestListNodeGroups(t *testing.T) {
 		expectedNodeGroups []string
 	}{
 		{
-			name:               "test",
+			name:               "returns the expected node groups",
 			ctx:                context.Background(),
 			log:                logp.NewLogger("test"),
 			cluster:            "test-cluster",
@@ -130,7 +130,7 @@ func TestGetInstanceIDsFromNodeGroup(t *testing.T) {
 		nodeGroups  []string
 	}{
 		{
-			name:        "test",
+			name:        "returns the instance IDs associated with the node group",
 			ctx:         context.Background(),
 			log:         logp.NewLogger("test"),
 			cluster:     "test-cluster",
