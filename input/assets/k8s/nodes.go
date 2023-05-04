@@ -20,11 +20,14 @@ package k8s
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
-	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
-	kube "github.com/elastic/elastic-agent-autodiscover/kubernetes"
 	"github.com/elastic/inputrunner/input/assets/internal"
+
+	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
+	"github.com/elastic/elastic-agent-autodiscover/kubernetes"
+	kube "github.com/elastic/elastic-agent-autodiscover/kubernetes"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 
@@ -112,23 +115,63 @@ func publishK8sNodes(ctx context.Context, log *logp.Logger, indexNamespace strin
 	for _, obj := range watcher.Store().List() {
 		o, ok := obj.(*kube.Node)
 		if ok {
-			log.Debug("Publish Node: %+v", o.Name)
-
-			assetProviderId := o.Spec.ProviderID
+			log.Debugf("Publish Node: %+v", o.Name)
+			instanceId := getInstanceId(o)
+			log.Debug("Node instance id: ", instanceId)
 			assetId := string(o.ObjectMeta.UID)
 			assetStartTime := o.ObjectMeta.CreationTimestamp
-			assetParents := []string{}
-
-			internal.Publish(publisher,
+			options := []internal.AssetOption{
 				internal.WithAssetTypeAndID(assetType, assetId),
-				internal.WithAssetParents(assetParents),
-				internal.WithNodeData(o.Name, assetProviderId, &assetStartTime),
+				internal.WithNodeData(o.Name, &assetStartTime),
 				internal.WithIndex(assetType, indexNamespace),
-			)
+			}
+			if instanceId != "" {
+				options = append(options, internal.WithCloudInstanceId(instanceId))
+			}
+			internal.Publish(publisher, options...)
+
 		} else {
 			log.Error("Publishing nodes assets failed. Type assertion of node object failed")
 		}
 
 	}
 
+}
+
+// getInstanceId returns the cloud instance id in case
+// the node runs in one of [aws, gcp] csp.
+// In case of aws the instance id is retrieved from providerId
+// which is in the form of aws:///region/instanceId for not fargate nodes.
+// In case of gcp it is retrieved by the annotation container.googleapis.com/instance_id
+// In all other cases empty string is returned
+func getInstanceId(node *kubernetes.Node) string {
+	providerId := node.Spec.ProviderID
+
+	switch csp := getCspFromProviderId(providerId); csp {
+	case "aws":
+		slice := strings.Split(providerId, "/")
+		// in case of fargate the slice length will be 6
+		if len(slice) == 5 {
+			return slice[4]
+		}
+	case "gcp":
+		annotations := node.GetAnnotations()
+		return annotations["container.googleapis.com/instance_id"]
+	default:
+		return ""
+	}
+	return ""
+}
+
+// getCspFromProviderId return the cps for a given providerId string.
+// In case of aws providerId is in the form of aws:///region/instanceId
+// In case of gcp providerId is in the form of  gce://project/region/nodeName
+func getCspFromProviderId(providerId string) string {
+	if strings.HasPrefix(providerId, "aws") {
+		return "aws"
+	}
+	if strings.HasPrefix(providerId, "gce") {
+		return "gcp"
+	}
+	return ""
 }

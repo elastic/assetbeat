@@ -20,15 +20,18 @@ package k8s
 import (
 	"context"
 	"fmt"
-	"github.com/elastic/elastic-agent-autodiscover/kubernetes"
-	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/inputrunner/input/testutil"
+	"testing"
+	"time"
+
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sfake "k8s.io/client-go/kubernetes/fake"
-	"testing"
-	"time"
+
+	"github.com/elastic/elastic-agent-autodiscover/kubernetes"
+	kube "github.com/elastic/elastic-agent-autodiscover/kubernetes"
+	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/inputrunner/input/testutil"
 )
 
 func TestGetNodeWatcher(t *testing.T) {
@@ -141,4 +144,128 @@ func TestPublishK8sNodes(t *testing.T) {
 	publishK8sNodes(context.Background(), log, "", publisher, nodeWatcher)
 
 	assert.Equal(t, 1, len(publisher.Events))
+}
+
+func TestGetInstanceId(t *testing.T) {
+	for _, tt := range []struct {
+		name   string
+		input  kubernetes.Resource
+		output string
+	}{
+		{
+			name: "AWS node",
+			input: &v1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "node1",
+					UID:  "60988eed-1885-4b63-9fa4-780206969deb",
+					Labels: map[string]string{
+						"foo": "bar",
+					},
+					Annotations: map[string]string{
+						"key1": "value1",
+						"key2": "value2",
+					},
+				},
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "Node",
+					APIVersion: "v1",
+				},
+				Status: v1.NodeStatus{
+					Addresses: []v1.NodeAddress{{Type: v1.NodeHostName, Address: "node1"}},
+				},
+				Spec: v1.NodeSpec{
+					ProviderID: "aws:///us-east-2b/i-0699b78f46f0fa248",
+				},
+			},
+			output: "i-0699b78f46f0fa248",
+		},
+		{
+			name: "AWS node Fargate",
+			input: &v1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "node1",
+					UID:  "60988eed-1885-4b63-9fa4-780206969deb",
+					Labels: map[string]string{
+						"foo": "bar",
+					},
+					Annotations: map[string]string{
+						"key1": "value1",
+						"key2": "value2",
+					},
+				},
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "Node",
+					APIVersion: "v1",
+				},
+				Status: v1.NodeStatus{
+					Addresses: []v1.NodeAddress{{Type: v1.NodeHostName, Address: "node1"}},
+				},
+				Spec: v1.NodeSpec{
+					ProviderID: "aws:///us-east-2c/fa80a30ea9-6a2c0e0c771e4e8caa80f702f9821271/fargate-ip-192-168-104-15.us-east-2.compute.internal",
+				},
+			},
+			output: "",
+		},
+		{
+			name: "GCP node",
+			input: &v1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "node1",
+					UID:  "60988eed-1885-4b63-9fa4-780206969deb",
+					Labels: map[string]string{
+						"foo": "bar",
+					},
+					Annotations: map[string]string{
+						"key1":                                 "value1",
+						"key2":                                 "value2",
+						"container.googleapis.com/instance_id": "5445971517456914360",
+					},
+				},
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "Node",
+					APIVersion: "v1",
+				},
+				Status: v1.NodeStatus{
+					Addresses: []v1.NodeAddress{{Type: v1.NodeHostName, Address: "node1"}},
+				},
+				Spec: v1.NodeSpec{
+					ProviderID: "gce://elastic-observability/us-central1-c/gke-michaliskatsoulis-te-default-pool-41126842-55kg",
+				},
+			},
+			output: "5445971517456914360",
+		},
+		{
+			name: "No CSP Node (kind)",
+			input: &v1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "node1",
+					UID:  "60988eed-1885-4b63-9fa4-780206969deb",
+					Labels: map[string]string{
+						"foo": "bar",
+					},
+					Annotations: map[string]string{
+						"key1": "value1",
+						"key2": "value2",
+					},
+				},
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "Node",
+					APIVersion: "v1",
+				},
+				Status: v1.NodeStatus{
+					Addresses: []v1.NodeAddress{{Type: v1.NodeHostName, Address: "node1"}},
+				},
+				Spec: v1.NodeSpec{
+					ProviderID: "kind://docker/kind/kind-worker",
+				},
+			},
+			output: "",
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			n := tt.input.(*kube.Node)
+			providerId := getInstanceId(n)
+			assert.Equal(t, providerId, tt.output)
+		})
+	}
 }

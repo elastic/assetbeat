@@ -129,11 +129,10 @@ func TestPublish(t *testing.T) {
 		{
 			name: "with valid node data",
 			opts: []AssetOption{
-				WithNodeData("ip-172-31-29-242.us-east-2.compute.internal", "aws:///us-east-2b/i-0699b78f46f0fa248", &startTime),
+				WithNodeData("ip-172-31-29-242.us-east-2.compute.internal", &startTime),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
 				"kubernetes.node.name":       "ip-172-31-29-242.us-east-2.compute.internal",
-				"kubernetes.node.providerId": "aws:///us-east-2b/i-0699b78f46f0fa248",
 				"kubernetes.node.start_time": &startTime,
 			}, Meta: mapstr.M{}},
 		},

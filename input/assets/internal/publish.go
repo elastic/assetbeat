@@ -93,10 +93,9 @@ func WithAssetMetadata(value mapstr.M) AssetOption {
 	}
 }
 
-func WithNodeData(name, providerId string, startTime *metav1.Time) AssetOption {
+func WithNodeData(name string, startTime *metav1.Time) AssetOption {
 	return func(e beat.Event) beat.Event {
 		e.Fields["kubernetes.node.name"] = name
-		e.Fields["kubernetes.node.providerId"] = providerId
 		e.Fields["kubernetes.node.start_time"] = startTime
 		return e
 	}

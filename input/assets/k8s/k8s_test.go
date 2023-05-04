@@ -22,15 +22,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8sfake "k8s.io/client-go/kubernetes/fake"
+
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/inputrunner/input/assets/internal"
 	"github.com/elastic/inputrunner/input/testutil"
-	"github.com/stretchr/testify/assert"
-	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	k8sfake "k8s.io/client-go/kubernetes/fake"
 )
 
 var startTime = metav1.Time{Time: time.Date(2021, 8, 15, 14, 30, 45, 100, time.Local)}
@@ -90,11 +91,12 @@ func TestPublishK8sNodeAsset(t *testing.T) {
 		name  string
 		event beat.Event
 
-		assetName string
-		assetType string
-		assetID   string
-		parents   []string
-		children  []string
+		assetName  string
+		assetType  string
+		assetID    string
+		instanceID string
+		parents    []string
+		children   []string
 	}{
 		{
 			name: "publish node",
@@ -105,18 +107,19 @@ func TestPublishK8sNodeAsset(t *testing.T) {
 					"asset.ean":                  "k8s.node:60988eed-1885-4b63-9fa4-780206969deb",
 					"asset.parents":              []string{},
 					"kubernetes.node.name":       "ip-172-31-29-242.us-east-2.compute.internal",
-					"kubernetes.node.providerId": "aws:///us-east-2b/i-0699b78f46f0fa248",
 					"kubernetes.node.start_time": &startTime,
+					"cloud.instance.id":          "i-0699b78f46f0fa248",
 				},
 				Meta: mapstr.M{
 					"index": "assets-k8s.node-default",
 				},
 			},
 
-			assetName: "ip-172-31-29-242.us-east-2.compute.internal",
-			assetType: "k8s.node",
-			assetID:   "60988eed-1885-4b63-9fa4-780206969deb",
-			parents:   []string{},
+			assetName:  "ip-172-31-29-242.us-east-2.compute.internal",
+			assetType:  "k8s.node",
+			assetID:    "60988eed-1885-4b63-9fa4-780206969deb",
+			instanceID: "i-0699b78f46f0fa248",
+			parents:    []string{},
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -125,8 +128,9 @@ func TestPublishK8sNodeAsset(t *testing.T) {
 			internal.Publish(publisher,
 				internal.WithAssetTypeAndID(tt.assetType, tt.assetID),
 				internal.WithAssetParents(tt.parents),
-				internal.WithNodeData(tt.assetName, "aws:///us-east-2b/i-0699b78f46f0fa248", &startTime),
+				internal.WithNodeData(tt.assetName, &startTime),
 				internal.WithIndex(tt.assetType, ""),
+				internal.WithCloudInstanceId(tt.instanceID),
 			)
 			assert.Equal(t, 1, len(publisher.Events))
 			assert.Equal(t, tt.event, publisher.Events[0])
