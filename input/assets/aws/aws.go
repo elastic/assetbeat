@@ -133,6 +133,7 @@ func getAWSConfigForRegion(ctx context.Context, cfg config, region string) (aws.
 }
 
 func collectAWSAssets(ctx context.Context, log *logp.Logger, cfg config, publisher stateless.Publisher) {
+	indexNamespace := cfg.IndexNamespace
 	for _, region := range cfg.Regions {
 		awsCfg, err := getAWSConfigForRegion(ctx, cfg, region)
 		if err != nil {
@@ -143,7 +144,7 @@ func collectAWSAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 		// these strings need careful documentation
 		if internal.IsTypeEnabled(cfg.AssetTypes, "eks") {
 			go func() {
-				err := collectEKSAssets(ctx, awsCfg, log, publisher)
+				err := collectEKSAssets(ctx, awsCfg, indexNamespace, log, publisher)
 				if err != nil {
 					log.Errorf("error collecting EKS assets: %w", err)
 				}
@@ -151,7 +152,7 @@ func collectAWSAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 		}
 		if internal.IsTypeEnabled(cfg.AssetTypes, "ec2") {
 			go func() {
-				err := collectEC2Assets(ctx, awsCfg, log, publisher)
+				err := collectEC2Assets(ctx, awsCfg, indexNamespace, log, publisher)
 				if err != nil {
 					log.Errorf("error collecting EC2 assets: %w", err)
 				}
@@ -160,13 +161,13 @@ func collectAWSAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 		if internal.IsTypeEnabled(cfg.AssetTypes, "vpc") {
 			// should these just go in the same function??
 			go func() {
-				err := collectVPCAssets(ctx, awsCfg, log, publisher)
+				err := collectVPCAssets(ctx, awsCfg, indexNamespace, log, publisher)
 				if err != nil {
 					log.Errorf("error collecting VPC assets: %w", err)
 				}
 			}()
 			go func() {
-				err := collectSubnetAssets(ctx, awsCfg, log, publisher)
+				err := collectSubnetAssets(ctx, awsCfg, indexNamespace, log, publisher)
 				if err != nil {
 					log.Errorf("error collecting Subnet assets: %w", err)
 				}

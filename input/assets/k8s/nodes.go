@@ -106,8 +106,9 @@ func getNodeIdFromName(nodeName string, nodeWatcher kube.Watcher) (string, error
 }
 
 // publishK8sNodes publishes the node assets stored in node watcher cache
-func publishK8sNodes(ctx context.Context, log *logp.Logger, publisher stateless.Publisher, watcher kube.Watcher) {
+func publishK8sNodes(ctx context.Context, log *logp.Logger, indexNamespace string, publisher stateless.Publisher, watcher kube.Watcher) {
 	log.Info("Publishing nodes assets\n")
+	assetType := "k8s.node"
 	for _, obj := range watcher.Store().List() {
 		o, ok := obj.(*kube.Node)
 		if ok {
@@ -119,9 +120,10 @@ func publishK8sNodes(ctx context.Context, log *logp.Logger, publisher stateless.
 			assetParents := []string{}
 
 			internal.Publish(publisher,
-				internal.WithAssetTypeAndID("k8s.node", assetId),
+				internal.WithAssetTypeAndID(assetType, assetId),
 				internal.WithAssetParents(assetParents),
 				internal.WithNodeData(o.Name, assetProviderId, &assetStartTime),
+				internal.WithIndex(assetType, indexNamespace),
 			)
 		} else {
 			log.Error("Publishing nodes assets failed. Type assertion of node object failed")

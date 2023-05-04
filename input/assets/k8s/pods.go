@@ -92,9 +92,10 @@ func (p *pod) OnAdd(obj interface{}) {
 }
 
 // publishK8sPods publishes the pod assets stored in pod watcher cache
-func publishK8sPods(ctx context.Context, log *logp.Logger, publisher stateless.Publisher, podWatcher, nodeWatcher kube.Watcher) {
+func publishK8sPods(ctx context.Context, log *logp.Logger, indexNamespace string, publisher stateless.Publisher, podWatcher, nodeWatcher kube.Watcher) {
 
 	log.Info("Publishing pod assets\n")
+	assetType := "k8s.pod"
 	for _, obj := range podWatcher.Store().List() {
 		o, ok := obj.(*kube.Pod)
 		if ok {
@@ -117,9 +118,10 @@ func publishK8sPods(ctx context.Context, log *logp.Logger, publisher stateless.P
 			}
 
 			internal.Publish(publisher,
-				internal.WithAssetTypeAndID("k8s.pod", assetId),
+				internal.WithAssetTypeAndID(assetType, assetId),
 				internal.WithAssetParents(assetParents),
 				internal.WithPodData(assetName, assetId, namespace, assetStartTime),
+				internal.WithIndex(assetType, indexNamespace),
 			)
 		} else {
 			log.Error("Publishing pod assets failed. Type assertion of pod object failed")
