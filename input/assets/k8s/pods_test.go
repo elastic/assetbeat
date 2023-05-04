@@ -70,7 +70,7 @@ func TestPublishK8sPods(t *testing.T) {
 	}
 	_ = podWatcher.Store().Add(input)
 	publisher := testutil.NewInMemoryPublisher()
-	publishK8sPods(context.Background(), log, publisher, podWatcher, nil)
+	publishK8sPods(context.Background(), log, "", publisher, podWatcher, nil)
 
 	assert.Equal(t, 1, len(publisher.Events))
 }

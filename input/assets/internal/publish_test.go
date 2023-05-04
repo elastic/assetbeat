@@ -88,7 +88,7 @@ func TestPublish(t *testing.T) {
 				"asset.type":     "aws.ec2.instance",
 				"asset.id":       "i-1234",
 				"asset.ean":      "aws.ec2.instance:i-1234",
-			}, Meta: mapstr.M{"index": "assets-aws.ec2.instance-default"},
+			}, Meta: mapstr.M{},
 			},
 		},
 		{

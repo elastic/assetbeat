@@ -35,10 +35,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 )
 
-func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, publisher stateless.Publisher) error {
+func collectEKSAssets(ctx context.Context, cfg aws.Config, indexNamespace string, log *logp.Logger, publisher stateless.Publisher) error {
 	eksClient := eks.NewFromConfig(cfg)
 	asgClient := autoscaling.NewFromConfig(cfg)
 	clusters, err := listEKSClusters(ctx, eksClient)
+
 	if err != nil {
 		return err
 	}
@@ -52,14 +53,16 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 			nodeGroups, _ := listNodeGroups(ctx, *clusterDetail.Name, eksClient)
 			instances, _ := getInstanceIDsFromNodeGroup(ctx, *clusterDetail.Name, nodeGroups, eksClient, asgClient)
 			clusterARN, _ := arn.Parse(*clusterDetail.Arn)
+			assetType := "k8s.cluster"
 			internal.Publish(publisher,
 				internal.WithAssetCloudProvider("aws"),
 				internal.WithAssetRegion(cfg.Region),
 				internal.WithAssetAccountID(clusterARN.AccountID),
-				internal.WithAssetTypeAndID("k8s.cluster", *clusterDetail.Arn),
+				internal.WithAssetTypeAndID(assetType, *clusterDetail.Arn),
 				internal.WithAssetParents(parents),
 				internal.WithAssetChildren(instances),
 				WithAssetTags(internal.ToMapstr(clusterDetail.Tags)),
+				internal.WithIndex(assetType, indexNamespace),
 				internal.WithAssetMetadata(mapstr.M{
 					"status": clusterDetail.Status,
 				}),

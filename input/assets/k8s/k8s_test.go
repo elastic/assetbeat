@@ -77,6 +77,7 @@ func TestPublishK8sPodAsset(t *testing.T) {
 				internal.WithAssetTypeAndID(tt.assetType, tt.assetID),
 				internal.WithAssetParents(tt.parents),
 				internal.WithPodData(tt.assetName, tt.assetID, "default", &startTime),
+				internal.WithIndex(tt.assetType, ""),
 			)
 			assert.Equal(t, 1, len(publisher.Events))
 			assert.Equal(t, tt.event, publisher.Events[0])
@@ -125,6 +126,7 @@ func TestPublishK8sNodeAsset(t *testing.T) {
 				internal.WithAssetTypeAndID(tt.assetType, tt.assetID),
 				internal.WithAssetParents(tt.parents),
 				internal.WithNodeData(tt.assetName, "aws:///us-east-2b/i-0699b78f46f0fa248", &startTime),
+				internal.WithIndex(tt.assetType, ""),
 			)
 			assert.Equal(t, 1, len(publisher.Events))
 			assert.Equal(t, tt.event, publisher.Events[0])
