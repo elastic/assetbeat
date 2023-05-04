@@ -212,7 +212,7 @@ func collectK8sAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 			if podWatcher, ok := watchersMap.watchers.Load("pod"); ok {
 				pw, ok := podWatcher.(kube.Watcher)
 				if ok {
-					publishK8sContainers(ctx, log, publisher, pw)
+					publishK8sContainers(ctx, log, indexNamespace, publisher, pw)
 				} else {
 					log.Error("Pod watcher type assertion failed")
 				}
