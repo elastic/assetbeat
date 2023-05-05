@@ -3,7 +3,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -223,7 +222,7 @@ func getVersion() (shortVersion string, longVersion string, err error) {
 
 // writeOutput writes a key,value string to Github's
 // output env file $GITHUB_OUTPUT
-func writeOutput(output string) (err error) {
+func writeOutput(output string) error {
 	file, exists := os.LookupEnv("GITHUB_OUTPUT")
 
 	if exists {
@@ -231,13 +230,10 @@ func writeOutput(output string) (err error) {
 		if err != nil {
 			return err
 		}
-
-		defer func() {
-			err = errors.Join(err, fw.Close())
-		}()
-
-		_, err = fw.WriteString(output)
-		return err
+		defer fw.Close()
+		if _, err := fw.WriteString(output); err != nil {
+			return err
+		}
 	}
 
 	return nil
