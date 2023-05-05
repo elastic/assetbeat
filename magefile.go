@@ -3,6 +3,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -10,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 )
 
@@ -173,38 +175,69 @@ func Package() error {
 }
 
 // GetVersion returns the version of inputrunner
+// in the format of 'inputrunner version 8.7.0 (amd64), libbeat 8.7.0 [unknown built unknown]'
 func GetVersion() error {
-	if err := sh.RunV("go", "mod", "download"); err != nil {
-		return err
-	}
-
-	out, err := sh.Output("go", "run", "main.go", "version")
+	_, version, err := getVersion()
 	if err != nil {
 		return err
 	}
-	awk := exec.Command("awk", "$2 == \"version\" {print $3}")
-	reader := strings.NewReader(out)
-	awk.Stdin = reader
 
-	v, err := awk.CombinedOutput()
-	if err != nil {
-		return err
-	}
-	// trim trailing line
-	version := strings.TrimSuffix(string(v), "\n")
 	fmt.Println(version)
-	gOutput := fmt.Sprintf("VERSION=%s\n", version)
-	file, ok := os.LookupEnv("GITHUB_OUTPUT")
-	if ok {
-		f, err := os.OpenFile(file,
-			os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	return nil
+}
+
+// WriteVersionToGithubOutput appends the inputrunner version to $GITHUB_OUTPUT
+// environment file in the format of VERSION=8.7.0
+// Its purpose is to be used by Github Actions
+// https://docs.github.com/en/actions/using-jobs/defining-outputs-for-jobs
+func WriteVersionToGithubOutput() error {
+	shortVersion, _, err := getVersion()
+	if err != nil {
+		return err
+	}
+	return writeOutput(fmt.Sprintf("VERSION=%s\n", shortVersion))
+}
+
+// getVersion returns the inputrunner long and short version
+// example: shortVersion:8.7.0,
+// longVersion: inputrunner version 8.7.0 (amd64), libbeat 8.7.0 [unknown built unknown]
+func getVersion() (shortVersion string, longVersion string, err error) {
+	mg.Deps(Build)
+
+	longVersion, err = sh.Output("./inputrunner", "version")
+	if err != nil {
+		return
+	}
+
+	awk := exec.Command("awk", "$2 = \"version\" {printf $3}")
+	awk.Stdin = strings.NewReader(longVersion)
+
+	out, err := awk.Output()
+	if err != nil {
+		return
+	}
+
+	shortVersion = string(out)
+	return
+}
+
+// writeOutput writes a key,value string to Github's
+// output env file $GITHUB_OUTPUT
+func writeOutput(output string) (err error) {
+	file, exists := os.LookupEnv("GITHUB_OUTPUT")
+
+	if exists {
+		fw, err := os.OpenFile(file, os.O_APPEND|os.O_WRONLY, 0600)
 		if err != nil {
 			return err
 		}
-		defer f.Close()
-		if _, err := f.WriteString(gOutput); err != nil {
-			return err
-		}
+
+		defer func() {
+			err = errors.Join(err, fw.Close())
+		}()
+
+		_, err = fw.WriteString(output)
+		return err
 	}
 
 	return nil
