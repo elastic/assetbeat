@@ -18,13 +18,15 @@
 package internal
 
 import (
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/inputrunner/input/testutil"
-	"github.com/stretchr/testify/assert"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
-	"time"
 )
 
 var startTime = metav1.Time{Time: time.Date(2021, 8, 15, 14, 30, 45, 100, time.Local)}
@@ -145,6 +147,18 @@ func TestPublish(t *testing.T) {
 				"kubernetes.pod.uid":        "a375d24b-fa20-4ea6-a0ee-1d38671d2c09",
 				"kubernetes.pod.start_time": &startTime,
 				"kubernetes.namespace":      "default",
+			}, Meta: mapstr.M{}},
+		}, {
+			name: "with valid container data",
+			opts: []AssetOption{
+				WithContainerData("nginx-container", "a375d24b-fa20-4ea6-a0ee-1d38671d2c09", "default", "running", &startTime),
+			},
+			expectedEvent: beat.Event{Fields: mapstr.M{
+				"kubernetes.container.name":       "nginx-container",
+				"kubernetes.container.uid":        "a375d24b-fa20-4ea6-a0ee-1d38671d2c09",
+				"kubernetes.container.start_time": &startTime,
+				"kubernetes.container.state":      "running",
+				"kubernetes.namespace":            "default",
 			}, Meta: mapstr.M{}},
 		},
 	} {
