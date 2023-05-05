@@ -12,7 +12,7 @@ data:
          - type: assets_k8s
            period: 600s
            kube_config: ""
-           asset_types: ["node", "pod"]
+           asset_types: ["node", "pod", "container"]
 
       output.elasticsearch:
          hosts: ['${ELASTICSEARCH_HOST:elasticsearch}:${ELASTICSEARCH_PORT:9200}']
@@ -47,7 +47,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
          - name: inputrunner
-           image: michaelkatsoulis/inputrunner:latest 
+           image: docker.elastic.co/beats/inputrunner:latest
            env:
                   # The basic authentication username used to connect to Elasticsearch
                   # This user needs the privileges required to publish events to Elasticsearch.

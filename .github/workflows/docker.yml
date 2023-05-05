@@ -3,7 +3,7 @@ name: docker
 on:
   push:
     branches:
-      - build-and-push-docker-image
+      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
