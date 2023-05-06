@@ -13,7 +13,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230126132006-91d4be69ffd7
 	github.com/elastic/elastic-agent-autodiscover v0.5.0
-	github.com/elastic/elastic-agent-libs v0.3.7
+	github.com/elastic/elastic-agent-libs v0.3.8
 	github.com/elastic/go-concert v0.2.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/magefile/mage v1.14.0
