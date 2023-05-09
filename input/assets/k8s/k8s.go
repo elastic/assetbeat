@@ -169,7 +169,7 @@ func collectK8sAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 			if nodeWatcher, ok := watchersMap.watchers.Load("node"); ok {
 				nw, ok := nodeWatcher.(kube.Watcher)
 				if ok {
-					publishK8sNodes(ctx, log, indexNamespace, publisher, nw)
+					publishK8sNodes(ctx, log, indexNamespace, publisher, nw, kube.IsInCluster(cfg.KubeConfig))
 				} else {
 					log.Error("Node watcher type assertion failed")
 				}

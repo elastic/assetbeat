@@ -20,14 +20,12 @@ package k8s
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
-	"github.com/elastic/inputrunner/input/assets/internal"
-
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
-	"github.com/elastic/elastic-agent-autodiscover/kubernetes"
 	kube "github.com/elastic/elastic-agent-autodiscover/kubernetes"
+
+	"github.com/elastic/inputrunner/input/assets/internal"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 
@@ -40,6 +38,12 @@ type node struct {
 	logger  *logp.Logger
 	ctx     context.Context
 }
+
+const (
+	// metadataHost is the IP that each of the  GCP uses for metadata service.
+	metadataHost   = "169.254.169.254"
+	gceMetadataURI = "/computeMetadata/v1/?recursive=true&alt=json"
+)
 
 // getNodeWatcher initiates and returns a watcher of kubernetes nodes
 func getNodeWatcher(ctx context.Context, log *logp.Logger, client kuberntescli.Interface, timeout time.Duration) (kube.Watcher, error) {
@@ -109,9 +113,28 @@ func getNodeIdFromName(nodeName string, nodeWatcher kube.Watcher) (string, error
 }
 
 // publishK8sNodes publishes the node assets stored in node watcher cache
-func publishK8sNodes(ctx context.Context, log *logp.Logger, indexNamespace string, publisher stateless.Publisher, watcher kube.Watcher) {
+func publishK8sNodes(ctx context.Context, log *logp.Logger, indexNamespace string, publisher stateless.Publisher, watcher kube.Watcher, isInCluster bool) {
 	log.Info("Publishing nodes assets\n")
 	assetType := "k8s.node"
+	var assetParents []string
+
+	// Get the first stored node to extract the cluster uid in case of GCP.
+	// Only in case of running InCluster
+	log.Debugf("Is in cluster is %s", isInCluster)
+	if isInCluster {
+		if len(watcher.Store().List()) > 0 {
+			if n1, ok := watcher.Store().List()[0].(*kube.Node); ok {
+				if getCspFromProviderId(n1.Spec.ProviderID) == "gcp" {
+					clusterUid, err := getGKEClusterUid(ctx, log)
+					if err != nil {
+						log.Debugf("Unable to fetch cluster uid from metadata: %+v \n", err)
+					}
+					assetParents = append(assetParents, fmt.Sprintf("%s:%s", "k8s.cluster", clusterUid))
+				}
+			}
+		}
+	}
+
 	for _, obj := range watcher.Store().List() {
 		o, ok := obj.(*kube.Node)
 		if ok {
@@ -128,50 +151,13 @@ func publishK8sNodes(ctx context.Context, log *logp.Logger, indexNamespace strin
 			if instanceId != "" {
 				options = append(options, internal.WithCloudInstanceId(instanceId))
 			}
+			if assetParents != nil {
+				options = append(options, internal.WithAssetParents(assetParents))
+			}
 			internal.Publish(publisher, options...)
 
 		} else {
 			log.Error("Publishing nodes assets failed. Type assertion of node object failed")
 		}
-
 	}
-
-}
-
-// getInstanceId returns the cloud instance id in case
-// the node runs in one of [aws, gcp] csp.
-// In case of aws the instance id is retrieved from providerId
-// which is in the form of aws:///region/instanceId for not fargate nodes.
-// In case of gcp it is retrieved by the annotation container.googleapis.com/instance_id
-// In all other cases empty string is returned
-func getInstanceId(node *kubernetes.Node) string {
-	providerId := node.Spec.ProviderID
-
-	switch csp := getCspFromProviderId(providerId); csp {
-	case "aws":
-		slice := strings.Split(providerId, "/")
-		// in case of fargate the slice length will be 6
-		if len(slice) == 5 {
-			return slice[4]
-		}
-	case "gcp":
-		annotations := node.GetAnnotations()
-		return annotations["container.googleapis.com/instance_id"]
-	default:
-		return ""
-	}
-	return ""
-}
-
-// getCspFromProviderId return the cps for a given providerId string.
-// In case of aws providerId is in the form of aws:///region/instanceId
-// In case of gcp providerId is in the form of  gce://project/region/nodeName
-func getCspFromProviderId(providerId string) string {
-	if strings.HasPrefix(providerId, "aws") {
-		return "aws"
-	}
-	if strings.HasPrefix(providerId, "gce") {
-		return "gcp"
-	}
-	return ""
 }
