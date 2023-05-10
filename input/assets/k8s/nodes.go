@@ -125,7 +125,7 @@ func publishK8sNodes(ctx context.Context, log *logp.Logger, indexNamespace strin
 		if len(watcher.Store().List()) > 0 {
 			if n1, ok := watcher.Store().List()[0].(*kube.Node); ok {
 				if getCspFromProviderId(n1.Spec.ProviderID) == "gcp" {
-					clusterUid, err := getGKEClusterUid(ctx, log)
+					clusterUid, err := getGKEClusterUid(ctx, log, newhttpFetcher())
 					if err != nil {
 						log.Debugf("Unable to fetch cluster uid from metadata: %+v \n", err)
 					}

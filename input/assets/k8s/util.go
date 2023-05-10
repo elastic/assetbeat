@@ -16,6 +16,30 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
+type httpResponse interface {
+	FetchResponse(context.Context, string, map[string]string) ([]byte, error)
+}
+
+// httpFetcher struct to implement httpResponse interface
+type httpFetcher struct {
+	httpClient http.Client
+}
+
+// newhttpFetcher returns a new httpFetcher
+func newhttpFetcher() httpFetcher {
+	client := http.Client{
+		Timeout: time.Second * 10,
+		Transport: &http.Transport{
+			DisableKeepAlives: true,
+			DialContext: (&net.Dialer{
+				Timeout:   time.Second * 10,
+				KeepAlive: 0,
+			}).DialContext,
+		},
+	}
+	return httpFetcher{httpClient: client}
+}
+
 // getInstanceId returns the cloud instance id in case
 // the node runs in one of [aws, gcp] csp.
 // In case of aws the instance id is retrieved from providerId
@@ -55,22 +79,11 @@ func getCspFromProviderId(providerId string) string {
 }
 
 // getGKEClusterUid gets the GKE cluster uid from metadata endpoint
-func getGKEClusterUid(ctx context.Context, log *logp.Logger) (string, error) {
+func getGKEClusterUid(ctx context.Context, log *logp.Logger, hF httpResponse) (string, error) {
 	url := fmt.Sprintf("http://%s%s", metadataHost, gceMetadataURI)
 	gceHeaders := map[string]string{"Metadata-Flavor": "Google"}
-	// Create HTTP client with our timeouts and keep-alive disabled.
-	client := http.Client{
-		Timeout: time.Second * 10,
-		Transport: &http.Transport{
-			DisableKeepAlives: true,
-			DialContext: (&net.Dialer{
-				Timeout:   time.Second * 10,
-				KeepAlive: 0,
-			}).DialContext,
-		},
-	}
 
-	response, err := fetchHttpResponse(ctx, url, client, gceHeaders)
+	response, err := hF.FetchResponse(ctx, url, gceHeaders)
 	if err != nil {
 		return "", err
 	}
@@ -89,8 +102,8 @@ func getGKEClusterUid(ctx context.Context, log *logp.Logger) (string, error) {
 	return "", errors.Errorf("Cluster uid not found in metadata")
 }
 
-// fetchHttpResponse returns http response of a provided URL
-func fetchHttpResponse(ctx context.Context, url string, client http.Client, headers map[string]string) ([]byte, error) {
+// FetchResponse returns http response of a provided URL
+func (c httpFetcher) FetchResponse(ctx context.Context, url string, headers map[string]string) ([]byte, error) {
 	var response []byte
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -101,7 +114,7 @@ func fetchHttpResponse(ctx context.Context, url string, client http.Client, head
 	}
 	req = req.WithContext(ctx)
 
-	rsp, err := client.Do(req)
+	rsp, err := c.httpClient.Do(req)
 	if err != nil {
 		return response, errors.Wrapf(err, "failed requesting gcp metadata")
 	}
