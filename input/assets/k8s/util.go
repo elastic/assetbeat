@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"strings"
@@ -75,7 +75,9 @@ func getGKEClusterUid(ctx context.Context, log *logp.Logger) (string, error) {
 		return "", err
 	}
 	var gcpMetadataRes = map[string]interface{}{}
-	json.Unmarshal(response, &gcpMetadataRes)
+	if err = json.Unmarshal(response, &gcpMetadataRes); err != nil {
+		return "", err
+	}
 	if instance, ok := gcpMetadataRes["instance"].(map[string]interface{}); ok {
 		if attributes, ok := instance["attributes"].(map[string]interface{}); ok {
 			if clusterUid, ok := attributes["cluster-uid"].(string); ok {
@@ -109,7 +111,7 @@ func fetchHttpResponse(ctx context.Context, url string, client http.Client, head
 		return response, errors.Errorf("failed with http status code %v", rsp.StatusCode)
 	}
 
-	response, err = ioutil.ReadAll(rsp.Body)
+	response, err = io.ReadAll(rsp.Body)
 	if err != nil {
 		return response, errors.Wrapf(err, "failed requesting gcp metadata")
 	}
