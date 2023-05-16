@@ -47,7 +47,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
          - name: inputrunner
-           image: docker.elastic.co/beats/inputrunner:latest
+           image: docker.elastic.co/observability/inputrunner:latest
            env:
                   # The basic authentication username used to connect to Elasticsearch
                   # This user needs the privileges required to publish events to Elasticsearch.
