@@ -31,6 +31,8 @@ import (
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+
 	"github.com/elastic/beats/v7/libbeat/feature"
 	"github.com/elastic/go-concert/ctxtool"
 

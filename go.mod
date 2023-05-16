@@ -23,9 +23,9 @@ require (
 	github.com/stretchr/testify v1.8.2
 	golang.org/x/net v0.10.0
 	google.golang.org/api v0.122.0
-	k8s.io/api v0.27.1
-	k8s.io/apimachinery v0.27.1
-	k8s.io/client-go v0.27.1
+	k8s.io/api v0.25.5
+	k8s.io/apimachinery v0.25.5
+	k8s.io/client-go v0.25.5
 )
 
 require (
@@ -66,7 +66,7 @@ require (
 	github.com/elastic/go-ucfg v0.8.6 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect
 	github.com/elastic/gosigar v0.14.2 // indirect
-	github.com/emicklei/go-restful/v3 v3.9.0 // indirect
+	github.com/emicklei/go-restful/v3 v3.8.0 // indirect
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
