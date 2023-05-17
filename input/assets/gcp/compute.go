@@ -30,8 +30,12 @@ import (
 	"github.com/elastic/inputrunner/input/assets/internal"
 )
 
-type listInstanceAPIClient interface {
-	List(ctx context.Context, req *computepb.ListInstancesRequest, opts ...gax.CallOption) *compute.InstanceIterator
+type AggregatedInstanceIterator interface {
+	Next() (compute.InstancesScopedListPair, error)
+}
+
+type listInstanceAPIClient struct {
+	AggregatedList func(ctx context.Context, req *computepb.AggregatedListInstancesRequest, opts ...gax.CallOption) AggregatedInstanceIterator
 }
 
 type computeInstance struct {
@@ -49,7 +53,11 @@ func collectComputeAssets(ctx context.Context, cfg config, publisher stateless.P
 		return err
 	}
 	defer client.Close()
-	instances, err := getAllComputeInstances(ctx, cfg, client)
+	listClient := listInstanceAPIClient{AggregatedList: func(ctx context.Context, req *computepb.AggregatedListInstancesRequest, opts ...gax.CallOption) AggregatedInstanceIterator {
+		return client.AggregatedList(ctx, req, opts...)
+	},
+	}
+	instances, err := getAllComputeInstances(ctx, cfg, listClient)
 	if err != nil {
 		return err
 	}
@@ -79,35 +87,37 @@ func getAllComputeInstances(ctx context.Context, cfg config, client listInstance
 	var instances []computeInstance
 
 	for _, p := range cfg.Projects {
-		req := &computepb.ListInstancesRequest{
+		req := &computepb.AggregatedListInstancesRequest{
 			Project: p,
 		}
-		it := client.List(ctx, req)
+		it := client.AggregatedList(ctx, req)
 
 		for {
-			i, err := it.Next()
+			instanceScopedPair, err := it.Next()
 			if err == iterator.Done {
 				break
 			}
 			if err != nil {
 				return nil, err
 			}
-			if wantInstance(cfg, i) {
-				var vpcs []string
-				for _, ni := range i.NetworkInterfaces {
-					vpcs = append(vpcs, getResourceNameFromURL(*ni.Network))
-				}
+			for _, i := range instanceScopedPair.Value.Instances {
+				if wantInstance(cfg, i) {
+					var vpcs []string
+					for _, ni := range i.NetworkInterfaces {
+						vpcs = append(vpcs, getResourceNameFromURL(*ni.Network))
+					}
 
-				instances = append(instances, computeInstance{
-					ID:      strconv.FormatUint(*i.Id, 10),
-					Region:  getRegionFromZoneURL(*i.Zone),
-					Account: p,
-					VPCs:    vpcs,
-					Labels:  i.Labels,
-					Metadata: mapstr.M{
-						"state": *i.Status,
-					},
-				})
+					instances = append(instances, computeInstance{
+						ID:      strconv.FormatUint(*i.Id, 10),
+						Region:  getRegionFromZoneURL(*i.Zone),
+						Account: p,
+						VPCs:    vpcs,
+						Labels:  i.Labels,
+						Metadata: mapstr.M{
+							"state": *i.Status,
+						},
+					})
+				}
 			}
 		}
 	}

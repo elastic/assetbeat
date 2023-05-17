@@ -22,12 +22,17 @@ import (
 	"cloud.google.com/go/container/apiv1/containerpb"
 	"context"
 	"fmt"
+	"github.com/googleapis/gax-go/v2"
 	"strings"
 
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/inputrunner/input/assets/internal"
 )
+
+type listClustersAPIClient interface {
+	ListClusters(ctx context.Context, req *containerpb.ListClustersRequest, opts ...gax.CallOption) (*containerpb.ListClustersResponse, error)
+}
 
 type containerCluster struct {
 	ID       string
@@ -73,7 +78,7 @@ func collectGKEAssets(ctx context.Context, cfg config, publisher stateless.Publi
 	return nil
 }
 
-func getAllGKEClusters(ctx context.Context, cfg config, client *container.ClusterManagerClient) ([]containerCluster, error) {
+func getAllGKEClusters(ctx context.Context, cfg config, client listClustersAPIClient) ([]containerCluster, error) {
 	var clusters []containerCluster
 
 	var zones = "-"
@@ -101,7 +106,7 @@ func getAllGKEClusters(ctx context.Context, cfg config, client *container.Cluste
 				VPC:     c.Network,
 				Labels:  c.ResourceLabels,
 				Metadata: mapstr.M{
-					"state": c.Status,
+					"state": c.Status.String(),
 				},
 			})
 		}

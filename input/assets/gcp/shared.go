@@ -29,7 +29,3 @@ func getRegionFromZoneURL(zone string) string {
 	r := strings.Split(z, "-")
 	return strings.Join(r[:len(r)-1], "-")
 }
-
-func PointerTo[T ~string](s T) *T {
-	return &s
-}
