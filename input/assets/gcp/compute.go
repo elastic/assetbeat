@@ -53,9 +53,10 @@ func collectComputeAssets(ctx context.Context, cfg config, publisher stateless.P
 		return err
 	}
 	defer client.Close()
-	listClient := listInstanceAPIClient{AggregatedList: func(ctx context.Context, req *computepb.AggregatedListInstancesRequest, opts ...gax.CallOption) AggregatedInstanceIterator {
-		return client.AggregatedList(ctx, req, opts...)
-	},
+	listClient := listInstanceAPIClient{
+		AggregatedList: func(ctx context.Context, req *computepb.AggregatedListInstancesRequest, opts ...gax.CallOption) AggregatedInstanceIterator {
+			return client.AggregatedList(ctx, req, opts...)
+		},
 	}
 	instances, err := getAllComputeInstances(ctx, cfg, listClient)
 	if err != nil {
