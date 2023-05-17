@@ -24,6 +24,7 @@ import (
 
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	kube "github.com/elastic/elastic-agent-autodiscover/kubernetes"
+
 	"github.com/elastic/inputrunner/input/assets/internal"
 
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -37,6 +38,12 @@ type node struct {
 	logger  *logp.Logger
 	ctx     context.Context
 }
+
+const (
+	// metadataHost is the IP that each of the  GCP uses for metadata service.
+	metadataHost   = "169.254.169.254"
+	gceMetadataURI = "/computeMetadata/v1/?recursive=true&alt=json"
+)
 
 // getNodeWatcher initiates and returns a watcher of kubernetes nodes
 func getNodeWatcher(ctx context.Context, log *logp.Logger, client kuberntescli.Interface, timeout time.Duration) (kube.Watcher, error) {
@@ -106,29 +113,51 @@ func getNodeIdFromName(nodeName string, nodeWatcher kube.Watcher) (string, error
 }
 
 // publishK8sNodes publishes the node assets stored in node watcher cache
-func publishK8sNodes(ctx context.Context, log *logp.Logger, indexNamespace string, publisher stateless.Publisher, watcher kube.Watcher) {
+func publishK8sNodes(ctx context.Context, log *logp.Logger, indexNamespace string, publisher stateless.Publisher, watcher kube.Watcher, isInCluster bool) {
 	log.Info("Publishing nodes assets\n")
 	assetType := "k8s.node"
+	var assetParents []string
+
+	// Get the first stored node to extract the cluster uid in case of GCP.
+	// Only in case of running InCluster
+	log.Debugf("Is in cluster is %s", isInCluster)
+	if isInCluster {
+		if len(watcher.Store().List()) > 0 {
+			if n1, ok := watcher.Store().List()[0].(*kube.Node); ok {
+				if getCspFromProviderId(n1.Spec.ProviderID) == "gcp" {
+					clusterUid, err := getGKEClusterUid(ctx, log, newhttpFetcher())
+					if err != nil {
+						log.Debugf("Unable to fetch cluster uid from metadata: %+v \n", err)
+					}
+					assetParents = append(assetParents, fmt.Sprintf("%s:%s", "k8s.cluster", clusterUid))
+				}
+			}
+		}
+	}
+
 	for _, obj := range watcher.Store().List() {
 		o, ok := obj.(*kube.Node)
 		if ok {
-			log.Debug("Publish Node: %+v", o.Name)
-
-			assetProviderId := o.Spec.ProviderID
+			log.Debugf("Publish Node: %+v", o.Name)
+			instanceId := getInstanceId(o)
+			log.Debug("Node instance id: ", instanceId)
 			assetId := string(o.ObjectMeta.UID)
 			assetStartTime := o.ObjectMeta.CreationTimestamp
-			assetParents := []string{}
-
-			internal.Publish(publisher,
+			options := []internal.AssetOption{
 				internal.WithAssetTypeAndID(assetType, assetId),
-				internal.WithAssetParents(assetParents),
-				internal.WithNodeData(o.Name, assetProviderId, &assetStartTime),
+				internal.WithNodeData(o.Name, &assetStartTime),
 				internal.WithIndex(assetType, indexNamespace),
-			)
+			}
+			if instanceId != "" {
+				options = append(options, internal.WithCloudInstanceId(instanceId))
+			}
+			if assetParents != nil {
+				options = append(options, internal.WithAssetParents(assetParents))
+			}
+			internal.Publish(publisher, options...)
+
 		} else {
 			log.Error("Publishing nodes assets failed. Type assertion of node object failed")
 		}
-
 	}
-
 }

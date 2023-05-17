@@ -33,19 +33,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: ${{ env.DEFAULT_GO_VERSION }}
-        cache: true
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.DEFAULT_GO_VERSION }}
+          cache: true
 
-    - name: Build
-      uses: magefile/mage-action@v2
-      with:
-        version: latest
-        args: build
+      - name: Build
+        uses: magefile/mage-action@v2
+        with:
+          version: latest
+          args: build
 
   check:
     runs-on: ubuntu-latest

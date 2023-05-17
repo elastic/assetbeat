@@ -5,10 +5,12 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 )
 
@@ -164,6 +166,72 @@ func Package() error {
 		}
 		fmt.Println("Copying Dockerfile")
 		if err := sh.RunV("cp", "Dockerfile.reference", dockerfile); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// GetVersion returns the version of inputrunner
+// in the format of 'inputrunner version 8.7.0 (amd64), libbeat 8.7.0 [unknown built unknown]'
+func GetVersion() error {
+	_, version, err := getVersion()
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(version)
+	return nil
+}
+
+// WriteVersionToGithubOutput appends the inputrunner version to $GITHUB_OUTPUT
+// environment file in the format of VERSION=8.7.0
+// Its purpose is to be used by Github Actions
+// https://docs.github.com/en/actions/using-jobs/defining-outputs-for-jobs
+func WriteVersionToGithubOutput() error {
+	shortVersion, _, err := getVersion()
+	if err != nil {
+		return err
+	}
+	return writeOutput(fmt.Sprintf("VERSION=%s\n", shortVersion))
+}
+
+// getVersion returns the inputrunner long and short version
+// example: shortVersion:8.7.0,
+// longVersion: inputrunner version 8.7.0 (amd64), libbeat 8.7.0 [unknown built unknown]
+func getVersion() (shortVersion string, longVersion string, err error) {
+	mg.Deps(Build)
+
+	longVersion, err = sh.Output("./inputrunner", "version")
+	if err != nil {
+		return
+	}
+
+	awk := exec.Command("awk", "$2 = \"version\" {printf $3}")
+	awk.Stdin = strings.NewReader(longVersion)
+
+	out, err := awk.Output()
+	if err != nil {
+		return
+	}
+
+	shortVersion = string(out)
+	return
+}
+
+// writeOutput writes a key,value string to Github's
+// output env file $GITHUB_OUTPUT
+func writeOutput(output string) error {
+	file, exists := os.LookupEnv("GITHUB_OUTPUT")
+
+	if exists {
+		fw, err := os.OpenFile(file, os.O_APPEND|os.O_WRONLY, 0600)
+		if err != nil {
+			return err
+		}
+		defer fw.Close()
+		if _, err := fw.WriteString(output); err != nil {
 			return err
 		}
 	}

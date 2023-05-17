@@ -1,0 +1,67 @@
+name: docker
+
+on:
+  merge_group:
+    branches: [ "main" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PLATFORMS: linux/amd64
+  TYPES: docker
+  DOCKER_REGISTRY: docker.elastic.co
+  DOCKER_IMG: docker.elastic.co/observability/inputrunner
+  DOCKER_IMG_TAG_LATEST: docker.elastic.co/observability/inputrunner:latest
+jobs:
+  pkg-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Package inputrunner in a Dockerfile
+        uses: magefile/mage-action@v2
+        with:
+          version: latest
+          args: package
+      - uses: hashicorp/vault-action@v2.5.0
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          method: approle
+          roleId: ${{ secrets.VAULT_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_SECRET_ID }}
+          secrets: |
+            secret/observability-team/ci/docker-registry/prod username | DOCKER_USERNAME ;
+            secret/observability-team/ci/docker-registry/prod password | DOCKER_PASSWORD
+      - name: Log in to the Container registry
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
+      - name: Reset environment
+        shell: bash
+        run: |
+          echo "DOCKER_USERNAME=" >> $GITHUB_ENV
+          echo "DOCKER_PASSWORD=" >> $GITHUB_ENV
+      - name: Set Version
+        id: set-version
+        uses: magefile/mage-action@v2
+        env:
+          GITHUB_OUTPUT: $GITHUB_OUTPUT
+        with:
+          version: latest
+          args: writeversiontogithuboutput
+      - name: Build and push image with version
+        uses: docker/build-push-action@v4
+        with:
+          context: ./build/package/inputrunner/inputrunner-linux-amd64.docker/docker-build
+          push: true
+          tags: ${{ env.DOCKER_IMG }}:${{ steps.set-version.outputs.VERSION }}-SNAPSHOT
+      - name: Build and push with latest tag
+        if: ${{ success() }}
+        uses: docker/build-push-action@v4
+        with:
+          context: ./build/package/inputrunner/inputrunner-linux-amd64.docker/docker-build
+          push: true
+          tags: ${{ env.DOCKER_IMG_TAG_LATEST }}

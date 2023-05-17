@@ -6,28 +6,28 @@ require (
 	cloud.google.com/go/compute v1.19.0
 	cloud.google.com/go/container v1.15.0
 	github.com/aws/aws-sdk-go-v2 v1.18.0
-	github.com/aws/aws-sdk-go-v2/config v1.18.22
-	github.com/aws/aws-sdk-go-v2/credentials v1.13.21
-	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.28.6
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.96.0
-	github.com/aws/aws-sdk-go-v2/service/eks v1.27.11
+	github.com/aws/aws-sdk-go-v2/config v1.18.25
+	github.com/aws/aws-sdk-go-v2/credentials v1.13.24
+	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.28.7
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.97.0
+	github.com/aws/aws-sdk-go-v2/service/eks v1.27.12
 	github.com/aws/smithy-go v1.13.5
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230126132006-91d4be69ffd7
 	github.com/elastic/elastic-agent-autodiscover v0.5.0
-	github.com/elastic/elastic-agent-libs v0.3.7
+	github.com/elastic/elastic-agent-libs v0.3.8
 	github.com/elastic/go-concert v0.2.0
 	github.com/gofrs/uuid v4.4.0+incompatible
-	github.com/magefile/mage v1.14.0
+	github.com/magefile/mage v1.15.0
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.2
-	golang.org/x/net v0.9.0
-	google.golang.org/api v0.118.0
-	k8s.io/api v0.27.1
-	k8s.io/apimachinery v0.27.1
-	k8s.io/client-go v0.27.1
+	golang.org/x/net v0.10.0
+	google.golang.org/api v0.122.0
+	k8s.io/api v0.25.5
+	k8s.io/apimachinery v0.25.5
+	k8s.io/client-go v0.25.5
 )
 
 require (
@@ -41,9 +41,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.27 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.34 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.27 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.12.9 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.9 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.18.10 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.12.10 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.10 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sts v1.19.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/containerd/containerd v1.5.13 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -68,7 +68,7 @@ require (
 	github.com/elastic/go-ucfg v0.8.6 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect
 	github.com/elastic/gosigar v0.14.2 // indirect
-	github.com/emicklei/go-restful/v3 v3.9.0 // indirect
+	github.com/emicklei/go-restful/v3 v3.8.0 // indirect
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
@@ -151,8 +151,8 @@ require (
 	golang.org/x/crypto v0.7.0 // indirect
 	golang.org/x/mod v0.9.0 // indirect
 	golang.org/x/oauth2 v0.7.0 // indirect
-	golang.org/x/sys v0.7.0 // indirect
-	golang.org/x/term v0.7.0 // indirect
+	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/term v0.8.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect

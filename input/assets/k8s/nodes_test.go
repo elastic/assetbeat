@@ -20,15 +20,17 @@ package k8s
 import (
 	"context"
 	"fmt"
-	"github.com/elastic/elastic-agent-autodiscover/kubernetes"
-	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/inputrunner/input/testutil"
+	"testing"
+	"time"
+
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sfake "k8s.io/client-go/kubernetes/fake"
-	"testing"
-	"time"
+
+	"github.com/elastic/elastic-agent-autodiscover/kubernetes"
+	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/inputrunner/input/testutil"
 )
 
 func TestGetNodeWatcher(t *testing.T) {
@@ -138,7 +140,7 @@ func TestPublishK8sNodes(t *testing.T) {
 	}
 	_ = nodeWatcher.Store().Add(input)
 	publisher := testutil.NewInMemoryPublisher()
-	publishK8sNodes(context.Background(), log, "", publisher, nodeWatcher)
+	publishK8sNodes(context.Background(), log, "", publisher, nodeWatcher, false)
 
 	assert.Equal(t, 1, len(publisher.Events))
 }

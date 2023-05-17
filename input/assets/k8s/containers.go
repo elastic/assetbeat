@@ -32,7 +32,7 @@ import (
 // publishK8sPods publishes the pod assets stored in pod watcher cache
 func publishK8sContainers(ctx context.Context, log *logp.Logger, indexNamespace string, publisher stateless.Publisher, podWatcher kube.Watcher) {
 	log.Info("Publishing container assets\n")
-	assetType := "k8s.node"
+	assetType := "k8s.container"
 	for _, obj := range podWatcher.Store().List() {
 		o, ok := obj.(*kube.Pod)
 		if ok {

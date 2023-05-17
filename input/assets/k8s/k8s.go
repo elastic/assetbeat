@@ -31,6 +31,8 @@ import (
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+
 	"github.com/elastic/beats/v7/libbeat/feature"
 	"github.com/elastic/go-concert/ctxtool"
 
@@ -169,7 +171,7 @@ func collectK8sAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 			if nodeWatcher, ok := watchersMap.watchers.Load("node"); ok {
 				nw, ok := nodeWatcher.(kube.Watcher)
 				if ok {
-					publishK8sNodes(ctx, log, indexNamespace, publisher, nw)
+					publishK8sNodes(ctx, log, indexNamespace, publisher, nw, kube.IsInCluster(cfg.KubeConfig))
 				} else {
 					log.Error("Node watcher type assertion failed")
 				}
