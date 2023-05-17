@@ -24,7 +24,7 @@ require (
 	golang.org/x/net v0.10.0
 	google.golang.org/api v0.122.0
 	k8s.io/api v0.25.5
-	k8s.io/apimachinery v0.25.5
+	k8s.io/apimachinery v0.27.1
 	k8s.io/client-go v0.25.5
 )
 
@@ -124,6 +124,7 @@ require (
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
+	github.com/rogpeppe/go-internal v1.10.0 // indirect
 	github.com/santhosh-tekuri/jsonschema v1.2.4 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/shirou/gopsutil/v3 v3.21.12 // indirect
