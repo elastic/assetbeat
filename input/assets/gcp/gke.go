@@ -82,6 +82,7 @@ func collectGKEAssets(ctx context.Context, cfg config, log *logp.Logger, publish
 		}
 
 		instances, err := getAllInstancesForGKECluster(ctx, cluster.Account, cluster.Region, cluster.NodePools, listClient)
+		// We should not fail hard here since the core information for the asset comes from the GKE cluster data
 		if err != nil {
 			log.Warnf("Error while retrieving instances for GKE cluster %s: %+v", cluster.ID, err)
 		}
