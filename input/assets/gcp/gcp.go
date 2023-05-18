@@ -111,19 +111,22 @@ func (s *assetsGCP) Run(inputCtx input.Context, publisher stateless.Publisher) e
 }
 
 func (s *assetsGCP) collectAll(ctx context.Context, log *logp.Logger, publisher stateless.Publisher) error {
-	go func() {
-		err := collectComputeAssets(ctx, s.config, publisher)
-		if err != nil {
-			log.Errorf("error collecting compute assets: %+v", err)
-		}
-	}()
-	go func() {
-		err := collectGKEAssets(ctx, s.config, publisher)
-		if err != nil {
-			log.Errorf("error collecting GKE assets: %+v", err)
-		}
-	}()
-
+	if internal.IsTypeEnabled(s.config.AssetTypes, "gcp.compute.instance") {
+		go func() {
+			err := collectComputeAssets(ctx, s.config, publisher)
+			if err != nil {
+				log.Errorf("error collecting compute assets: %+v", err)
+			}
+		}()
+	}
+	if internal.IsTypeEnabled(s.config.AssetTypes, "k8s.cluster") {
+		go func() {
+			err := collectGKEAssets(ctx, s.config, log, publisher)
+			if err != nil {
+				log.Errorf("error collecting GKE assets: %+v", err)
+			}
+		}()
+	}
 	return nil
 }
 

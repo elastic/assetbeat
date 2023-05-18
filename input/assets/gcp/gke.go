@@ -18,16 +18,20 @@
 package gcp
 
 import (
+	compute "cloud.google.com/go/compute/apiv1"
+	"cloud.google.com/go/compute/apiv1/computepb"
 	container "cloud.google.com/go/container/apiv1"
 	"cloud.google.com/go/container/apiv1/containerpb"
 	"context"
 	"fmt"
-	"github.com/googleapis/gax-go/v2"
-	"strings"
-
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/inputrunner/input/assets/internal"
+	"github.com/googleapis/gax-go/v2"
+	"google.golang.org/api/iterator"
+	"strconv"
+	"strings"
 )
 
 type listClustersAPIClient interface {
@@ -35,20 +39,32 @@ type listClustersAPIClient interface {
 }
 
 type containerCluster struct {
-	ID       string
-	Region   string
-	Account  string
-	VPC      string
-	Labels   map[string]string
-	Metadata mapstr.M
+	ID        string
+	Region    string
+	Account   string
+	VPC       string
+	NodePools []*containerpb.NodePool
+	Labels    map[string]string
+	Metadata  mapstr.M
 }
 
-func collectGKEAssets(ctx context.Context, cfg config, publisher stateless.Publisher) error {
+func collectGKEAssets(ctx context.Context, cfg config, log *logp.Logger, publisher stateless.Publisher) error {
 	client, err := container.NewClusterManagerClient(ctx)
 	if err != nil {
 		return err
 	}
 	defer client.Close()
+
+	computeClient, err := compute.NewInstancesRESTClient(ctx, buildClientOptions(cfg)...)
+	if err != nil {
+		return err
+	}
+	defer computeClient.Close()
+	listClient := listInstanceAPIClient{
+		AggregatedList: func(ctx context.Context, req *computepb.AggregatedListInstancesRequest, opts ...gax.CallOption) AggregatedInstanceIterator {
+			return computeClient.AggregatedList(ctx, req, opts...)
+		},
+	}
 
 	clusters, err := getAllGKEClusters(ctx, cfg, client)
 	if err != nil {
@@ -59,8 +75,18 @@ func collectGKEAssets(ctx context.Context, cfg config, publisher stateless.Publi
 	assetType := "k8s.cluster"
 	for _, cluster := range clusters {
 		var parents []string
+		var children []string
+
 		if len(cluster.VPC) > 0 {
 			parents = append(parents, cluster.VPC)
+		}
+
+		instances, err := getAllInstancesForGKECluster(ctx, cluster.Account, cluster.Region, cluster.NodePools, listClient)
+		if err != nil {
+			log.Warnf("Error while retrieving instances for GKE cluster %s: %+v", cluster.ID, err)
+		}
+		if len(instances) > 0 {
+			children = append(children, instances...)
 		}
 
 		internal.Publish(publisher,
@@ -69,6 +95,7 @@ func collectGKEAssets(ctx context.Context, cfg config, publisher stateless.Publi
 			internal.WithAssetAccountID(cluster.Account),
 			internal.WithAssetTypeAndID(assetType, cluster.ID),
 			internal.WithAssetParents(parents),
+			internal.WithAssetChildren(children),
 			WithAssetLabels(internal.ToMapstr(cluster.Labels)),
 			internal.WithIndex(assetType, indexNamespace),
 			internal.WithAssetMetadata(cluster.Metadata),
@@ -78,37 +105,107 @@ func collectGKEAssets(ctx context.Context, cfg config, publisher stateless.Publi
 	return nil
 }
 
-func getAllGKEClusters(ctx context.Context, cfg config, client listClustersAPIClient) ([]containerCluster, error) {
-	var clusters []containerCluster
+func getGKEInstanceKubeLabels(rawMd *computepb.Metadata) map[string]string {
+	mappedMd := make(map[string]string)
+	for _, item := range rawMd.GetItems() {
 
-	var zones = "-"
-	if len(cfg.Regions) > 0 {
-		zones = strings.Join(cfg.Regions, ",")
+		if item.GetKey() != "kube-labels" {
+			continue
+		}
+		for _, entry := range strings.Split(item.GetValue(), ",") {
+			parts := strings.SplitN(entry, "=", 2)
+			if len(parts) != 2 {
+				continue
+			}
+			mappedMd[parts[0]] = parts[1]
+		}
+
+	}
+	return mappedMd
+}
+
+func getAllInstancesForGKECluster(ctx context.Context, project string, region string, nodePools []*containerpb.NodePool, client listInstanceAPIClient) ([]string, error) {
+	var instanceIDs []string
+	zoneFilter := fmt.Sprintf("zone eq .*%s.*", region)
+	req := &computepb.AggregatedListInstancesRequest{
+		Project: project,
+		Filter:  &zoneFilter,
 	}
 
-	for _, p := range cfg.Projects {
-		req := &containerpb.ListClustersRequest{Parent: fmt.Sprintf("projects/%s/locations/%s", p, zones)}
-		list, err := client.ListClusters(ctx, req)
+	it := client.AggregatedList(ctx, req)
+	for {
+		instanceScopedPair, err := it.Next()
+		if err == iterator.Done {
+			break
+		}
 		if err != nil {
 			return nil, err
 		}
+		for _, i := range instanceScopedPair.Value.Instances {
+			metadata := getGKEInstanceKubeLabels(i.Metadata)
+			for _, nodePool := range nodePools {
+				if metadata["cloud.google.com/gke-nodepool"] == nodePool.Name {
+					id := strconv.FormatUint(*i.Id, 10)
+					instanceIDs = append(instanceIDs, id)
+				}
+			}
 
-		if err != nil {
-			return nil, fmt.Errorf("error retrieving clusters list for project %s: %w", p, err)
 		}
+	}
 
-		for _, c := range list.Clusters {
+	return instanceIDs, nil
+}
 
-			clusters = append(clusters, containerCluster{
-				ID:      c.Id,
-				Region:  c.Location,
-				Account: p,
-				VPC:     c.Network,
-				Labels:  c.ResourceLabels,
-				Metadata: mapstr.M{
-					"state": c.Status.String(),
-				},
-			})
+func makeListClusterRequests(project string, zones []string) []*containerpb.ListClustersRequest {
+	var requests []*containerpb.ListClustersRequest
+	if len(zones) > 0 {
+		for _, zone := range zones {
+			req := &containerpb.ListClustersRequest{
+				Parent: fmt.Sprintf("projects/%s/locations/%s", project, zone),
+			}
+			requests = append(requests, req)
+		}
+	} else {
+		req := &containerpb.ListClustersRequest{
+			Parent: fmt.Sprintf("projects/%s/locations/%s", project, "-"),
+		}
+		requests = append(requests, req)
+	}
+	return requests
+}
+
+func getAllGKEClusters(ctx context.Context, cfg config, client listClustersAPIClient) ([]containerCluster, error) {
+	var clusters []containerCluster
+	var zones []string
+	if len(cfg.Regions) > 0 {
+		zones = append(zones, cfg.Regions...)
+	}
+	for _, p := range cfg.Projects {
+		requests := makeListClusterRequests(p, zones)
+		for _, req := range requests {
+			list, err := client.ListClusters(ctx, req)
+			if err != nil {
+				return nil, err
+			}
+
+			if err != nil {
+				return nil, fmt.Errorf("error retrieving clusters list for project %s: %w", p, err)
+			}
+
+			for _, c := range list.Clusters {
+
+				clusters = append(clusters, containerCluster{
+					ID:        c.Id,
+					Region:    c.Location,
+					Account:   p,
+					VPC:       c.Network,
+					NodePools: c.NodePools,
+					Labels:    c.ResourceLabels,
+					Metadata: mapstr.M{
+						"state": c.Status.String(),
+					},
+				})
+			}
 		}
 	}
 
