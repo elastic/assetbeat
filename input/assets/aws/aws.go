@@ -163,13 +163,15 @@ func collectAWSAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 		if internal.IsTypeEnabled(cfg.AssetTypes, "vpc") {
 			// should these just go in the same function??
 			go func() {
-				err := collectVPCAssets(ctx, awsCfg, indexNamespace, log, publisher)
+				client := ec2.NewFromConfig(awsCfg)
+				err := collectVPCAssets(ctx, client, region, indexNamespace, log, publisher)
 				if err != nil {
 					log.Errorf("error collecting VPC assets: %w", err)
 				}
 			}()
 			go func() {
-				err := collectSubnetAssets(ctx, awsCfg, indexNamespace, log, publisher)
+				client := ec2.NewFromConfig(awsCfg)
+				err := collectSubnetAssets(ctx, client, region, indexNamespace, log, publisher)
 				if err != nil {
 					log.Errorf("error collecting Subnet assets: %w", err)
 				}

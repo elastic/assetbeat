@@ -27,13 +27,11 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 )
 
-func collectVPCAssets(ctx context.Context, cfg aws.Config, indexNamespace string, log *logp.Logger, publisher stateless.Publisher) error {
-	client := ec2.NewFromConfig(cfg)
+func collectVPCAssets(ctx context.Context, client ec2.DescribeVpcsAPIClient, region string, indexNamespace string, log *logp.Logger, publisher stateless.Publisher) error {
 	vpcs, err := describeVPCs(ctx, client)
 	if err != nil {
 		return err
@@ -43,7 +41,7 @@ func collectVPCAssets(ctx context.Context, cfg aws.Config, indexNamespace string
 	for _, vpc := range vpcs {
 		internal.Publish(publisher,
 			internal.WithAssetCloudProvider("aws"),
-			internal.WithAssetRegion(cfg.Region),
+			internal.WithAssetRegion(region),
 			internal.WithAssetAccountID(*vpc.OwnerId),
 			internal.WithAssetTypeAndID(assetType, *vpc.VpcId),
 			WithAssetTags(flattenEC2Tags(vpc.Tags)),
@@ -57,8 +55,7 @@ func collectVPCAssets(ctx context.Context, cfg aws.Config, indexNamespace string
 	return nil
 }
 
-func collectSubnetAssets(ctx context.Context, cfg aws.Config, indexNamespace string, log *logp.Logger, publisher stateless.Publisher) error {
-	client := ec2.NewFromConfig(cfg)
+func collectSubnetAssets(ctx context.Context, client ec2.DescribeSubnetsAPIClient, region string, indexNamespace string, log *logp.Logger, publisher stateless.Publisher) error {
 	subnets, err := describeSubnets(ctx, client)
 	if err != nil {
 		return err
@@ -67,7 +64,8 @@ func collectSubnetAssets(ctx context.Context, cfg aws.Config, indexNamespace str
 	assetType := "aws.subnet"
 	for _, subnet := range subnets {
 		internal.Publish(publisher,
-			internal.WithAssetRegion(cfg.Region),
+			internal.WithAssetCloudProvider("aws"),
+			internal.WithAssetRegion(region),
 			internal.WithAssetAccountID(*subnet.OwnerId),
 			internal.WithAssetTypeAndID(assetType, *subnet.SubnetId),
 			internal.WithAssetParents([]string{*subnet.VpcId}),
@@ -82,7 +80,7 @@ func collectSubnetAssets(ctx context.Context, cfg aws.Config, indexNamespace str
 	return nil
 }
 
-func describeVPCs(ctx context.Context, client *ec2.Client) ([]types.Vpc, error) {
+func describeVPCs(ctx context.Context, client ec2.DescribeVpcsAPIClient) ([]types.Vpc, error) {
 	vpcs := make([]types.Vpc, 0, 100)
 	paginator := ec2.NewDescribeVpcsPaginator(client, &ec2.DescribeVpcsInput{})
 	for paginator.HasMorePages() {
@@ -97,7 +95,7 @@ func describeVPCs(ctx context.Context, client *ec2.Client) ([]types.Vpc, error) 
 	return vpcs, nil
 }
 
-func describeSubnets(ctx context.Context, client *ec2.Client) ([]types.Subnet, error) {
+func describeSubnets(ctx context.Context, client ec2.DescribeSubnetsAPIClient) ([]types.Subnet, error) {
 	subnets := make([]types.Subnet, 0, 100)
 	paginator := ec2.NewDescribeSubnetsPaginator(client, &ec2.DescribeSubnetsInput{})
 	for paginator.HasMorePages() {

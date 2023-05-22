@@ -32,7 +32,7 @@ func TestAssetsAWS_collectEC2Assets(t *testing.T) {
 		client         func(t *testing.T) ec2.DescribeInstancesAPIClient
 		expectedEvents []beat.Event
 	}{{
-		name:   "test",
+		name:   "Test with multiple EC2 instances returned",
 		region: "eu-west-1",
 		client: func(t *testing.T) ec2.DescribeInstancesAPIClient {
 			return mockDescribeInstancesAPI(func(ctx context.Context, params *ec2.DescribeInstancesInput, optFns ...func(*ec2.Options)) (*ec2.DescribeInstancesOutput, error) {
