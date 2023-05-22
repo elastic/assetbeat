@@ -19,6 +19,7 @@ package aws
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"time"
 
@@ -152,7 +153,8 @@ func collectAWSAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 		}
 		if internal.IsTypeEnabled(cfg.AssetTypes, "ec2") {
 			go func() {
-				err := collectEC2Assets(ctx, awsCfg, indexNamespace, log, publisher)
+				client := ec2.NewFromConfig(awsCfg)
+				err := collectEC2Assets(ctx, client, region, indexNamespace, log, publisher)
 				if err != nil {
 					log.Errorf("error collecting EC2 assets: %w", err)
 				}

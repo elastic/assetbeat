@@ -20,7 +20,6 @@ package aws
 import (
 	"context"
 	"fmt"
-
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/inputrunner/input/assets/internal"
 	"github.com/elastic/inputrunner/util"
@@ -28,7 +27,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 )
@@ -41,8 +39,7 @@ type EC2Instance struct {
 	Metadata   mapstr.M
 }
 
-func collectEC2Assets(ctx context.Context, cfg aws.Config, indexNamespace string, log *logp.Logger, publisher stateless.Publisher) error {
-	client := ec2.NewFromConfig(cfg)
+func collectEC2Assets(ctx context.Context, client ec2.DescribeInstancesAPIClient, region string, indexNamespace string, log *logp.Logger, publisher stateless.Publisher) error {
 	instances, err := describeEC2Instances(ctx, client)
 	if err != nil {
 		return err
@@ -54,22 +51,27 @@ func collectEC2Assets(ctx context.Context, cfg aws.Config, indexNamespace string
 			parents = []string{instance.SubnetID}
 		}
 		assetType := "aws.ec2.instance"
-		internal.Publish(publisher,
+		options := []internal.AssetOption{
 			internal.WithAssetCloudProvider("aws"),
-			internal.WithAssetRegion(cfg.Region),
+			internal.WithAssetRegion(region),
 			internal.WithAssetAccountID(instance.OwnerID),
 			internal.WithAssetTypeAndID(assetType, instance.InstanceID),
-			internal.WithAssetParents(parents),
 			WithAssetTags(flattenEC2Tags(instance.Tags)),
 			internal.WithIndex(assetType, indexNamespace),
 			internal.WithAssetMetadata(instance.Metadata),
+		}
+		if parents != nil {
+			options = append(options, internal.WithAssetParents(parents))
+		}
+		internal.Publish(publisher,
+			options...,
 		)
 	}
 
 	return nil
 }
 
-func describeEC2Instances(ctx context.Context, client *ec2.Client) ([]EC2Instance, error) {
+func describeEC2Instances(ctx context.Context, client ec2.DescribeInstancesAPIClient) ([]EC2Instance, error) {
 	instances := make([]EC2Instance, 0, 100)
 	paginator := ec2.NewDescribeInstancesPaginator(client, &ec2.DescribeInstancesInput{})
 	for paginator.HasMorePages() {
