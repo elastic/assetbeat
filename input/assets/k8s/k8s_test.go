@@ -173,7 +173,7 @@ func TestCollectK8sAssets(t *testing.T) {
 	watchersMap.watchers.Store("pod", podWatcher)
 	publisher := testutil.NewInMemoryPublisher()
 	cfg := defaultConfig()
-	cfg.AssetTypes = []string{"pod"}
+	cfg.AssetTypes = []string{"k8s.pod"}
 	collectK8sAssets(context.Background(), log, cfg, publisher, watchersMap)
 	time.Sleep(1 * time.Second)
 	assert.Equal(t, 1, len(publisher.Events))
