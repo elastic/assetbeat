@@ -274,7 +274,7 @@ func startK8sWatchers(ctx context.Context, log *logp.Logger, cfg config, watcher
 
 	if internal.IsTypeEnabled(cfg.AssetTypes, "k8s.pod") {
 		log.Info("Starting pod watcher")
-		if podWatcher, ok := watchersMap.watchers.Load("k8s.pod"); ok {
+		if podWatcher, ok := watchersMap.watchers.Load("pod"); ok {
 			pw, ok := podWatcher.(kube.Watcher)
 			if ok {
 				if err := pw.Start(); err != nil {
