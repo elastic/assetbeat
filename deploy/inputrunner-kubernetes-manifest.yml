@@ -12,7 +12,7 @@ data:
          - type: assets_k8s
            period: 600s
            kube_config: ""
-           asset_types: ["node", "pod", "container"]
+           asset_types: ["k8s.node", "k8s.pod", "k8s.container"]
 
       output.elasticsearch:
          hosts: ['${ELASTICSEARCH_HOST:elasticsearch}:${ELASTICSEARCH_PORT:9200}']

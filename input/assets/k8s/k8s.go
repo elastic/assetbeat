@@ -165,7 +165,7 @@ func getKubernetesClient(kubeconfigPath string, log *logp.Logger) (kuberntescli.
 // collectK8sAssets collects kubernetes resources from watchers cache and publishes them
 func collectK8sAssets(ctx context.Context, log *logp.Logger, cfg config, publisher stateless.Publisher, watchersMap *watchersMap) {
 	indexNamespace := cfg.IndexNamespace
-	if internal.IsTypeEnabled(cfg.AssetTypes, "node") {
+	if internal.IsTypeEnabled(cfg.AssetTypes, "k8s.node") {
 		log.Info("Node type enabled. Starting collecting")
 		go func() {
 			if nodeWatcher, ok := watchersMap.watchers.Load("node"); ok {
@@ -181,12 +181,12 @@ func collectK8sAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 
 		}()
 	}
-	if internal.IsTypeEnabled(cfg.AssetTypes, "pod") {
+	if internal.IsTypeEnabled(cfg.AssetTypes, "k8s.pod") {
 		log.Info("Pod type enabled. Starting collecting")
 		go func() {
 			if podWatcher, ok := watchersMap.watchers.Load("pod"); ok {
 				var nw kube.Watcher
-				if internal.IsTypeEnabled(cfg.AssetTypes, "node") {
+				if internal.IsTypeEnabled(cfg.AssetTypes, "k8s.node") {
 					if nodeWatcher, ok := watchersMap.watchers.Load("node"); ok {
 						nw, ok = nodeWatcher.(kube.Watcher)
 						if !ok {
@@ -208,7 +208,7 @@ func collectK8sAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 		}()
 	}
 
-	if internal.IsTypeEnabled(cfg.AssetTypes, "container") {
+	if internal.IsTypeEnabled(cfg.AssetTypes, "k8s.container") {
 		log.Info("Container type enabled. Starting collecting")
 		go func() {
 			if podWatcher, ok := watchersMap.watchers.Load("pod"); ok {
@@ -230,7 +230,7 @@ func collectK8sAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 // initK8sWatchers initiates and stores watchers for kubernetes nodes and pods, which watch for resources in kubernetes cluster
 func initK8sWatchers(ctx context.Context, client kuberntescli.Interface, log *logp.Logger, cfg config, publisher stateless.Publisher, watchersMap *watchersMap) error {
 
-	if internal.IsTypeEnabled(cfg.AssetTypes, "node") {
+	if internal.IsTypeEnabled(cfg.AssetTypes, "k8s.node") {
 		log.Info("Node type enabled. Initiate node watcher")
 		nodeWatcher, err := getNodeWatcher(ctx, log, client, time.Second*60)
 		if err != nil {
@@ -240,7 +240,7 @@ func initK8sWatchers(ctx context.Context, client kuberntescli.Interface, log *lo
 		watchersMap.watchers.Store("node", nodeWatcher)
 	}
 
-	if internal.IsTypeEnabled(cfg.AssetTypes, "pod") {
+	if internal.IsTypeEnabled(cfg.AssetTypes, "k8s.pod") {
 		log.Info("Pod type enabled. Initiate pod watcher")
 		podWatcher, err := getPodWatcher(ctx, log, client, time.Second*60)
 		if err != nil {
@@ -255,7 +255,7 @@ func initK8sWatchers(ctx context.Context, client kuberntescli.Interface, log *lo
 // startK8sWatchers starts the given watchers
 func startK8sWatchers(ctx context.Context, log *logp.Logger, cfg config, watchersMap *watchersMap) error {
 
-	if internal.IsTypeEnabled(cfg.AssetTypes, "node") {
+	if internal.IsTypeEnabled(cfg.AssetTypes, "k8s.node") {
 		log.Info("Starting node watcher")
 		if nodeWatcher, ok := watchersMap.watchers.Load("node"); ok {
 			nw, ok := nodeWatcher.(kube.Watcher)
@@ -272,9 +272,9 @@ func startK8sWatchers(ctx context.Context, log *logp.Logger, cfg config, watcher
 		}
 	}
 
-	if internal.IsTypeEnabled(cfg.AssetTypes, "pod") {
+	if internal.IsTypeEnabled(cfg.AssetTypes, "k8s.pod") {
 		log.Info("Starting pod watcher")
-		if podWatcher, ok := watchersMap.watchers.Load("pod"); ok {
+		if podWatcher, ok := watchersMap.watchers.Load("k8s.pod"); ok {
 			pw, ok := podWatcher.(kube.Watcher)
 			if ok {
 				if err := pw.Start(); err != nil {
