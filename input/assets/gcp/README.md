@@ -103,6 +103,8 @@ The following GCP API permissions are required for the GCP Assets Input to funct
 
 ### Compute Engine instances
 
+#### Exported fields
+
 | Field                              | Description                                                                                                                                       | Example                                      |
 |------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------|
 | asset.type                         | The type of asset                                                                                                                                 | `"gcp.compute.instance"`                     |
