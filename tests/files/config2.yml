@@ -1,5 +1,14 @@
 inputrunner:
   inputs:
-    - type: udp
-      max_message_size: 10KiB
-      host: "localhost:8080"
+    - type: assets_aws
+      regions:
+        - us-east-1
+        - us-west-1
+      access_key_id: blahblahblah
+      secret_access_key: youllneverknow
+      period: 1h
+
+output:
+  elasticsearch:
+    enabled: true
+    hosts: ["192.168.99.100:9200"]
