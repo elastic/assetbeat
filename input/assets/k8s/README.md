@@ -31,9 +31,7 @@ inputrunner.inputs:
 
 The K8s Assets Input supports the configuration options plus the Common options described later.
 
-* `kube_config`: The path of a kube config file so that if the inputrunner runs as a process anywhere, can access the cluster.
-  In case it runs as a pod in the same k8s cluster it needs to collect assets for, then the kube_config is collected from withing the cluster(inClusterconfig)
-  and the `kube_config` option should be left empty
+* `kube_config`: To ensure that the inputrunner process can collect data, regardless of the environment it runs from, the kube config file path should be configured accordingly. If the inputrunner runs as a pod within the same Kubernetes cluster it needs to collect assets from, the kube_config should be obtained from within the cluster (inClusterconfig). In this case, the kube_config option should be left empty.
 
 ## Asset schema
 
