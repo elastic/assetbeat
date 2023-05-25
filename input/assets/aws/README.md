@@ -70,7 +70,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
 | Field                          | Description                                                                                                                                    | Example                                  |
 |--------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------|
 | asset.type                     | The type of asset                                                                                                                              | `"aws.ec2.instance"`                     |
-| asset.id                       | The id of the EC2 instance                                                                                                                     | `i-065d58c9c67df73ed`                    |
+| asset.id                       | The id of the EC2 instance                                                                                                                     | `"i-065d58c9c67df73ed"`                  |
 | asset.ean                      | the EAN of this specific resource                                                                                                              | `"aws.ec2.instance:i-065d58c9c67df73ed"` |
 | asset.parents                  | The IDs of the hierarchical parents for this specific asset resource. For an EC2 instance, this corresponds to the VPC subnet it is related to | `[ "subnet-b98e46df" ]`                  |
 | asset.metadata.state           | The state of the EC2 instance                                                                                                                  | `"running"`                              |
@@ -131,9 +131,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
 {
     "@timestamp": "2023-05-25T13:48:47.538Z",
     "asset.id": "arn:aws:eks:eu-west-1:1111111111:cluster/test-cluster",
-    "asset.metadata.tags.alpha.eksctl.io/cluster-name": "test-cluster",
     "asset.type": "k8s.cluster",
-    "asset.metadata.tags.alpha.eksctl.io/eksctl-version": "0.130.0-dev+6aa905e1a.2023-02-17T10:39:49Z",
     "input": {
       "type": "assets_aws"
     },
@@ -146,17 +144,12 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
     },
     "cloud.account.id": "1111111111",
     "cloud.provider": "aws",
-    "asset.metadata.tags.alpha.eksctl.io/cluster-oidc-enabled": "false",
-    "asset.metadata.tags.aws:cloudformation:logical-id": "ControlPlane",
     "asset.metadata.status": "ACTIVE",
-    "asset.metadata.tags.aws:cloudformation:stack-id": "arn:aws:cloudformation:eu-west-1:1111111111:stack/eksctl-topology-dc-davide-fargate-cluster/40e89d70-b2b3-11ed-8429-02a973adaf57",
     "ecs": {
       "version": "8.0.0"
     },
     "cloud.region": "eu-west-1",
     "asset.children": ["i-0805c4e8d9c6015fa", "i-0805c4e8d9c6015fb"],
-    "asset.metadata.tags.aws:cloudformation:stack-name": "eksctl-test-cluster",
-    "asset.metadata.tags.eksctl.cluster.k8s.io/v1alpha1/cluster-name": "test-cluster",
     "asset.parents": [
       "vpc-0c7da12158a6c225f"
     ],
