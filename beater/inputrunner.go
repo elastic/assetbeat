@@ -40,10 +40,6 @@ import (
 	cfg "github.com/elastic/inputrunner/config"
 
 	"github.com/elastic/beats/v7/filebeat/input/v2/compat"
-
-	// Add filebeat level processors
-	_ "github.com/elastic/beats/v7/libbeat/processors/decode_csv_fields"
-	_ "github.com/elastic/inputrunner/processor/add_kubernetes_metadata"
 )
 
 var once = flag.Bool("once", false, "Run inputrunner only once until all harvesters reach EOF")
