@@ -29,7 +29,7 @@ inputrunner.inputs:
       - <kube_config>
 ```
 
-The K8s Assets Input supports the configuration options plus the Common options described later.
+The K8s Assets Input supports the configuration options plus the [Common options](../README.md#Common options).
 
 * `kube_config`: To ensure that the inputrunner process can collect data, regardless of the environment it runs from, the kube config file path should be configured accordingly. If the inputrunner runs as a pod within the same Kubernetes cluster it needs to collect assets from, the kube_config should be obtained from within the cluster (inClusterconfig). In this case, the kube_config option should be left empty.
 
@@ -215,10 +215,3 @@ kubectl create -f inputrunner-kubernetes-manifest.yml
 ```shell
 kubectl -n kube-system get pods -l k8s-app=inputrunner
 ```
-## Common options
-
-The following configuration options are supported by all Asset inputs.
-
-* `period`: How often data should be collected.
-* `index_namespace`: Each document is published to an index with pattern `assets-{asset.type}-{namespace}`. This option can be set to replace the default value for `namespace`, `default`, with a custom string.
-* `asset_types`: The list of specific asset types to collect data about.

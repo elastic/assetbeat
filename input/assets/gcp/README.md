@@ -31,7 +31,7 @@ inputrunner.inputs:
     credentials_file_path: "/path/cred-filename.json" 
 ```
 
-The GCP Assets Input supports the configuration options plus the Common options described later.
+The GCP Assets Input supports the configuration options plus the [Common options](../README.md#Common options).
 
 * `regions`: The list of GCP regions to collect data from.
 * `projects`: The list of GCP projects to collect data from.
@@ -150,10 +150,3 @@ The following GCP API permissions are required for the GCP Assets Input to funct
     }
 }
 ```
-## Common options
-
-The following configuration options are supported by all Asset inputs.
-
-* `period`: How often data should be collected. 
-* `index_namespace`: Each document is published to an index with pattern `assets-{asset.type}-{namespace}`. This option can be set to replace the default value for `namespace`, `default`, with a custom string.
-* `asset_types`: The list of specific asset types to collect data about.

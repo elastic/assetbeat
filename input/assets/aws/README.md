@@ -36,7 +36,7 @@ inputrunner.inputs:
     session_token: <your AWS Session Token>
 ```
 
-The AWS Assets Input supports the configuration options plus the Common options described later.
+The AWS Assets Input supports the configuration options plus the [Common options](../README.md#Common options).
 
 * `regions`: The list of AWS regions to collect data from.
 * `access_key_id`: your AWS access key ID (e.g. `AKIAIOSFODNN7EXAMPLE`).
@@ -250,11 +250,3 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
     }
   }
 ```
-
-## Common options
-
-The following configuration options are supported by all Asset inputs.
-
-* `period`: How often data should be collected.
-* `index_namespace`: Each document is published to an index with pattern `assets-{asset.type}-{namespace}`. This option can be set to replace the default value for `namespace`, `default`, with a custom string.
-* `asset_types`: The list of specific asset types to collect data about.
