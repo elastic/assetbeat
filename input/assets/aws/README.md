@@ -36,7 +36,7 @@ inputrunner.inputs:
     session_token: <your AWS Session Token>
 ```
 
-The AWS Assets Input supports the configuration options plus the [Common options](../README.md#Common options).
+The AWS Assets Input supports the following configuration options plus the [Common options](../README.md#Common options).
 
 * `regions`: The list of AWS regions to collect data from.
 * `access_key_id`: your AWS access key ID (e.g. `AKIAIOSFODNN7EXAMPLE`).
