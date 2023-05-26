@@ -31,7 +31,7 @@ inputrunner.inputs:
     credentials_file_path: "/path/cred-filename.json" 
 ```
 
-The GCP Assets Input supports the configuration options plus the [Common options](../README.md#Common options).
+The GCP Assets Input supports the following configuration options plus the [Common options](../README.md#Common options).
 
 * `regions`: The list of GCP regions to collect data from.
 * `projects`: The list of GCP projects to collect data from.
