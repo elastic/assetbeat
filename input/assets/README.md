@@ -1,3 +1,7 @@
+## Intro
+
+All the inputs in this folder collect "Assets". Assets are defined as elements within your infrastructure, such as containers, machines, pods, clusters, etc.
+
 ## Supported Asset Inputs
 
 Inputrunner supports the following asset input types at the moment:
