@@ -169,7 +169,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
 |--------------------------------|-------------------------------------------------------------------------------------|-----------------------------------|
 | asset.type                     | The type of asset                                                                   | `"aws.vpc"`                       |
 | asset.id                       | The id of the VPC                                                                   | `"vpc-0f754418ce7f991f9"`         |
-| asset.ean                      | the EAN of this specific resource                                                   | `"aws.vpc:vpc-0f754418ce7f991f9"` |
+| asset.ean                      | The EAN of this specific resource                                                   | `"aws.vpc:vpc-0f754418ce7f991f9"` |
 | asset.metadata.isDefault       | true/false value that indicates if the VPC is the default VPC for the region or not | `"true"`                          |
 | asset.metadata.tags.<tag_name> | Any label specified for this VPC                                                    | `"my label value"`                |
 
