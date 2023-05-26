@@ -29,7 +29,7 @@ inputrunner.inputs:
       - <kube_config>
 ```
 
-The K8s Assets Input supports the configuration options plus the [Common options](../README.md#Common options).
+The K8s Assets Input supports the following configuration options plus the [Common options](../README.md#Common options).
 
 * `kube_config`: To ensure that the inputrunner process can collect data, regardless of the environment it runs from, the kube config file path should be configured accordingly. If the inputrunner runs as a pod within the same Kubernetes cluster it needs to collect assets from, the kube_config should be obtained from within the cluster (inClusterconfig). In this case, the kube_config option should be left empty.
 
