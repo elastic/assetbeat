@@ -23,7 +23,7 @@ The following configuration options are supported by all Asset inputs.
 
 - [assets_aws](aws/README.md#Configuration)
 - [assets_gcp](gcp/README.md#Configuration)
-- [assets_aws](k8s/README.md#Configuration)
+- [assets_k8s](k8s/README.md#Configuration)
 
 
 ## Asset Inputs Relationships
