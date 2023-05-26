@@ -213,7 +213,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
 |--------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------|
 | asset.type                     | The type of asset                                                                                                                    | `"aws.vpc"`                       |
 | asset.id                       | The id of the VPC subnet                                                                                                             | `"vpc-0f754418ce7f991f9"`         |
-| asset.ean                      | the EAN of this specific resource                                                                                                    | `"aws.vpc:vpc-0f754418ce7f991f9"` |
+| asset.ean                      | The EAN of this specific resource                                                                                                    | `"aws.vpc:vpc-0f754418ce7f991f9"` |
 | asset.parents                  | The IDs of the hierarchical parents for this specific asset resource. For a VPC subnet, this corresponds to the VPC it is related to | `[ "test-vpc" ]`                  |
 | asset.metadata.tags.<tag_name> | Any label specified for this VPC                                                                                                     | `"my label value"`                |
 
