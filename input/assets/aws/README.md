@@ -70,6 +70,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
 | Field                          | Description                                                                                                                                    | Example                                  |
 |--------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------|
 | asset.type                     | The type of asset                                                                                                                              | `"aws.ec2.instance"`                     |
+| asset.kind                     | The kind of asset. For an EC2 instance the kind is host                                                                                        | `"host`                                  |
 | asset.id                       | The id of the EC2 instance                                                                                                                     | `"i-065d58c9c67df73ed"`                  |
 | asset.ean                      | The EAN of this specific resource                                                                                                              | `"aws.ec2.instance:i-065d58c9c67df73ed"` |
 | asset.parents                  | The IDs of the hierarchical parents for this specific asset resource. For an EC2 instance, this corresponds to the VPC subnet it is related to | `[ "subnet-b98e46df" ]`                  |
@@ -97,6 +98,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
       "name": "test"
     },
     "asset.type": "aws.ec2.instance",
+    "asset.kind": "host",
     "agent": {
       "type": "inputrunner",
       "version": "8.7.0",
@@ -118,6 +120,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
 | Field                            | Description                                                                                                                                                                                                                    | Example                                                         |
 |----------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------|
 | asset.type                       | The type of asset                                                                                                                                                                                                              | `"k8s.cluster"`                                                 |
+| asset.kind                       | The kind of asset. For an EKS cluster  the kind is cluster                                                                                                                                                                     | `"cluster`                                                      |
 | asset.id                         | The ARN of the EKS cluster                                                                                                                                                                                                     | `"arn:aws:eks:us-west-1:564797534556:cluster/demo"`             |
 | asset.ean                        | The EAN of this specific resource                                                                                                                                                                                              | `"k8s.cluster:arn:aws:eks:us-west-1:564797534556:cluster/demo"` |
 | asset.parents                    | The IDs of the hierarchical parents for this specific asset resource. For an EKS cluster, this corresponds to the VPC it is related to                                                                                         | `[ "test-vpc" ]`                                                |
@@ -132,6 +135,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
     "@timestamp": "2023-05-25T13:48:47.538Z",
     "asset.id": "arn:aws:eks:eu-west-1:1111111111:cluster/test-cluster",
     "asset.type": "k8s.cluster",
+    "asset.kind": "cluster",
     "input": {
       "type": "assets_aws"
     },
@@ -168,6 +172,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
 | Field                          | Description                                                                         | Example                           |
 |--------------------------------|-------------------------------------------------------------------------------------|-----------------------------------|
 | asset.type                     | The type of asset                                                                   | `"aws.vpc"`                       |
+| asset.kind                     | The kind of asset. For a VPC  the kind is network                                   | `"network`                        |
 | asset.id                       | The id of the VPC                                                                   | `"vpc-0f754418ce7f991f9"`         |
 | asset.ean                      | The EAN of this specific resource                                                   | `"aws.vpc:vpc-0f754418ce7f991f9"` |
 | asset.metadata.isDefault       | true/false value that indicates if the VPC is the default VPC for the region or not | `"true"`                          |
@@ -180,6 +185,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
 {
     "@timestamp": "2023-05-25T13:48:47.315Z",
     "asset.type": "aws.vpc",
+    "asset.kind": "network",
     "input": {
       "type": "assets_aws"
     },
@@ -212,6 +218,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
 | Field                          | Description                                                                                                                          | Example                           |
 |--------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------|
 | asset.type                     | The type of asset                                                                                                                    | `"aws.vpc"`                       |
+| asset.kind                     | The kind of asset. For a VPC subnet the kind is network                                                                              | `"network`                        |
 | asset.id                       | The id of the VPC subnet                                                                                                             | `"vpc-0f754418ce7f991f9"`         |
 | asset.ean                      | The EAN of this specific resource                                                                                                    | `"aws.vpc:vpc-0f754418ce7f991f9"` |
 | asset.parents                  | The IDs of the hierarchical parents for this specific asset resource. For a VPC subnet, this corresponds to the VPC it is related to | `[ "test-vpc" ]`                  |
@@ -230,6 +237,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
     "cloud.provider": "aws",
     "cloud.region": "eu-west-1",
     "asset.type": "aws.subnet",
+    "asset.kind": "network",
     "host": {
       "name": "test"
     },

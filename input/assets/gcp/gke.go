@@ -18,20 +18,22 @@
 package gcp
 
 import (
+	"context"
+	"fmt"
+	"strconv"
+	"strings"
+
 	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"
 	container "cloud.google.com/go/container/apiv1"
 	"cloud.google.com/go/container/apiv1/containerpb"
-	"context"
-	"fmt"
+	"github.com/googleapis/gax-go/v2"
+	"google.golang.org/api/iterator"
+
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/inputrunner/input/assets/internal"
-	"github.com/googleapis/gax-go/v2"
-	"google.golang.org/api/iterator"
-	"strconv"
-	"strings"
 )
 
 type listClustersAPIClient interface {
@@ -73,6 +75,7 @@ func collectGKEAssets(ctx context.Context, cfg config, log *logp.Logger, publish
 
 	indexNamespace := cfg.IndexNamespace
 	assetType := "k8s.cluster"
+	assetKind := "cluster"
 	for _, cluster := range clusters {
 		var parents []string
 		var children []string
@@ -95,6 +98,7 @@ func collectGKEAssets(ctx context.Context, cfg config, log *logp.Logger, publish
 			internal.WithAssetRegion(cluster.Region),
 			internal.WithAssetAccountID(cluster.Account),
 			internal.WithAssetTypeAndID(assetType, cluster.ID),
+			internal.WithAssetKind(assetKind),
 			internal.WithAssetParents(parents),
 			internal.WithAssetChildren(children),
 			WithAssetLabels(internal.ToMapstr(cluster.Labels)),

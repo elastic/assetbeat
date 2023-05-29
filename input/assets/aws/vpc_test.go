@@ -2,15 +2,17 @@ package aws
 
 import (
 	"context"
+	"testing"
+
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/inputrunner/input/testutil"
-	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 var vpcId1 = "vpc-id-1"
@@ -69,6 +71,7 @@ func TestAssetsAWS_collectVPCAssets(t *testing.T) {
 						"asset.ean":                      "aws.vpc:" + vpcId1,
 						"asset.id":                       vpcId1,
 						"asset.type":                     "aws.vpc",
+						"asset.kind":                     "network",
 						"asset.metadata.isDefault":       &isDefaultVPC,
 						"asset.metadata.tags." + tag_1_k: tag_1_v,
 						"cloud.account.id":               ownerID_1,
@@ -84,6 +87,7 @@ func TestAssetsAWS_collectVPCAssets(t *testing.T) {
 						"asset.ean":                "aws.vpc:" + vpcId2,
 						"asset.id":                 vpcId2,
 						"asset.type":               "aws.vpc",
+						"asset.kind":               "network",
 						"asset.metadata.isDefault": &isNotDefaultVPC,
 						"cloud.account.id":         ownerID_1,
 						"cloud.provider":           "aws",
@@ -158,6 +162,7 @@ func TestAssetsAWS_collectSubnetAssets(t *testing.T) {
 						"asset.ean":  "aws.subnet:" + subnetID1,
 						"asset.id":   subnetID1,
 						"asset.type": "aws.subnet",
+						"asset.kind": "network",
 						"asset.parents": []string{
 							"vpc-id-1",
 						},
@@ -176,6 +181,7 @@ func TestAssetsAWS_collectSubnetAssets(t *testing.T) {
 						"asset.ean":  "aws.subnet:" + subnetID2,
 						"asset.id":   subnetID2,
 						"asset.type": "aws.subnet",
+						"asset.kind": "network",
 						"asset.parents": []string{
 							"vpc-id-1",
 						},

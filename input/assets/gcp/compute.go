@@ -18,12 +18,13 @@
 package gcp
 
 import (
+	"context"
+	"strconv"
+
 	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"
-	"context"
 	"github.com/googleapis/gax-go/v2"
 	"google.golang.org/api/iterator"
-	"strconv"
 
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/elastic-agent-libs/mapstr"
@@ -64,6 +65,7 @@ func collectComputeAssets(ctx context.Context, cfg config, publisher stateless.P
 	}
 
 	assetType := "gcp.compute.instance"
+	assetKind := "host"
 	indexNamespace := cfg.IndexNamespace
 	for _, instance := range instances {
 		var parents []string
@@ -74,6 +76,7 @@ func collectComputeAssets(ctx context.Context, cfg config, publisher stateless.P
 			internal.WithAssetRegion(instance.Region),
 			internal.WithAssetAccountID(instance.Account),
 			internal.WithAssetTypeAndID(assetType, instance.ID),
+			internal.WithAssetKind(assetKind),
 			internal.WithAssetParents(parents),
 			WithAssetLabels(internal.ToMapstr(instance.Labels)),
 			internal.WithIndex(assetType, indexNamespace),

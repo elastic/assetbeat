@@ -116,6 +116,7 @@ func getNodeIdFromName(nodeName string, nodeWatcher kube.Watcher) (string, error
 func publishK8sNodes(ctx context.Context, log *logp.Logger, indexNamespace string, publisher stateless.Publisher, watcher kube.Watcher, isInCluster bool) {
 	log.Info("Publishing nodes assets\n")
 	assetType := "k8s.node"
+	assetKind := "host"
 	var assetParents []string
 
 	// Get the first stored node to extract the cluster uid in case of GCP.
@@ -145,6 +146,7 @@ func publishK8sNodes(ctx context.Context, log *logp.Logger, indexNamespace strin
 			assetStartTime := o.ObjectMeta.CreationTimestamp
 			options := []internal.AssetOption{
 				internal.WithAssetTypeAndID(assetType, assetId),
+				internal.WithAssetKind(assetKind),
 				internal.WithNodeData(o.Name, &assetStartTime),
 				internal.WithIndex(assetType, indexNamespace),
 			}

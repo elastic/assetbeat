@@ -69,6 +69,13 @@ func WithAssetTypeAndID(t, id string) AssetOption {
 	}
 }
 
+func WithAssetKind(value string) AssetOption {
+	return func(e beat.Event) beat.Event {
+		e.Fields["asset.kind"] = value
+		return e
+	}
+}
+
 func WithAssetParents(value []string) AssetOption {
 	return func(e beat.Event) beat.Event {
 		e.Fields["asset.parents"] = value

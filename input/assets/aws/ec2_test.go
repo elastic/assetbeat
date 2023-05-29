@@ -2,14 +2,16 @@ package aws
 
 import (
 	"context"
+	"testing"
+
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/inputrunner/input/testutil"
-	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 var instanceID_1 = "i-1111111"
@@ -72,6 +74,7 @@ func TestAssetsAWS_collectEC2Assets(t *testing.T) {
 					"asset.id":             instanceID_1,
 					"asset.metadata.state": "running",
 					"asset.type":           "aws.ec2.instance",
+					"asset.kind":           "host",
 					"asset.parents": []string{
 						subnetID1,
 					},
@@ -90,6 +93,7 @@ func TestAssetsAWS_collectEC2Assets(t *testing.T) {
 					"asset.id":             instanceID_2,
 					"asset.metadata.state": "stopped",
 					"asset.type":           "aws.ec2.instance",
+					"asset.kind":           "host",
 					"asset.parents": []string{
 						subnetID1,
 					},
