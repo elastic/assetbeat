@@ -35,21 +35,20 @@ The following configuration options are supported by all Asset inputs.
 Certain assets types collected by the different inputs can be connected with each other
 with parent/children hierarchy.
 
-### assets_k8s input in a GKE or EKS cluster
-In case `assets_k8s` input is collecting kubernetes nodes assets and those nodes belong to either
-a GKE or EKS cluster, the following field mapping can be used to link the kubernetes nodes with a cluster.
-
-| assets_k8s (k8s.node) | assets_gcp, assets_aws (k8s.cluster) | Notes/Description |
-|--------|--------|--------|
-| cloud.instance.id | asset.children | The `cloud.instance.id`, collected from the node's metadata, will be listed in the `asset.children` field of k8s.cluster asset type.|
-
-
-### assets_k8s input in a GKE cluster
-
-In case `assets_k8s` input is collecting kubernetes nodes assets and those nodes belong to a
-GKE cluster, the following field mapping can be used to link the kubernetes nodes with a cluster. 
+### GKE clusters and nodes
+In case `assets_k8s` input is collecting Kubernetes nodes assets and those nodes belong to a GKE cluster, the following field mapping can be used to link the Kubernetes nodes with their cluster.
 
 | assets_k8s (k8s.node) | assets_gcp (k8s.cluster) | Notes/Description |
 |--------|--------|--------|
+| cloud.instance.id | asset.children | The `cloud.instance.id`, collected from the node's metadata, will be listed in the `asset.children` field of k8s.cluster asset type.|
 | asset.parents | asset.ean | The `asset.parents` of k8s.node asset type contains the EAN of the kubernetes cluster it belongs to.|
 
+### EKS clusters and nodes
+
+In case `assets_k8s` input is collecting Kubernetes nodes assets and those nodes belong to an EKS cluster, the following field mapping can be used to link the Kubernetes nodes with their cluster.
+
+| assets_k8s (k8s.node) | assets_aws (k8s.cluster) | Notes/Description |
+|--------|--------|--------|
+| cloud.instance.id | asset.children | The `cloud.instance.id`, collected from the node's metadata, will be listed in the `asset.children` field of k8s.cluster asset type.|
+
+**_Note_:** The above mapping is not currently available for EKS Fargate clusters.
