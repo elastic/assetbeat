@@ -37,19 +37,19 @@ with parent/children hierarchy.
 
 ### assets_k8s input in a GKE or EKS cluster
 In case `assets_k8s` input is collecting kubernetes nodes assets and those nodes belong to either
-a GKE or EKS cluster the `cloud.instance.id` is collected from the node's metadata.
-That field is published and corresponds to the `asset.id` of [Compute Engine instances](gcp/README.md#Compute Engine instances) for GCP or
-[EC2 instances](aws/README.md#EC2 instances) for AWS.
-At the same time if `assets_aws` or `assets_gcp` input are configured with `k8s.cluster` asset_type enabled,
-they associate the Compute Engine or EC2 instances respectively with the EKS/AKS cluster they belong to.
-The instance ids are then published as part of the `asset.children` field of `k8s.cluster` asset types.
+a GKE or EKS cluster, the following field mapping can be used to link the kubernetes nodes with a cluster.
+
+| assets_k8s (k8s.node) | assets_gcp, assets_aws (k8s.cluster) | Notes/Description |
+|--------|--------|--------|
+| cloud.instance.id | asset.children | The `cloud.instance.id`, collected from the node's metadata, will be listed in the `asset.children` field of k8s.cluster asset type.|
 
 
 ### assets_k8s input in a GKE cluster
 
 In case `assets_k8s` input is collecting kubernetes nodes assets and those nodes belong to a
-GKE cluster, then the cluster id can be retrieved from the CSP metadata endpoint.
-The assets published from [k8s.node](k8s/README.md#K8s Nodes) asset_type will list in the 
-`asset.parents` field the EAN of the [Google Kubernetes Engine cluster](gcp/README.md#Google Kubernetes Engine clusters).
+GKE cluster, the following field mapping can be used to link the kubernetes nodes with a cluster. 
 
+| assets_k8s (k8s.node) | assets_gcp (k8s.cluster) | Notes/Description |
+|--------|--------|--------|
+| asset.parents | asset.ean | The `asset.parents` of k8s.node asset type contains the EAN of the kubernetes cluster it belongs to.|
 
