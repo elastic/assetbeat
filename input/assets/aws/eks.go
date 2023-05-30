@@ -53,10 +53,9 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, indexNamespace string
 			}
 			nodeGroups, _ := listNodeGroups(ctx, *clusterDetail.Name, eksClient)
 			instances, _ := getInstanceIDsFromNodeGroup(ctx, *clusterDetail.Name, nodeGroups, eksClient, asgClient)
-			if instances != nil {
-				for _, instance := range instances {
-					children = []string{"aws.ec2.instance:" + instance}
-				}
+
+			for _, instance := range instances {
+				children = []string{"aws.ec2.instance:" + instance}
 			}
 
 			clusterARN, _ := arn.Parse(*clusterDetail.Arn)
