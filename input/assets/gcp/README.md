@@ -31,7 +31,7 @@ inputrunner.inputs:
     credentials_file_path: "/path/cred-filename.json" 
 ```
 
-The GCP Assets Input supports the configuration options plus the Common options described later.
+The GCP Assets Input supports the following configuration options plus the [Common options](../README.md#Common options).
 
 * `regions`: The list of GCP regions to collect data from.
 * `projects`: The list of GCP projects to collect data from.
@@ -53,6 +53,7 @@ The following GCP API permissions are required for the GCP Assets Input to funct
 | Field                              | Description                                                                                                                                                                     | Example                                                                          |
 |------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
 | asset.type                         | The type of asset                                                                                                                                                               | `"k8s.cluster"`                                                                  |
+| asset.kind                         | The kind of asset                                                                                                                                                               | `"cluster`                                                                          |
 | asset.id                           | The id of the GKE cluster                                                                                                                                                       | `"4d0dde3178fb4977b5f38a773e520b7b4aeb0155a0a34f37a84217f19962c222"`             |
 | asset.ean                          | the EAN of this specific resource                                                                                                                                               | `"k8s.cluster:4d0dde3178fb4977b5f38a773e520b7b4aeb0155a0a34f37a84217f19962c222"` |
 | asset.parents                      | The IDs of the hierarchical parents for this specific asset resource. For a GKE cluster, this corresponds to the VPC it is related to                                           | `[ "test-vpc" ]`                                                                 |
@@ -97,7 +98,8 @@ The following GCP API permissions are required for the GCP Assets Input to funct
     ],
     "cloud.provider": "gcp",
     "cloud.region": "europe-west1",
-    "asset.type": "k8s.cluster"
+    "asset.type": "k8s.cluster",
+    "asset.kind": "cluster"
 }
 ```
 
@@ -108,6 +110,7 @@ The following GCP API permissions are required for the GCP Assets Input to funct
 | Field                              | Description                                                                                                                                       | Example                                      |
 |------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------|
 | asset.type                         | The type of asset                                                                                                                                 | `"gcp.compute.instance"`                     |
+| asset.kind                         | The kind of asset                                                                                                                                 | `"host`                                      |
 | asset.id                           | The id of the Compute Engine instance                                                                                                             | `"5252379740648465638"`                      |
 | asset.ean                          | the EAN of this specific resource                                                                                                                 | `"gcp.compute.instance:5252379740648465638"` |
 | asset.parents                      | The IDs of the hierarchical parents for this specific asset resource. For a Compute Engine instance, this corresponds to the VPC it is related to | `[ "test-vpc" ]`                             |
@@ -124,6 +127,7 @@ The following GCP API permissions are required for the GCP Assets Input to funct
     "asset.metadata.state": "RUNNING",
     "asset.metadata.labels.label1": "my label value",
     "asset.type": "gcp.compute.instance",
+    "asset.kind": "host",
     "asset.ean": "gcp.compute.instance:5252379740648465638",
     "asset.parents": [
       "test-vpc"
@@ -150,10 +154,3 @@ The following GCP API permissions are required for the GCP Assets Input to funct
     }
 }
 ```
-## Common options
-
-The following configuration options are supported by all Asset inputs.
-
-* `period`: How often data should be collected. 
-* `index_namespace`: Each document is published to an index with pattern `assets-{asset.type}-{namespace}`. This option can be set to replace the default value for `namespace`, `default`, with a custom string.
-* `asset_types`: The list of specific asset types to collect data about.

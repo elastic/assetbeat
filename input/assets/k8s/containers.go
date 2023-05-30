@@ -33,6 +33,7 @@ import (
 func publishK8sContainers(ctx context.Context, log *logp.Logger, indexNamespace string, publisher stateless.Publisher, podWatcher kube.Watcher) {
 	log.Info("Publishing container assets\n")
 	assetType := "k8s.container"
+	assetKind := "container"
 	for _, obj := range podWatcher.Store().List() {
 		o, ok := obj.(*kube.Pod)
 		if ok {
@@ -66,6 +67,7 @@ func publishK8sContainers(ctx context.Context, log *logp.Logger, indexNamespace 
 
 				internal.Publish(publisher,
 					internal.WithAssetTypeAndID(assetType, assetId),
+					internal.WithAssetKind(assetKind),
 					internal.WithAssetParents(assetParents),
 					internal.WithContainerData(assetName, assetId, namespace, state, &assetStartTime),
 					internal.WithIndex(assetType, indexNamespace),

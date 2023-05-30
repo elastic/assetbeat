@@ -16,7 +16,7 @@ env:
   DOCKER_IMG_TAG_LATEST: docker.elastic.co/observability/inputrunner:latest
 jobs:
   pkg-docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
       - name: Package inputrunner in a Dockerfile

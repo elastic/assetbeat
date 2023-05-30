@@ -96,6 +96,7 @@ func publishK8sPods(ctx context.Context, log *logp.Logger, indexNamespace string
 
 	log.Info("Publishing pod assets\n")
 	assetType := "k8s.pod"
+	assetKind := "container_group"
 	for _, obj := range podWatcher.Store().List() {
 		o, ok := obj.(*kube.Pod)
 		if ok {
@@ -119,6 +120,7 @@ func publishK8sPods(ctx context.Context, log *logp.Logger, indexNamespace string
 
 			internal.Publish(publisher,
 				internal.WithAssetTypeAndID(assetType, assetId),
+				internal.WithAssetKind(assetKind),
 				internal.WithAssetParents(assetParents),
 				internal.WithPodData(assetName, assetId, namespace, assetStartTime),
 				internal.WithIndex(assetType, indexNamespace),
