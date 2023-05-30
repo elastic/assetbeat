@@ -67,15 +67,15 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
 
 #### Exported fields
 
-| Field                          | Description                                                                                                                                    | Example                                  |
-|--------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------|
-| asset.type                     | The type of asset                                                                                                                              | `"aws.ec2.instance"`                     |
-| asset.kind                     | The kind of asset                                                                                                                              | `"host`                                  |
-| asset.id                       | The id of the EC2 instance                                                                                                                     | `"i-065d58c9c67df73ed"`                  |
-| asset.ean                      | The EAN of this specific resource                                                                                                              | `"aws.ec2.instance:i-065d58c9c67df73ed"` |
-| asset.parents                  | The IDs of the hierarchical parents for this specific asset resource. For an EC2 instance, this corresponds to the VPC subnet it is related to | `[ "subnet-b98e46df" ]`                  |
-| asset.metadata.state           | The state of the EC2 instance                                                                                                                  | `"running"`                              |
-| asset.metadata.tags.<tag_name> | Any tag specified for this instance                                                                                                            | `"my label value"`                       |
+| Field                          | Description                                                                                                                                     | Example                                  |
+|--------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------|
+| asset.type                     | The type of asset                                                                                                                               | `"aws.ec2.instance"`                     |
+| asset.kind                     | The kind of asset                                                                                                                               | `"host`                                  |
+| asset.id                       | The id of the EC2 instance                                                                                                                      | `"i-065d58c9c67df73ed"`                  |
+| asset.ean                      | The EAN of this specific resource                                                                                                               | `"aws.ec2.instance:i-065d58c9c67df73ed"` |
+| asset.parents                  | The EANs of the hierarchical parents for this specific asset resource. For an EC2 instance, this corresponds to the VPC subnet it is related to | `[ "aws.subnet:subnet-b98e46df" ]`       |
+| asset.metadata.state           | The state of the EC2 instance                                                                                                                   | `"running"`                              |
+| asset.metadata.tags.<tag_name> | Any tag specified for this instance                                                                                                             | `"my label value"`                       |
 
 #### Example
 
@@ -107,7 +107,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
       "name": "test"
     },
     "asset.parents": [
-      "subnet-a355daf9"
+      "aws.subnet:subnet-a355daf9"
     ],
     "asset.metadata.tags.Name": "elastic-agent"
   }
