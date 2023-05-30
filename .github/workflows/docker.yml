@@ -4,7 +4,7 @@ on:
   merge_group:
     branches: [ "main" ]
   pull_request:
-    branches: [ "set-ubuntu-version-docker-ci" ]
+    branches: [ "main" ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
