@@ -129,6 +129,26 @@ func WithContainerData(name, uid, namespace, state string, startTime *metav1.Tim
 	}
 }
 
+func WithHostData(hostname, architecture string) AssetOption {
+	return func(e beat.Event) beat.Event {
+		e.Fields["host.hostname"] = hostname
+		e.Fields["host.architecture"] = architecture
+		return e
+	}
+}
+
+func WithHostOsData(osBuild, osFamily, osKernel, osName, osPlatform, osType, osVersion string) AssetOption {
+	return func(e beat.Event) beat.Event {
+		e.Fields["host.os.build"] = osBuild
+		e.Fields["host.os.family"] = osFamily
+		e.Fields["host.os.kernel"] = osKernel
+		e.Fields["host.os.name"] = osName
+		e.Fields["host.os.platform"] = osPlatform
+		e.Fields["host.os.type"] = osType
+		e.Fields["host.os.version"] = osVersion
+		return e
+	}
+}
 func ToMapstr(input map[string]string) mapstr.M {
 	out := mapstr.M{}
 	for k, v := range input {
