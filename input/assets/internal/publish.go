@@ -139,12 +139,16 @@ func WithHostData(hostname, architecture string) AssetOption {
 
 func WithHostOsData(osBuild, osFamily, osKernel, osName, osPlatform, osType, osVersion string) AssetOption {
 	return func(e beat.Event) beat.Event {
-		e.Fields["host.os.build"] = osBuild
+		if osBuild != "<nil>" {
+			e.Fields["host.os.build"] = osBuild
+		}
+		if osType != "<nil>" {
+			e.Fields["host.os.type"] = osType
+		}
 		e.Fields["host.os.family"] = osFamily
 		e.Fields["host.os.kernel"] = osKernel
 		e.Fields["host.os.name"] = osName
 		e.Fields["host.os.platform"] = osPlatform
-		e.Fields["host.os.type"] = osType
 		e.Fields["host.os.version"] = osVersion
 		return e
 	}

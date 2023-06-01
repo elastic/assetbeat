@@ -19,6 +19,7 @@ package hostdata
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -175,8 +176,6 @@ func (p *addHostMetadata) getData(log *logp.Logger) error {
 	}
 
 	data := host.MapHostInfo(h.Info())
-	//log.Infof("DAAAAATA %+w", data)
-
 	p.data.Set(data)
 	return nil
 }
@@ -190,23 +189,27 @@ func publishHostdata(ctx context.Context, log *logp.Logger, indexNamespace strin
 	hostdataMap := hostdata.(mapstr.M)
 	hostname, _ := hostdataMap.GetValue("hostname")
 	assetId, _ := hostdataMap.GetValue("id")
+	if assetId == nil {
+		assetId = "123"
+	}
 	architecture, _ := hostdataMap.GetValue("architecture")
 	osData, _ := hostdataMap.GetValue("os")
 	osDataMap := osData.(mapstr.M)
-	osBuild, _ := osDataMap.GetValue("build")
 	osFamily, _ := osDataMap.GetValue("family")
 	osKernel, _ := osDataMap.GetValue("kernel")
 	osName, _ := osDataMap.GetValue("name")
 	osPlatform, _ := osDataMap.GetValue("platform")
-	osType, _ := osDataMap.GetValue("type")
 	osVersion, _ := osDataMap.GetValue("version")
+	osType, _ := osDataMap.GetValue("type")
+	osBuild, _ := osDataMap.GetValue("build")
+
 	log.Debugf("Publish Host: %+v", hostname)
 	log.Debug("Host  id: ", assetId)
 	options := []internal.AssetOption{
-		internal.WithAssetTypeAndID(assetType, assetId.(string)),
+		internal.WithAssetTypeAndID(assetType, fmt.Sprint(assetId)),
 		internal.WithAssetKind(assetKind),
-		internal.WithHostData(hostname.(string), architecture.(string)),
-		internal.WithHostOsData(osBuild.(string), osFamily.(string), osKernel.(string), osName.(string), osPlatform.(string), osType.(string), osVersion.(string)),
+		internal.WithHostData(fmt.Sprint(hostname), fmt.Sprint(architecture)),
+		internal.WithHostOsData(fmt.Sprint(osBuild), fmt.Sprint(osFamily), fmt.Sprint(osKernel), fmt.Sprint(osName), fmt.Sprint(osPlatform), fmt.Sprint(osType), fmt.Sprint(osVersion)),
 		internal.WithIndex(assetType, indexNamespace),
 	}
 
