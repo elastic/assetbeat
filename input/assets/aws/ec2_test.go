@@ -76,7 +76,7 @@ func TestAssetsAWS_collectEC2Assets(t *testing.T) {
 					"asset.type":           "aws.ec2.instance",
 					"asset.kind":           "host",
 					"asset.parents": []string{
-						subnetID1,
+						"aws.subnet:" + subnetID1,
 					},
 					"asset.metadata.tags." + tag_1_k: tag_1_v,
 					"cloud.account.id":               "11111111111111",
@@ -95,7 +95,7 @@ func TestAssetsAWS_collectEC2Assets(t *testing.T) {
 					"asset.type":           "aws.ec2.instance",
 					"asset.kind":           "host",
 					"asset.parents": []string{
-						subnetID1,
+						"aws.subnet:" + subnetID1,
 					},
 					"cloud.account.id": "11111111111111",
 					"cloud.provider":   "aws",

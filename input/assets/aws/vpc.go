@@ -66,13 +66,18 @@ func collectSubnetAssets(ctx context.Context, client ec2.DescribeSubnetsAPIClien
 	assetType := "aws.subnet"
 	assetKind := "network"
 	for _, subnet := range subnets {
+		var parents []string
+		if subnet.VpcId != nil {
+			parents = []string{"aws.vpc:" + *subnet.VpcId}
+		}
+
 		internal.Publish(publisher,
 			internal.WithAssetCloudProvider("aws"),
 			internal.WithAssetRegion(region),
 			internal.WithAssetAccountID(*subnet.OwnerId),
 			internal.WithAssetTypeAndID(assetType, *subnet.SubnetId),
+			internal.WithAssetParents(parents),
 			internal.WithAssetKind(assetKind),
-			internal.WithAssetParents([]string{*subnet.VpcId}),
 			WithAssetTags(flattenEC2Tags(subnet.Tags)),
 			internal.WithIndex(assetType, indexNamespace),
 			internal.WithAssetMetadata(mapstr.M{

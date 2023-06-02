@@ -49,7 +49,7 @@ func collectEC2Assets(ctx context.Context, client ec2.DescribeInstancesAPIClient
 	for _, instance := range instances {
 		var parents []string
 		if instance.SubnetID != "" {
-			parents = []string{instance.SubnetID}
+			parents = []string{"aws.subnet:" + instance.SubnetID}
 		}
 		assetType := "aws.ec2.instance"
 		assetKind := "host"

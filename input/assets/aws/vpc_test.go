@@ -164,7 +164,7 @@ func TestAssetsAWS_collectSubnetAssets(t *testing.T) {
 						"asset.type": "aws.subnet",
 						"asset.kind": "network",
 						"asset.parents": []string{
-							"vpc-id-1",
+							"aws.vpc:vpc-id-1",
 						},
 						"asset.metadata.state":           "available",
 						"asset.metadata.tags." + tag_1_k: tag_1_v,
@@ -183,7 +183,7 @@ func TestAssetsAWS_collectSubnetAssets(t *testing.T) {
 						"asset.type": "aws.subnet",
 						"asset.kind": "network",
 						"asset.parents": []string{
-							"vpc-id-1",
+							"aws.vpc:vpc-id-1",
 						},
 						"asset.metadata.state": "pending",
 						"cloud.account.id":     ownerID_1,

@@ -47,11 +47,17 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, indexNamespace string
 	for _, clusterDetail := range describeEKSClusters(log, ctx, clusters, eksClient) {
 		if clusterDetail != nil {
 			var parents []string
+			var children []string
 			if clusterDetail.ResourcesVpcConfig.VpcId != nil {
-				parents = []string{*clusterDetail.ResourcesVpcConfig.VpcId}
+				parents = []string{"aws.vpc:" + *clusterDetail.ResourcesVpcConfig.VpcId}
 			}
 			nodeGroups, _ := listNodeGroups(ctx, *clusterDetail.Name, eksClient)
 			instances, _ := getInstanceIDsFromNodeGroup(ctx, *clusterDetail.Name, nodeGroups, eksClient, asgClient)
+
+			for _, instance := range instances {
+				children = []string{"aws.ec2.instance:" + instance}
+			}
+
 			clusterARN, _ := arn.Parse(*clusterDetail.Arn)
 			assetType := "k8s.cluster"
 			internal.Publish(publisher,
@@ -60,7 +66,7 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, indexNamespace string
 				internal.WithAssetAccountID(clusterARN.AccountID),
 				internal.WithAssetTypeAndID(assetType, *clusterDetail.Arn),
 				internal.WithAssetParents(parents),
-				internal.WithAssetChildren(instances),
+				internal.WithAssetChildren(children),
 				WithAssetTags(internal.ToMapstr(clusterDetail.Tags)),
 				internal.WithIndex(assetType, indexNamespace),
 				internal.WithAssetMetadata(mapstr.M{
