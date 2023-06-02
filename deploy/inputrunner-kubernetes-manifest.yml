@@ -8,11 +8,11 @@ metadata:
     k8s-app: inputrunner
 data:
   inputrunner.yml: |-
-      inputrunner.inputs:
-         - type: assets_k8s
-           period: 600s
-           kube_config: ""
-           asset_types: ["k8s.node", "k8s.pod", "k8s.container"]
+    inputrunner.inputs:
+       - type: assets_k8s
+         period: 600s
+         kube_config: ""
+         asset_types: ["k8s.node", "k8s.pod", "k8s.container"]
 
       output.elasticsearch:
          hosts: ['${ELASTICSEARCH_HOST:elasticsearch}:${ELASTICSEARCH_PORT:9200}']
@@ -47,7 +47,8 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
          - name: inputrunner
-           image: docker.elastic.co/observability/inputrunner:latest
+           imagePullPolicy: Never
+           image: inputrunner:latest
            env:
                   # The basic authentication username used to connect to Elasticsearch
                   # This user needs the privileges required to publish events to Elasticsearch.
@@ -67,11 +68,19 @@ spec:
                     mountPath: /usr/share/inputrunner/inputrunner.yml
                     readOnly: true
                     subPath: inputrunner.yml
+                  - name: etc-mid
+                    mountPath: /etc/machine-id
       volumes:
         - name: config
           configMap:
             defaultMode: 0640
             name: inputrunnerconfig
+        # Mount /etc/machine-id from the host to determine host ID
+        # Needed for Elastic Security integration
+        - name: etc-mid
+          hostPath:
+            path: /etc/machine-id
+            type: File
 ---
 apiVersion: v1
 kind: ServiceAccount

@@ -39,7 +39,6 @@ import (
 
 type config struct {
 	internal.BaseConfig `config:",inline"`
-	KubeConfig          string        `config:"kube_config"`
 	Period              time.Duration `config:"period"`
 }
 
@@ -181,9 +180,6 @@ func publishHostdata(ctx context.Context, log *logp.Logger, indexNamespace strin
 	hostdataMap := hostdata.(mapstr.M)
 	hostname, _ := hostdataMap.GetValue("hostname")
 	assetId, _ := hostdataMap.GetValue("id")
-	if assetId == nil {
-		assetId = "123"
-	}
 	architecture, _ := hostdataMap.GetValue("architecture")
 	osData, _ := hostdataMap.GetValue("os")
 	osDataMap := osData.(mapstr.M)
@@ -200,7 +196,7 @@ func publishHostdata(ctx context.Context, log *logp.Logger, indexNamespace strin
 	options := []internal.AssetOption{
 		internal.WithAssetTypeAndID(assetType, fmt.Sprint(assetId)),
 		internal.WithAssetKind(assetKind),
-		internal.WithHostData(fmt.Sprint(hostname), fmt.Sprint(architecture)),
+		internal.WithHostData(fmt.Sprint(assetId), fmt.Sprint(hostname), fmt.Sprint(architecture)),
 		internal.WithHostOsData(fmt.Sprint(osBuild), fmt.Sprint(osFamily), fmt.Sprint(osKernel), fmt.Sprint(osName), fmt.Sprint(osPlatform), fmt.Sprint(osType), fmt.Sprint(osVersion)),
 		internal.WithIndex(assetType, indexNamespace),
 	}

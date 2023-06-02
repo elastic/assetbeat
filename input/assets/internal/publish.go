@@ -129,9 +129,13 @@ func WithContainerData(name, uid, namespace, state string, startTime *metav1.Tim
 	}
 }
 
-func WithHostData(hostname, architecture string) AssetOption {
+func WithHostData(hostid, hostname, architecture string) AssetOption {
 	return func(e beat.Event) beat.Event {
+		if hostid != "<nil>" {
+			e.Fields["host.id"] = hostid
+		}
 		e.Fields["host.hostname"] = hostname
+		e.Fields["host.name"] = hostname
 		e.Fields["host.architecture"] = architecture
 		return e
 	}
