@@ -34,13 +34,7 @@ import (
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
-	"github.com/elastic/elastic-agent-libs/monitoring"
-
 	"github.com/elastic/go-concert/ctxtool"
-)
-
-var (
-	reg *monitoring.Registry
 )
 
 type config struct {
@@ -54,10 +48,9 @@ type addHostMetadata struct {
 		time.Time
 		sync.Mutex
 	}
-	data    mapstr.Pointer
-	geoData mapstr.M
-	config  add_host_metadata.Config
-	logger  *logp.Logger
+	data   mapstr.Pointer
+	config add_host_metadata.Config
+	logger *logp.Logger
 }
 
 func defaultHostMetadataConfig() add_host_metadata.Config {
@@ -83,7 +76,6 @@ func configure(inputCfg *conf.C) (stateless.Input, error) {
 	if err := inputCfg.Unpack(&cfg); err != nil {
 		return nil, err
 	}
-	reg = monitoring.Default.NewRegistry("hostdata", monitoring.DoNotReport)
 	return newAssetsHostdata(cfg)
 }
 
