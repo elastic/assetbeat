@@ -18,7 +18,10 @@
 package gcp
 
 import (
+	compute "cloud.google.com/go/compute/apiv1"
+	"cloud.google.com/go/compute/apiv1/computepb"
 	"context"
+	"github.com/googleapis/gax-go/v2"
 	"google.golang.org/api/option"
 	"time"
 
@@ -122,6 +125,22 @@ func (s *assetsGCP) collectAll(ctx context.Context, log *logp.Logger, publisher 
 	if internal.IsTypeEnabled(s.config.AssetTypes, "k8s.cluster") {
 		go func() {
 			err := collectGKEAssets(ctx, s.config, log, publisher)
+			if err != nil {
+				log.Errorf("error collecting GKE assets: %+v", err)
+			}
+		}()
+	}
+	if internal.IsTypeEnabled(s.config.AssetTypes, "gcp.vpc") {
+		client, err := compute.NewNetworksRESTClient(ctx, buildClientOptions(s.config)...)
+		if err != nil {
+			return err
+		}
+		defer client.Close()
+		listClient := listNetworkAPIClient{List: func(ctx context.Context, req *computepb.ListNetworksRequest, opts ...gax.CallOption) NetworkIterator {
+			return client.List(ctx, req, opts...)
+		}}
+		go func() {
+			err = collectNetworkAssets(ctx, s.config, listClient, publisher)
 			if err != nil {
 				log.Errorf("error collecting GKE assets: %+v", err)
 			}

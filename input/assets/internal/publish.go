@@ -46,6 +46,13 @@ func WithAssetCloudProvider(value string) AssetOption {
 	}
 }
 
+func WithAssetName(value string) AssetOption {
+	return func(e beat.Event) beat.Event {
+		e.Fields["asset.name"] = value
+		return e
+	}
+}
+
 func WithAssetRegion(value string) AssetOption {
 	return func(e beat.Event) beat.Event {
 		e.Fields["cloud.region"] = value
