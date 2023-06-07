@@ -131,15 +131,15 @@ func (s *assetsGCP) collectAll(ctx context.Context, log *logp.Logger, publisher 
 		}()
 	}
 	if internal.IsTypeEnabled(s.config.AssetTypes, "gcp.vpc") {
-		client, err := compute.NewNetworksRESTClient(ctx, buildClientOptions(s.config)...)
-		if err != nil {
-			return err
-		}
-		defer client.Close()
-		listClient := listNetworkAPIClient{List: func(ctx context.Context, req *computepb.ListNetworksRequest, opts ...gax.CallOption) NetworkIterator {
-			return client.List(ctx, req, opts...)
-		}}
 		go func() {
+			client, err := compute.NewNetworksRESTClient(ctx, buildClientOptions(s.config)...)
+			if err != nil {
+				log.Errorf("error collecting GKE assets: %+v", err)
+			}
+			defer client.Close()
+			listClient := listNetworkAPIClient{List: func(ctx context.Context, req *computepb.ListNetworksRequest, opts ...gax.CallOption) NetworkIterator {
+				return client.List(ctx, req, opts...)
+			}}
 			err = collectNetworkAssets(ctx, s.config, listClient, publisher)
 			if err != nil {
 				log.Errorf("error collecting GKE assets: %+v", err)
