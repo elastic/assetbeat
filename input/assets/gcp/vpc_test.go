@@ -13,23 +13,23 @@ import (
 	"testing"
 )
 
-type StubNetworkListIterator struct {
+type StubNetworksListIterator struct {
 	iterCounter          int
-	ReturnNetworkList    []*computepb.Network
+	ReturnNetworksList   []*computepb.Network
 	ReturnInstancesError error
 }
 
-func (it *StubNetworkListIterator) Next() (*computepb.Network, error) {
+func (it *StubNetworksListIterator) Next() (*computepb.Network, error) {
 
 	if it.ReturnInstancesError != nil {
 		return &computepb.Network{}, it.ReturnInstancesError
 	}
 
-	if it.iterCounter == len(it.ReturnNetworkList) {
+	if it.iterCounter == len(it.ReturnNetworksList) {
 		return &computepb.Network{}, iterator.Done
 	}
 
-	networks := it.ReturnNetworkList[it.iterCounter]
+	networks := it.ReturnNetworksList[it.iterCounter]
 	it.iterCounter++
 
 	return networks, nil
@@ -37,7 +37,7 @@ func (it *StubNetworkListIterator) Next() (*computepb.Network, error) {
 }
 
 type NetworkClientStub struct {
-	NetworkListIterator map[string]*StubNetworkListIterator
+	NetworkListIterator map[string]*StubNetworksListIterator
 }
 
 func (s *NetworkClientStub) List(ctx context.Context, req *computepb.ListNetworksRequest, opts ...gax.CallOption) NetworkIterator {
@@ -45,11 +45,43 @@ func (s *NetworkClientStub) List(ctx context.Context, req *computepb.ListNetwork
 	return s.NetworkListIterator[project]
 }
 
+type StubSubnetsListIterator struct {
+	iterCounter        int
+	ReturnSubnetsList  []*computepb.Subnetwork
+	ReturnSubnetsError error
+}
+
+func (it *StubSubnetsListIterator) Next() (*computepb.Subnetwork, error) {
+
+	if it.ReturnSubnetsError != nil {
+		return &computepb.Subnetwork{}, it.ReturnSubnetsError
+	}
+
+	if it.iterCounter == len(it.ReturnSubnetsList) {
+		return &computepb.Subnetwork{}, iterator.Done
+	}
+
+	networks := it.ReturnSubnetsList[it.iterCounter]
+	it.iterCounter++
+
+	return networks, nil
+
+}
+
+type SubnetClientStub struct {
+	SubnetListIterator map[string]*StubSubnetsListIterator
+}
+
+func (s *SubnetClientStub) List(ctx context.Context, req *computepb.ListSubnetworksRequest, opts ...gax.CallOption) SubnetIterator {
+	project := req.Project
+	return s.SubnetListIterator[project]
+}
+
 func TestGetAllVPCs(t *testing.T) {
 	for _, tt := range []struct {
 		name           string
 		cfg            config
-		networks       map[string]*StubNetworkListIterator
+		networks       map[string]*StubNetworksListIterator
 		expectedEvents []beat.Event
 	}{
 		{
@@ -57,9 +89,9 @@ func TestGetAllVPCs(t *testing.T) {
 			cfg: config{
 				Projects: []string{"my_project"},
 			},
-			networks: map[string]*StubNetworkListIterator{
+			networks: map[string]*StubNetworksListIterator{
 				"my_project": {
-					ReturnNetworkList: []*computepb.Network{
+					ReturnNetworksList: []*computepb.Network{
 						{
 							Id:   proto.Uint64(1),
 							Name: proto.String("test-vpc-1"),
@@ -107,9 +139,9 @@ func TestGetAllVPCs(t *testing.T) {
 			cfg: config{
 				Projects: []string{"my_first_project", "my_second_project"},
 			},
-			networks: map[string]*StubNetworkListIterator{
+			networks: map[string]*StubNetworksListIterator{
 				"my_first_project": {
-					ReturnNetworkList: []*computepb.Network{
+					ReturnNetworksList: []*computepb.Network{
 						{
 							Id:   proto.Uint64(1),
 							Name: proto.String("test-vpc-1"),
@@ -121,7 +153,7 @@ func TestGetAllVPCs(t *testing.T) {
 					},
 				},
 				"my_second_project": {
-					ReturnNetworkList: []*computepb.Network{
+					ReturnNetworksList: []*computepb.Network{
 						{
 							Id:   proto.Uint64(3),
 							Name: proto.String("test-vpc-3"),
@@ -201,7 +233,208 @@ func TestGetAllVPCs(t *testing.T) {
 			listClient := listNetworkAPIClient{List: func(ctx context.Context, req *computepb.ListNetworksRequest, opts ...gax.CallOption) NetworkIterator {
 				return client.List(ctx, req, opts...)
 			}}
-			err := collectNetworkAssets(ctx, tt.cfg, listClient, publisher)
+			err := collectVpcAssets(ctx, tt.cfg, listClient, publisher)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expectedEvents, publisher.Events)
+		})
+	}
+}
+
+func TestGetAllSubnets(t *testing.T) {
+	for _, tt := range []struct {
+		name           string
+		cfg            config
+		subnets        map[string]*StubSubnetsListIterator
+		expectedEvents []beat.Event
+	}{
+		{
+			name: "single project, no specified region, multiple subnets",
+			cfg: config{
+				Projects: []string{"my_project"},
+			},
+			subnets: map[string]*StubSubnetsListIterator{
+				"my_project": {
+					ReturnSubnetsList: []*computepb.Subnetwork{
+						{
+							Id:     proto.Uint64(1),
+							Name:   proto.String("test-subnet-1"),
+							Region: proto.String("europe-west-1"),
+						},
+						{
+							Id:     proto.Uint64(2),
+							Name:   proto.String("test-subnet-2"),
+							Region: proto.String("europe-west-1"),
+						},
+					},
+				},
+			},
+			expectedEvents: []beat.Event{
+				{
+					Fields: mapstr.M{
+						"asset.ean":        "gcp.subnet:1",
+						"asset.id":         "1",
+						"asset.name":       "test-subnet-1",
+						"asset.type":       "gcp.subnet",
+						"asset.kind":       "network",
+						"cloud.account.id": "my_project",
+						"cloud.provider":   "gcp",
+						"cloud.region":     "europe-west-1",
+					},
+					Meta: mapstr.M{
+						"index": "assets-gcp.subnet-default",
+					},
+				},
+				{
+					Fields: mapstr.M{
+						"asset.ean":        "gcp.subnet:2",
+						"asset.id":         "2",
+						"asset.name":       "test-subnet-2",
+						"asset.type":       "gcp.subnet",
+						"asset.kind":       "network",
+						"cloud.account.id": "my_project",
+						"cloud.provider":   "gcp",
+						"cloud.region":     "europe-west-1",
+					},
+					Meta: mapstr.M{
+						"index": "assets-gcp.subnet-default",
+					},
+				},
+			},
+		},
+		{
+			name: "multiple projects, specific regions, multiple subnets",
+			cfg: config{
+				Projects: []string{"my_first_project", "my_second_project"},
+				Regions:  []string{"europe-west-1", "us-central1"},
+			},
+			subnets: map[string]*StubSubnetsListIterator{
+				"my_first_project": {
+					ReturnSubnetsList: []*computepb.Subnetwork{
+						{
+							Id:     proto.Uint64(1),
+							Name:   proto.String("test-subnet-1"),
+							Region: proto.String("europe-west-1"),
+						},
+						{
+							Id:     proto.Uint64(2),
+							Name:   proto.String("test-subnet-2"),
+							Region: proto.String("europe-west-1"),
+						},
+					},
+				},
+				"my_second_project": {
+					ReturnSubnetsList: []*computepb.Subnetwork{
+						{
+							Id:     proto.Uint64(3),
+							Name:   proto.String("test-subnet-3"),
+							Region: proto.String("europe-west-1"),
+						},
+						{
+							Id:     proto.Uint64(4),
+							Name:   proto.String("test-subnet-4"),
+							Region: proto.String("europe-west-1"),
+						},
+						{
+							Id:     proto.Uint64(5), //this should not appear in the events
+							Name:   proto.String("test-subnet-5"),
+							Region: proto.String("us-west1"),
+						},
+						{
+							Id:     proto.Uint64(6),
+							Name:   proto.String("test-subnet-6"),
+							Region: proto.String("us-central1"),
+						},
+					},
+				},
+			},
+			expectedEvents: []beat.Event{
+				{
+					Fields: mapstr.M{
+						"asset.ean":        "gcp.subnet:1",
+						"asset.id":         "1",
+						"asset.name":       "test-subnet-1",
+						"asset.type":       "gcp.subnet",
+						"asset.kind":       "network",
+						"cloud.account.id": "my_first_project",
+						"cloud.provider":   "gcp",
+						"cloud.region":     "europe-west-1",
+					},
+					Meta: mapstr.M{
+						"index": "assets-gcp.subnet-default",
+					},
+				},
+				{
+					Fields: mapstr.M{
+						"asset.ean":        "gcp.subnet:2",
+						"asset.id":         "2",
+						"asset.name":       "test-subnet-2",
+						"asset.type":       "gcp.subnet",
+						"asset.kind":       "network",
+						"cloud.account.id": "my_first_project",
+						"cloud.provider":   "gcp",
+						"cloud.region":     "europe-west-1",
+					},
+					Meta: mapstr.M{
+						"index": "assets-gcp.subnet-default",
+					},
+				},
+				{
+					Fields: mapstr.M{
+						"asset.ean":        "gcp.subnet:3",
+						"asset.id":         "3",
+						"asset.name":       "test-subnet-3",
+						"asset.type":       "gcp.subnet",
+						"asset.kind":       "network",
+						"cloud.account.id": "my_second_project",
+						"cloud.provider":   "gcp",
+						"cloud.region":     "europe-west-1",
+					},
+					Meta: mapstr.M{
+						"index": "assets-gcp.subnet-default",
+					},
+				},
+				{
+					Fields: mapstr.M{
+						"asset.ean":        "gcp.subnet:4",
+						"asset.id":         "4",
+						"asset.name":       "test-subnet-4",
+						"asset.type":       "gcp.subnet",
+						"asset.kind":       "network",
+						"cloud.account.id": "my_second_project",
+						"cloud.provider":   "gcp",
+						"cloud.region":     "europe-west-1",
+					},
+					Meta: mapstr.M{
+						"index": "assets-gcp.subnet-default",
+					},
+				},
+				{
+					Fields: mapstr.M{
+						"asset.ean":        "gcp.subnet:6",
+						"asset.id":         "6",
+						"asset.name":       "test-subnet-6",
+						"asset.type":       "gcp.subnet",
+						"asset.kind":       "network",
+						"cloud.account.id": "my_second_project",
+						"cloud.provider":   "gcp",
+						"cloud.region":     "us-central1",
+					},
+					Meta: mapstr.M{
+						"index": "assets-gcp.subnet-default",
+					},
+				},
+			},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			publisher := testutil.NewInMemoryPublisher()
+
+			ctx := context.Background()
+			client := SubnetClientStub{SubnetListIterator: tt.subnets}
+			listClient := listSubnetworkAPIClient{List: func(ctx context.Context, req *computepb.ListSubnetworksRequest, opts ...gax.CallOption) SubnetIterator {
+				return client.List(ctx, req, opts...)
+			}}
+			err := collectSubnetAssets(ctx, tt.cfg, listClient, publisher)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedEvents, publisher.Events)
 		})

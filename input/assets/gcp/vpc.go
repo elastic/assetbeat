@@ -18,13 +18,28 @@ type listNetworkAPIClient struct {
 	List func(ctx context.Context, req *computepb.ListNetworksRequest, opts ...gax.CallOption) NetworkIterator
 }
 
+type SubnetIterator interface {
+	Next() (*computepb.Subnetwork, error)
+}
+
+type listSubnetworkAPIClient struct {
+	List func(ctx context.Context, req *computepb.ListSubnetworksRequest, opts ...gax.CallOption) SubnetIterator
+}
+
 type vpc struct {
 	ID      string
 	Name    string
 	Account string
 }
 
-func collectNetworkAssets(ctx context.Context, cfg config, client listNetworkAPIClient, publisher stateless.Publisher) error {
+type subnet struct {
+	ID      string
+	Name    string
+	Account string
+	Region  string
+}
+
+func collectVpcAssets(ctx context.Context, cfg config, client listNetworkAPIClient, publisher stateless.Publisher) error {
 
 	vpcs, err := getAllVPCs(ctx, cfg, client)
 
@@ -75,4 +90,76 @@ func getAllVPCs(ctx context.Context, cfg config, client listNetworkAPIClient) ([
 	}
 	return vpcs, nil
 
+}
+
+func collectSubnetAssets(ctx context.Context, cfg config, client listSubnetworkAPIClient, publisher stateless.Publisher) error {
+
+	subnets, err := getAllSubnets(ctx, cfg, client)
+
+	if err != nil {
+		return err
+	}
+
+	assetType := "gcp.subnet"
+	assetKind := "network"
+	indexNamespace := cfg.IndexNamespace
+	for _, subnet := range subnets {
+
+		internal.Publish(publisher,
+			internal.WithAssetCloudProvider("gcp"),
+			internal.WithAssetAccountID(subnet.Account),
+			internal.WithAssetTypeAndID(assetType, subnet.ID),
+			internal.WithAssetName(subnet.Name),
+			internal.WithAssetKind(assetKind),
+			internal.WithAssetRegion(subnet.Region),
+			internal.WithIndex(assetType, indexNamespace),
+		)
+	}
+	return nil
+}
+
+func getAllSubnets(ctx context.Context, cfg config, client listSubnetworkAPIClient) ([]subnet, error) {
+	var subnets []subnet
+	for _, project := range cfg.Projects {
+		req := &computepb.ListSubnetworksRequest{
+			Project: project,
+		}
+
+		it := client.List(ctx, req)
+
+		for {
+			s, err := it.Next()
+			if err == iterator.Done {
+				break
+			}
+			if err != nil {
+				return nil, err
+			}
+			if wantSubnet(s, cfg.Regions) {
+				subnets = append(subnets, subnet{
+					ID:      strconv.FormatUint(*s.Id, 10),
+					Account: project,
+					Name:    *s.Name,
+					Region:  *s.Region,
+				})
+			}
+
+		}
+	}
+	return subnets, nil
+
+}
+
+func wantSubnet(s *computepb.Subnetwork, regions []string) bool {
+	if len(regions) == 0 {
+		return true
+	}
+
+	for _, region := range regions {
+		if region == *s.Region {
+			return true
+		}
+	}
+
+	return false
 }

@@ -140,7 +140,23 @@ func (s *assetsGCP) collectAll(ctx context.Context, log *logp.Logger, publisher 
 			listClient := listNetworkAPIClient{List: func(ctx context.Context, req *computepb.ListNetworksRequest, opts ...gax.CallOption) NetworkIterator {
 				return client.List(ctx, req, opts...)
 			}}
-			err = collectNetworkAssets(ctx, s.config, listClient, publisher)
+			err = collectVpcAssets(ctx, s.config, listClient, publisher)
+			if err != nil {
+				log.Errorf("error collecting GKE assets: %+v", err)
+			}
+		}()
+	}
+	if internal.IsTypeEnabled(s.config.AssetTypes, "gcp.subnet") {
+		go func() {
+			client, err := compute.NewSubnetworksRESTClient(ctx, buildClientOptions(s.config)...)
+			if err != nil {
+				log.Errorf("error collecting GKE assets: %+v", err)
+			}
+			defer client.Close()
+			listClient := listSubnetworkAPIClient{List: func(ctx context.Context, req *computepb.ListSubnetworksRequest, opts ...gax.CallOption) SubnetIterator {
+				return client.List(ctx, req, opts...)
+			}}
+			err = collectSubnetAssets(ctx, s.config, listClient, publisher)
 			if err != nil {
 				log.Errorf("error collecting GKE assets: %+v", err)
 			}
