@@ -145,7 +145,8 @@ func publishK8sNodes(ctx context.Context, log *logp.Logger, indexNamespace strin
 			assetId := string(o.ObjectMeta.UID)
 			assetStartTime := o.ObjectMeta.CreationTimestamp
 			options := []internal.AssetOption{
-				internal.WithAssetTypeKindAndID(assetType, assetKind, assetId),
+				internal.WithAssetKindAndID(assetKind, assetId),
+				internal.WithAssetType(assetType),
 				internal.WithNodeData(o.Name, &assetStartTime),
 				internal.WithIndex(assetType, indexNamespace),
 			}

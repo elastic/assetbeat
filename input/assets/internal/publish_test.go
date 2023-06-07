@@ -83,7 +83,8 @@ func TestPublish(t *testing.T) {
 			name: "with a valid asset type and ID",
 			opts: []AssetOption{
 				WithAssetCloudProvider("aws"),
-				WithAssetTypeKindAndID("aws.ec2.instance", "host", "i-1234"),
+				WithAssetKindAndID("host", "i-1234"),
+				WithAssetType("aws.ec2.instance"),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
 				"cloud.provider": "aws",

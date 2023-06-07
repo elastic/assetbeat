@@ -119,7 +119,8 @@ func publishK8sPods(ctx context.Context, log *logp.Logger, indexNamespace string
 			}
 
 			internal.Publish(publisher,
-				internal.WithAssetTypeKindAndID(assetType, assetKind, assetId),
+				internal.WithAssetKindAndID(assetKind, assetId),
+				internal.WithAssetType(assetType),
 				internal.WithAssetParents(assetParents),
 				internal.WithPodData(assetName, assetId, namespace, assetStartTime),
 				internal.WithIndex(assetType, indexNamespace),
