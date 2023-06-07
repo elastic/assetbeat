@@ -39,7 +39,7 @@ func publishK8sContainers(ctx context.Context, log *logp.Logger, indexNamespace 
 		if ok {
 			log.Debugf("Publish Pod: %+v", o.Name)
 			parentId := string(o.UID)
-			parentEan := fmt.Sprintf("%s:%s", "k8s.pod", parentId)
+			parentEan := fmt.Sprintf("%s:%s", "container_group", parentId)
 			assetParents := []string{parentEan}
 			namespace := o.Namespace
 
@@ -66,8 +66,7 @@ func publishK8sContainers(ctx context.Context, log *logp.Logger, indexNamespace 
 				}
 
 				internal.Publish(publisher,
-					internal.WithAssetTypeAndID(assetType, assetId),
-					internal.WithAssetKind(assetKind),
+					internal.WithAssetTypeKindAndID(assetType, assetKind, assetId),
 					internal.WithAssetParents(assetParents),
 					internal.WithContainerData(assetName, assetId, namespace, state, &assetStartTime),
 					internal.WithIndex(assetType, indexNamespace),

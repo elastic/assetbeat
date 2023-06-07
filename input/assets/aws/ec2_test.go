@@ -70,13 +70,13 @@ func TestAssetsAWS_collectEC2Assets(t *testing.T) {
 		expectedEvents: []beat.Event{
 			{
 				Fields: mapstr.M{
-					"asset.ean":            "aws.ec2.instance:" + instanceID_1,
+					"asset.ean":            "host:" + instanceID_1,
 					"asset.id":             instanceID_1,
 					"asset.metadata.state": "running",
 					"asset.type":           "aws.ec2.instance",
 					"asset.kind":           "host",
 					"asset.parents": []string{
-						"aws.subnet:" + subnetID1,
+						"network:" + subnetID1,
 					},
 					"asset.metadata.tags." + tag_1_k: tag_1_v,
 					"cloud.account.id":               "11111111111111",
@@ -89,13 +89,13 @@ func TestAssetsAWS_collectEC2Assets(t *testing.T) {
 			},
 			{
 				Fields: mapstr.M{
-					"asset.ean":            "aws.ec2.instance:" + instanceID_2,
+					"asset.ean":            "host:" + instanceID_2,
 					"asset.id":             instanceID_2,
 					"asset.metadata.state": "stopped",
 					"asset.type":           "aws.ec2.instance",
 					"asset.kind":           "host",
 					"asset.parents": []string{
-						"aws.subnet:" + subnetID1,
+						"network:" + subnetID1,
 					},
 					"cloud.account.id": "11111111111111",
 					"cloud.provider":   "aws",

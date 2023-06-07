@@ -68,7 +68,7 @@ func TestAssetsAWS_collectVPCAssets(t *testing.T) {
 			expectedEvents: []beat.Event{
 				{
 					Fields: mapstr.M{
-						"asset.ean":                      "aws.vpc:" + vpcId1,
+						"asset.ean":                      "network:" + vpcId1,
 						"asset.id":                       vpcId1,
 						"asset.type":                     "aws.vpc",
 						"asset.kind":                     "network",
@@ -84,7 +84,7 @@ func TestAssetsAWS_collectVPCAssets(t *testing.T) {
 				},
 				{
 					Fields: mapstr.M{
-						"asset.ean":                "aws.vpc:" + vpcId2,
+						"asset.ean":                "network:" + vpcId2,
 						"asset.id":                 vpcId2,
 						"asset.type":               "aws.vpc",
 						"asset.kind":               "network",
@@ -159,12 +159,12 @@ func TestAssetsAWS_collectSubnetAssets(t *testing.T) {
 			expectedEvents: []beat.Event{
 				{
 					Fields: mapstr.M{
-						"asset.ean":  "aws.subnet:" + subnetID1,
+						"asset.ean":  "network:" + subnetID1,
 						"asset.id":   subnetID1,
 						"asset.type": "aws.subnet",
 						"asset.kind": "network",
 						"asset.parents": []string{
-							"aws.vpc:vpc-id-1",
+							"network:vpc-id-1",
 						},
 						"asset.metadata.state":           "available",
 						"asset.metadata.tags." + tag_1_k: tag_1_v,
@@ -178,12 +178,12 @@ func TestAssetsAWS_collectSubnetAssets(t *testing.T) {
 				},
 				{
 					Fields: mapstr.M{
-						"asset.ean":  "aws.subnet:" + subnetID2,
+						"asset.ean":  "network:" + subnetID2,
 						"asset.id":   subnetID2,
 						"asset.type": "aws.subnet",
 						"asset.kind": "network",
 						"asset.parents": []string{
-							"aws.vpc:vpc-id-1",
+							"network:vpc-id-1",
 						},
 						"asset.metadata.state": "pending",
 						"cloud.account.id":     ownerID_1,

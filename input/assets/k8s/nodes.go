@@ -130,7 +130,7 @@ func publishK8sNodes(ctx context.Context, log *logp.Logger, indexNamespace strin
 					if err != nil {
 						log.Debugf("Unable to fetch cluster uid from metadata: %+v \n", err)
 					}
-					assetParents = append(assetParents, fmt.Sprintf("%s:%s", "k8s.cluster", clusterUid))
+					assetParents = append(assetParents, fmt.Sprintf("%s:%s", "cluster", clusterUid))
 				}
 			}
 		}
@@ -145,8 +145,7 @@ func publishK8sNodes(ctx context.Context, log *logp.Logger, indexNamespace strin
 			assetId := string(o.ObjectMeta.UID)
 			assetStartTime := o.ObjectMeta.CreationTimestamp
 			options := []internal.AssetOption{
-				internal.WithAssetTypeAndID(assetType, assetId),
-				internal.WithAssetKind(assetKind),
+				internal.WithAssetTypeKindAndID(assetType, assetKind, assetId),
 				internal.WithNodeData(o.Name, &assetStartTime),
 				internal.WithIndex(assetType, indexNamespace),
 			}

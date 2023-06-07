@@ -82,7 +82,7 @@ func collectGKEAssets(ctx context.Context, cfg config, log *logp.Logger, publish
 
 		if len(cluster.VPC) > 0 {
 			//TODO: Amend asset_type, if required, once VPCs gets actually collected for GCP
-			parents = append(parents, "gcp.vpc:"+cluster.VPC)
+			parents = append(parents, "network:"+cluster.VPC)
 		}
 
 		instances, err := getAllInstancesForGKECluster(ctx, cluster.Account, cluster.Region, cluster.NodePools, listClient)
@@ -91,15 +91,14 @@ func collectGKEAssets(ctx context.Context, cfg config, log *logp.Logger, publish
 			log.Warnf("Error while retrieving instances for GKE cluster %s: %+v", cluster.ID, err)
 		}
 		for _, instance := range instances {
-			children = append(children, "gcp.compute.instance:"+instance)
+			children = append(children, "host:"+instance)
 		}
 
 		internal.Publish(publisher,
 			internal.WithAssetCloudProvider("gcp"),
 			internal.WithAssetRegion(cluster.Region),
 			internal.WithAssetAccountID(cluster.Account),
-			internal.WithAssetTypeAndID(assetType, cluster.ID),
-			internal.WithAssetKind(assetKind),
+			internal.WithAssetTypeKindAndID(assetType, assetKind, cluster.ID),
 			internal.WithAssetParents(parents),
 			internal.WithAssetChildren(children),
 			WithAssetLabels(internal.ToMapstr(cluster.Labels)),

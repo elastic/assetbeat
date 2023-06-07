@@ -122,9 +122,9 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
 | asset.type                       | The type of asset                                                                                                                                                                                                               | `"k8s.cluster"`                                                 |
 | asset.kind                       | The kind of asset                                                                                                                                                                                                               | `"cluster`                                                      |
 | asset.id                         | The ARN of the EKS cluster                                                                                                                                                                                                      | `"arn:aws:eks:us-west-1:564797534556:cluster/demo"`             |
-| asset.ean                        | The EAN of this specific resource                                                                                                                                                                                               | `"k8s.cluster:arn:aws:eks:us-west-1:564797534556:cluster/demo"` |
-| asset.parents                    | The EANs of the hierarchical parents for this specific asset resource. For an EKS cluster, this corresponds to the VPC it is related to                                                                                         | `[ "aws.vpc:test-vpc" ]`                                        |
-| asset.children                   | The EANs of the hierarchical children for this specific asset resource. For a EKS cluster, this corresponds to the EC2 instances it is composed of. **_Note_:** this field is currently not populated for EKS Fargate clusters. | `["aws.ec2.instance:i-1111111"]`                                |
+| asset.ean                        | The EAN of this specific resource                                                                                                                                                                                               | `"cluster:arn:aws:eks:us-west-1:564797534556:cluster/demo"` |
+| asset.parents                    | The EANs of the hierarchical parents for this specific asset resource. For an EKS cluster, this corresponds to the VPC it is related to                                                                                         | `[ "network:test-vpc" ]`                                        |
+| asset.children                   | The EANs of the hierarchical children for this specific asset resource. For a EKS cluster, this corresponds to the EC2 instances it is composed of. **_Note_:** this field is currently not populated for EKS Fargate clusters. | `["host:i-1111111"]`                                |
 | asset.metadata.status            | The state of the cluster                                                                                                                                                                                                        | `"ACTIVE"`                                                      |
 | asset.metadata.tags.<label_name> | Any label specified for this cluster                                                                                                                                                                                            | `"my label value"`                                              |
 
@@ -153,15 +153,15 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
       "version": "8.0.0"
     },
     "cloud.region": "eu-west-1",
-    "asset.children": ["i-0805c4e8d9c6015fa", "i-0805c4e8d9c6015fb"],
+    "asset.children": ["host:i-0805c4e8d9c6015fa", "host:i-0805c4e8d9c6015fb"],
     "asset.parents": [
-      "aws.vpc:vpc-0c7da12158a6c225f"
+      "network:vpc-0c7da12158a6c225f"
     ],
     "asset.metadata.tags.Name": "test-cluster/ControlPlane",
     "host": {
       "name": "test"
     },
-    "asset.ean": "k8s.cluster:arn:aws:eks:eu-west-1:1111111111:cluster/test-cluster"
+    "asset.ean": "cluster:arn:aws:eks:eu-west-1:1111111111:cluster/test-cluster"
   }
 ```
 
@@ -174,7 +174,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
 | asset.type                     | The type of asset                                                                   | `"aws.vpc"`                       |
 | asset.kind                     | The kind of asset                                                                   | `"network`                        |
 | asset.id                       | The id of the VPC                                                                   | `"vpc-0f754418ce7f991f9"`         |
-| asset.ean                      | The EAN of this specific resource                                                   | `"aws.vpc:vpc-0f754418ce7f991f9"` |
+| asset.ean                      | The EAN of this specific resource                                                   | `"network:vpc-0f754418ce7f991f9"` |
 | asset.metadata.isDefault       | true/false value that indicates if the VPC is the default VPC for the region or not | `"true"`                          |
 | asset.metadata.tags.<tag_name> | Any label specified for this VPC                                                    | `"my label value"`                |
 
@@ -194,7 +194,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
     "cloud.provider": "aws",
     "cloud.account.id": "11111111111111",
     "asset.id": "vpc-0f754418ce7f991f9",
-    "asset.ean": "aws.vpc:vpc-0f754418ce7f991f9",
+    "asset.ean": "network:vpc-0f754418ce7f991f9",
     "ecs": {
       "version": "8.0.0"
     },
@@ -220,8 +220,8 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
 | asset.type                     | The type of asset                                                                                                                     | `"aws.vpc"`                       |
 | asset.kind                     | The kind of asset                                                                                                                     | `"network`                        |
 | asset.id                       | The id of the VPC subnet                                                                                                              | `"vpc-0f754418ce7f991f9"`         |
-| asset.ean                      | The EAN of this specific resource                                                                                                     | `"aws.vpc:vpc-0f754418ce7f991f9"` |
-| asset.parents                  | The EANs of the hierarchical parents for this specific asset resource. For a VPC subnet, this corresponds to the VPC it is related to | `[ "aws.vpc:test-vpc" ]`          |
+| asset.ean                      | The EAN of this specific resource                                                                                                     | `"network:vpc-0f754418ce7f991f9"` |
+| asset.parents                  | The EANs of the hierarchical parents for this specific asset resource. For a VPC subnet, this corresponds to the VPC it is related to | `[ "network:test-vpc" ]`          |
 | asset.metadata.tags.<tag_name> | Any label specified for this VPC                                                                                                      | `"my label value"`                |
 
 #### Example
@@ -230,9 +230,9 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
 {
     "@timestamp": "2023-05-25T13:48:47.348Z",
     "asset.id": "subnet-a355daf9",
-    "asset.ean": "aws.subnet:subnet-a355daf9",
+    "asset.ean": "network:subnet-a355daf9",
     "asset.parents": [
-      "aws.vpc:vpc-db3f2fbd"
+      "network:vpc-db3f2fbd"
     ],
     "cloud.provider": "aws",
     "cloud.region": "eu-west-1",

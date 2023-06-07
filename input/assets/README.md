@@ -38,7 +38,7 @@ with parent/children hierarchy.
 
 Each asset is identified by its Elastic Asset Name (EAN), which is an URN-style identifier with the following pattern,
 
-`{asset.type}:{asset.id}` (e.g. `aws.ec2.instance:i-123456`).
+`{asset.kind}:{asset.id}` (e.g. `host:i-123456`).
 
 Inputrunner publishes this field under `asset.ean`.
 

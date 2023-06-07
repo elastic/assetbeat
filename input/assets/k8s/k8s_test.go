@@ -43,6 +43,7 @@ func TestPublishK8sPodAsset(t *testing.T) {
 
 		assetName string
 		assetType string
+		assetKind string
 		assetID   string
 		parents   []string
 		children  []string
@@ -52,8 +53,9 @@ func TestPublishK8sPodAsset(t *testing.T) {
 			event: beat.Event{
 				Fields: mapstr.M{
 					"asset.type":                "k8s.pod",
+					"asset.kind":                "container_group",
 					"asset.id":                  "a375d24b-fa20-4ea6-a0ee-1d38671d2c09",
-					"asset.ean":                 "k8s.pod:a375d24b-fa20-4ea6-a0ee-1d38671d2c09",
+					"asset.ean":                 "container_group:a375d24b-fa20-4ea6-a0ee-1d38671d2c09",
 					"asset.parents":             []string{},
 					"kubernetes.pod.name":       "foo",
 					"kubernetes.pod.uid":        "a375d24b-fa20-4ea6-a0ee-1d38671d2c09",
@@ -67,6 +69,7 @@ func TestPublishK8sPodAsset(t *testing.T) {
 
 			assetName: "foo",
 			assetType: "k8s.pod",
+			assetKind: "container_group",
 			assetID:   "a375d24b-fa20-4ea6-a0ee-1d38671d2c09",
 			parents:   []string{},
 		},
@@ -75,7 +78,7 @@ func TestPublishK8sPodAsset(t *testing.T) {
 			publisher := testutil.NewInMemoryPublisher()
 
 			internal.Publish(publisher,
-				internal.WithAssetTypeAndID(tt.assetType, tt.assetID),
+				internal.WithAssetTypeKindAndID(tt.assetType, tt.assetKind, tt.assetID),
 				internal.WithAssetParents(tt.parents),
 				internal.WithPodData(tt.assetName, tt.assetID, "default", &startTime),
 				internal.WithIndex(tt.assetType, ""),
@@ -93,6 +96,7 @@ func TestPublishK8sNodeAsset(t *testing.T) {
 
 		assetName  string
 		assetType  string
+		assetKind  string
 		assetID    string
 		instanceID string
 		parents    []string
@@ -103,8 +107,9 @@ func TestPublishK8sNodeAsset(t *testing.T) {
 			event: beat.Event{
 				Fields: mapstr.M{
 					"asset.type":                 "k8s.node",
+					"asset.kind":                 "host",
 					"asset.id":                   "60988eed-1885-4b63-9fa4-780206969deb",
-					"asset.ean":                  "k8s.node:60988eed-1885-4b63-9fa4-780206969deb",
+					"asset.ean":                  "host:60988eed-1885-4b63-9fa4-780206969deb",
 					"asset.parents":              []string{},
 					"kubernetes.node.name":       "ip-172-31-29-242.us-east-2.compute.internal",
 					"kubernetes.node.start_time": &startTime,
@@ -117,6 +122,7 @@ func TestPublishK8sNodeAsset(t *testing.T) {
 
 			assetName:  "ip-172-31-29-242.us-east-2.compute.internal",
 			assetType:  "k8s.node",
+			assetKind:  "host",
 			assetID:    "60988eed-1885-4b63-9fa4-780206969deb",
 			instanceID: "i-0699b78f46f0fa248",
 			parents:    []string{},
@@ -126,7 +132,7 @@ func TestPublishK8sNodeAsset(t *testing.T) {
 			publisher := testutil.NewInMemoryPublisher()
 
 			internal.Publish(publisher,
-				internal.WithAssetTypeAndID(tt.assetType, tt.assetID),
+				internal.WithAssetTypeKindAndID(tt.assetType, tt.assetKind, tt.assetID),
 				internal.WithAssetParents(tt.parents),
 				internal.WithNodeData(tt.assetName, &startTime),
 				internal.WithIndex(tt.assetType, ""),

@@ -111,7 +111,7 @@ func publishK8sPods(ctx context.Context, log *logp.Logger, indexNamespace string
 			if nodeWatcher != nil {
 				nodeId, err := getNodeIdFromName(nodeName, nodeWatcher)
 				if err == nil {
-					nodeAssetName := fmt.Sprintf("%s:%s", "k8s.node", nodeId)
+					nodeAssetName := fmt.Sprintf("%s:%s", "host", nodeId)
 					assetParents = append(assetParents, nodeAssetName)
 				} else {
 					log.Errorf("pod asset parents not collected: %w", err)
@@ -119,8 +119,7 @@ func publishK8sPods(ctx context.Context, log *logp.Logger, indexNamespace string
 			}
 
 			internal.Publish(publisher,
-				internal.WithAssetTypeAndID(assetType, assetId),
-				internal.WithAssetKind(assetKind),
+				internal.WithAssetTypeKindAndID(assetType, assetKind, assetId),
 				internal.WithAssetParents(assetParents),
 				internal.WithPodData(assetName, assetId, namespace, assetStartTime),
 				internal.WithIndex(assetType, indexNamespace),

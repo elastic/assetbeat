@@ -49,7 +49,7 @@ func collectEC2Assets(ctx context.Context, client ec2.DescribeInstancesAPIClient
 	for _, instance := range instances {
 		var parents []string
 		if instance.SubnetID != "" {
-			parents = []string{"aws.subnet:" + instance.SubnetID}
+			parents = []string{"network:" + instance.SubnetID}
 		}
 		assetType := "aws.ec2.instance"
 		assetKind := "host"
@@ -57,8 +57,7 @@ func collectEC2Assets(ctx context.Context, client ec2.DescribeInstancesAPIClient
 			internal.WithAssetCloudProvider("aws"),
 			internal.WithAssetRegion(region),
 			internal.WithAssetAccountID(instance.OwnerID),
-			internal.WithAssetTypeAndID(assetType, instance.InstanceID),
-			internal.WithAssetKind(assetKind),
+			internal.WithAssetTypeKindAndID(assetType, assetKind, instance.InstanceID),
 			WithAssetTags(flattenEC2Tags(instance.Tags)),
 			internal.WithIndex(assetType, indexNamespace),
 			internal.WithAssetMetadata(instance.Metadata),
