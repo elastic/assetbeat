@@ -188,7 +188,7 @@ The following GCP API permissions are required for the GCP Assets Input to funct
   "agent": {
     "id": "6427b093-afa2-4b1d-9d4a-b3a2273c2719",
     "name": "test",
-    "type": "inputrunner",
+    "type": "assetbeat",
     "version": "8.7.0",
     "ephemeral_id": "15509c26-f740-4133-9609-9af21430fb97"
   },
@@ -230,7 +230,7 @@ The following GCP API permissions are required for the GCP Assets Input to funct
   "agent": {
     "id": "6427b093-afa2-4b1d-9d4a-b3a2273c2719",
     "name": "test",
-    "type": "inputrunner",
+    "type": "assetbeat",
     "version": "8.7.0",
     "ephemeral_id": "8793edb9-4f21-4845-8e3b-965e37d5dc26"
   },
