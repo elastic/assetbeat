@@ -3,8 +3,8 @@ package gcp
 import (
 	"cloud.google.com/go/compute/apiv1/computepb"
 	"context"
+	"github.com/elastic/assetbeat/input/internal"
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
-	"github.com/elastic/inputrunner/input/internal"
 	"github.com/googleapis/gax-go/v2"
 	"google.golang.org/api/iterator"
 	"strconv"
@@ -55,9 +55,9 @@ func collectVpcAssets(ctx context.Context, cfg config, client listNetworkAPIClie
 		internal.Publish(publisher,
 			internal.WithAssetCloudProvider("gcp"),
 			internal.WithAssetAccountID(vpc.Account),
-			internal.WithAssetTypeAndID(assetType, vpc.ID),
+			internal.WithAssetKindAndID(assetKind, vpc.ID),
 			internal.WithAssetName(vpc.Name),
-			internal.WithAssetKind(assetKind),
+			internal.WithAssetType(assetType),
 			internal.WithIndex(assetType, indexNamespace),
 		)
 	}
@@ -108,9 +108,9 @@ func collectSubnetAssets(ctx context.Context, cfg config, client listSubnetworkA
 		internal.Publish(publisher,
 			internal.WithAssetCloudProvider("gcp"),
 			internal.WithAssetAccountID(subnet.Account),
-			internal.WithAssetTypeAndID(assetType, subnet.ID),
+			internal.WithAssetKindAndID(assetKind, subnet.ID),
 			internal.WithAssetName(subnet.Name),
-			internal.WithAssetKind(assetKind),
+			internal.WithAssetType(assetType),
 			internal.WithAssetRegion(subnet.Region),
 			internal.WithIndex(assetType, indexNamespace),
 		)

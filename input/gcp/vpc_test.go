@@ -3,9 +3,9 @@ package gcp
 import (
 	"cloud.google.com/go/compute/apiv1/computepb"
 	"context"
+	"github.com/elastic/assetbeat/input/testutil"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/mapstr"
-	"github.com/elastic/inputrunner/input/testutil"
 	"github.com/gogo/protobuf/proto"
 	"github.com/googleapis/gax-go/v2"
 	"github.com/stretchr/testify/assert"
@@ -106,7 +106,7 @@ func TestGetAllVPCs(t *testing.T) {
 			expectedEvents: []beat.Event{
 				{
 					Fields: mapstr.M{
-						"asset.ean":        "gcp.vpc:1",
+						"asset.ean":        "network:1",
 						"asset.id":         "1",
 						"asset.name":       "test-vpc-1",
 						"asset.type":       "gcp.vpc",
@@ -120,7 +120,7 @@ func TestGetAllVPCs(t *testing.T) {
 				},
 				{
 					Fields: mapstr.M{
-						"asset.ean":        "gcp.vpc:2",
+						"asset.ean":        "network:2",
 						"asset.id":         "2",
 						"asset.name":       "test-vpc-2",
 						"asset.type":       "gcp.vpc",
@@ -168,7 +168,7 @@ func TestGetAllVPCs(t *testing.T) {
 			expectedEvents: []beat.Event{
 				{
 					Fields: mapstr.M{
-						"asset.ean":        "gcp.vpc:1",
+						"asset.ean":        "network:1",
 						"asset.id":         "1",
 						"asset.name":       "test-vpc-1",
 						"asset.type":       "gcp.vpc",
@@ -182,7 +182,7 @@ func TestGetAllVPCs(t *testing.T) {
 				},
 				{
 					Fields: mapstr.M{
-						"asset.ean":        "gcp.vpc:2",
+						"asset.ean":        "network:2",
 						"asset.id":         "2",
 						"asset.name":       "test-vpc-2",
 						"asset.type":       "gcp.vpc",
@@ -196,7 +196,7 @@ func TestGetAllVPCs(t *testing.T) {
 				},
 				{
 					Fields: mapstr.M{
-						"asset.ean":        "gcp.vpc:3",
+						"asset.ean":        "network:3",
 						"asset.id":         "3",
 						"asset.name":       "test-vpc-3",
 						"asset.type":       "gcp.vpc",
@@ -210,7 +210,7 @@ func TestGetAllVPCs(t *testing.T) {
 				},
 				{
 					Fields: mapstr.M{
-						"asset.ean":        "gcp.vpc:4",
+						"asset.ean":        "network:4",
 						"asset.id":         "4",
 						"asset.name":       "test-vpc-4",
 						"asset.type":       "gcp.vpc",
@@ -271,7 +271,7 @@ func TestGetAllSubnets(t *testing.T) {
 			expectedEvents: []beat.Event{
 				{
 					Fields: mapstr.M{
-						"asset.ean":        "gcp.subnet:1",
+						"asset.ean":        "network:1",
 						"asset.id":         "1",
 						"asset.name":       "test-subnet-1",
 						"asset.type":       "gcp.subnet",
@@ -286,7 +286,7 @@ func TestGetAllSubnets(t *testing.T) {
 				},
 				{
 					Fields: mapstr.M{
-						"asset.ean":        "gcp.subnet:2",
+						"asset.ean":        "network:2",
 						"asset.id":         "2",
 						"asset.name":       "test-subnet-2",
 						"asset.type":       "gcp.subnet",
@@ -350,7 +350,7 @@ func TestGetAllSubnets(t *testing.T) {
 			expectedEvents: []beat.Event{
 				{
 					Fields: mapstr.M{
-						"asset.ean":        "gcp.subnet:1",
+						"asset.ean":        "network:1",
 						"asset.id":         "1",
 						"asset.name":       "test-subnet-1",
 						"asset.type":       "gcp.subnet",
@@ -365,7 +365,7 @@ func TestGetAllSubnets(t *testing.T) {
 				},
 				{
 					Fields: mapstr.M{
-						"asset.ean":        "gcp.subnet:2",
+						"asset.ean":        "network:2",
 						"asset.id":         "2",
 						"asset.name":       "test-subnet-2",
 						"asset.type":       "gcp.subnet",
@@ -380,7 +380,7 @@ func TestGetAllSubnets(t *testing.T) {
 				},
 				{
 					Fields: mapstr.M{
-						"asset.ean":        "gcp.subnet:3",
+						"asset.ean":        "network:3",
 						"asset.id":         "3",
 						"asset.name":       "test-subnet-3",
 						"asset.type":       "gcp.subnet",
@@ -395,7 +395,7 @@ func TestGetAllSubnets(t *testing.T) {
 				},
 				{
 					Fields: mapstr.M{
-						"asset.ean":        "gcp.subnet:4",
+						"asset.ean":        "network:4",
 						"asset.id":         "4",
 						"asset.name":       "test-subnet-4",
 						"asset.type":       "gcp.subnet",
@@ -410,7 +410,7 @@ func TestGetAllSubnets(t *testing.T) {
 				},
 				{
 					Fields: mapstr.M{
-						"asset.ean":        "gcp.subnet:6",
+						"asset.ean":        "network:6",
 						"asset.id":         "6",
 						"asset.name":       "test-subnet-6",
 						"asset.type":       "gcp.subnet",
