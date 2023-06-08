@@ -30,7 +30,7 @@ func Format() error {
 	return nil
 }
 
-// Build downloads dependencies and builds the inputrunner binary
+// Build downloads dependencies and builds the assetbeat binary
 func Build() error {
 	if err := sh.RunV("go", "mod", "download"); err != nil {
 		return err
@@ -83,7 +83,7 @@ func UnitTest() error {
 // IntegrationTest runs all integration tests
 func E2ETest() error {
 	fmt.Println("Running end-to-end tests...")
-	return sh.RunV("go", "test", "github.com/elastic/inputrunner/tests/e2e", "-tags=e2e")
+	return sh.RunV("go", "test", "github.com/elastic/assetbeat/tests/e2e", "-tags=e2e")
 }
 
 func generateHTMLCoverageReport(coverageFile, htmlFile string) error {
@@ -129,7 +129,7 @@ func installTools() error {
 	return sh.RunWithV(map[string]string{"GOBIN": oldPath + "/.tools"}, "go", append([]string{"install"}, strings.Fields(tools)...)...)
 }
 
-// Package packages inputrunner for distribution
+// Package packages assetbeat for distribution
 // Use PLATFORMS to control the target platforms. Only linux/amd64 is supported.
 // Use TYPES to control the target Type. Only Docker is supported
 // Example of Usage: PLATFORMS=linux/amd64 TYPES=docker mage package
@@ -148,8 +148,8 @@ func Package() error {
 
 	fmt.Printf("package command called for Platforms=%s and TYPES=%s\n", platform, types)
 	if platform == "linux/amd64" && types == "docker" {
-		filePath := "build/package/inputrunner/inputrunner-linux-amd64.docker/docker-build"
-		executable := filePath + "/inputrunner"
+		filePath := "build/package/assetbeat/assetbeat-linux-amd64.docker/docker-build"
+		executable := filePath + "/assetbeat"
 		dockerfile := filePath + "/Dockerfile"
 
 		fmt.Printf("Creating filepath %s\n", filePath)
@@ -160,7 +160,7 @@ func Package() error {
 			"GOOS":   "linux",
 			"GOARCH": "amd64",
 		}
-		fmt.Println("Building inputrunner binary")
+		fmt.Println("Building assetbeat binary")
 		if err := sh.RunWithV(envMap, "go", "build", "-o", executable); err != nil {
 			return err
 		}
@@ -173,8 +173,8 @@ func Package() error {
 	return nil
 }
 
-// GetVersion returns the version of inputrunner
-// in the format of 'inputrunner version 8.7.0 (amd64), libbeat 8.7.0 [unknown built unknown]'
+// GetVersion returns the version of assetbeat
+// in the format of 'assetbeat version 8.7.0 (amd64), libbeat 8.7.0 [unknown built unknown]'
 func GetVersion() error {
 	_, version, err := getVersion()
 	if err != nil {
@@ -185,7 +185,7 @@ func GetVersion() error {
 	return nil
 }
 
-// WriteVersionToGithubOutput appends the inputrunner version to $GITHUB_OUTPUT
+// WriteVersionToGithubOutput appends the assetbeat version to $GITHUB_OUTPUT
 // environment file in the format of VERSION=8.7.0
 // Its purpose is to be used by Github Actions
 // https://docs.github.com/en/actions/using-jobs/defining-outputs-for-jobs
@@ -197,13 +197,13 @@ func WriteVersionToGithubOutput() error {
 	return writeOutput(fmt.Sprintf("VERSION=%s\n", shortVersion))
 }
 
-// getVersion returns the inputrunner long and short version
+// getVersion returns the assetbeat long and short version
 // example: shortVersion:8.7.0,
-// longVersion: inputrunner version 8.7.0 (amd64), libbeat 8.7.0 [unknown built unknown]
+// longVersion: assetbeat version 8.7.0 (amd64), libbeat 8.7.0 [unknown built unknown]
 func getVersion() (shortVersion string, longVersion string, err error) {
 	mg.Deps(Build)
 
-	longVersion, err = sh.Output("./inputrunner", "version")
+	longVersion, err = sh.Output("./assetbeat", "version")
 	if err != nil {
 		return
 	}

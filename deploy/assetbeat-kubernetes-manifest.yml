@@ -1,0 +1,140 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: assetbeatconfig
+  namespace: kube-system
+  labels:
+    k8s-app: assetbeat
+data:
+  assetbeat.yml: |-
+      assetbeat.inputs:
+         - type: assets_k8s
+           period: 600s
+           kube_config: ""
+           asset_types: ["k8s.node", "k8s.pod", "k8s.container"]
+
+      output.elasticsearch:
+         hosts: ['${ELASTICSEARCH_HOST:elasticsearch}:${ELASTICSEARCH_PORT:9200}']
+         username: ${ELASTICSEARCH_USERNAME}
+         password: ${ELASTICSEARCH_PASSWORD}
+         ssl.verification_mode: "none"
+
+      logging.level: info
+      logging.to_files: false
+      logging.to_stderr: true
+      logging.selectors: ["*"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: assetbeat
+  namespace: kube-system
+  labels:
+    k8s-app: assetbeat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: assetbeat
+  template:
+    metadata:
+      labels:
+        k8s-app: assetbeat
+    spec:
+      serviceAccountName: assetbeat
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+         - name: assetbeat
+           image: docker.elastic.co/observability/assetbeat:latest
+           env:
+                  # The basic authentication username used to connect to Elasticsearch
+                  # This user needs the privileges required to publish events to Elasticsearch.
+                  - name: ELASTICSEARCH_USERNAME
+                    value: "elastic"
+                  # The basic authentication password used to connect to Elasticsearch
+                  - name: ELASTICSEARCH_PASSWORD
+                    value: "changeme"
+                  # The Elasticsearch host to communicate with
+                  - name: ELASTICSEARCH_HOST
+                    value: "elasticsearch"
+                  # The Elasticsearch port to communicate with
+                  - name: ELASTICSEARCH_PORT
+                    value: "9200"
+           volumeMounts:
+                  - name: config
+                    mountPath: /usr/share/assetbeat/assetbeat.yml
+                    readOnly: true
+                    subPath: assetbeat.yml
+      volumes:
+        - name: config
+          configMap:
+            defaultMode: 0640
+            name: assetbeatconfig
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: assetbeat
+  namespace: kube-system
+  labels:
+    k8s-app: assetbeat
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: assetbeat
+  labels:
+    k8s-app: assetbeat
+rules:
+  - apiGroups: [""]
+    resources:
+      - nodes
+      - namespaces
+      - events
+      - pods
+      - services
+      - configmaps
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["extensions"]
+    resources:
+      - replicasets
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources:
+      - statefulsets
+      - deployments
+      - replicasets
+      - daemonsets
+    verbs: ["get", "list", "watch"]
+  - apiGroups:
+      - ""
+    resources:
+      - nodes/stats
+    verbs:
+      - get
+  - apiGroups: [ "batch" ]
+    resources:
+      - jobs
+      - cronjobs
+    verbs: [ "get", "list", "watch" ]
+  # Needed for apiserver
+  - nonResourceURLs:
+      - "/metrics"
+    verbs:
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: assetbeat
+subjects:
+- kind: ServiceAccount
+  name: assetbeat
+  namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: assetbeat
+  apiGroup: rbac.authorization.k8s.io
+---

@@ -15,9 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-//go:build e2e
-
-package e2e
+package gcp
 
 import (
 	"context"
@@ -25,18 +23,21 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/api/option"
+
 	"github.com/elastic/assetbeat/input/testutil"
 	v2 "github.com/elastic/beats/v7/filebeat/input/v2"
-	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
-
-	"github.com/stretchr/testify/assert"
-
-	"github.com/elastic/assetbeat/input/aws"
-	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 )
 
-func TestAssetsAWS_Run_startsAndStopsTheInput(t *testing.T) {
+func TestPlugin(t *testing.T) {
+	p := Plugin()
+	assert.Equal(t, "assets_gcp", p.Name)
+	assert.NotNil(t, p.Manager)
+}
+
+func TestAssetsGCP_Run(t *testing.T) {
 	publisher := testutil.NewInMemoryPublisher()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -45,7 +46,7 @@ func TestAssetsAWS_Run_startsAndStopsTheInput(t *testing.T) {
 		Cancelation: ctx,
 	}
 
-	input, err := aws.Plugin().Manager.(stateless.InputManager).Configure(config.NewConfig())
+	input, err := newAssetsGCP(defaultConfig())
 	assert.NoError(t, err)
 
 	var wg sync.WaitGroup
@@ -58,18 +59,57 @@ func TestAssetsAWS_Run_startsAndStopsTheInput(t *testing.T) {
 
 	time.Sleep(time.Millisecond)
 	cancel()
-
 	timeout := time.After(time.Second)
 	closeCh := make(chan struct{})
 	go func() {
 		defer close(closeCh)
 		wg.Wait()
 	}()
-
 	select {
 	case <-timeout:
 		t.Fatal("Test timed out")
 	case <-closeCh:
 		// Waitgroup finished in time, nothing to do
+	}
+}
+
+func TestAssetsGCP_CollectAll(t *testing.T) {
+	publisher := testutil.NewInMemoryPublisher()
+
+	ctx := context.Background()
+	logger := logp.NewLogger("test")
+
+	input, err := newAssetsGCP(defaultConfig())
+	assert.NoError(t, err)
+
+	err = input.collectAll(ctx, logger, publisher)
+	assert.NoError(t, err)
+}
+
+func TestBuildClientOptions(t *testing.T) {
+	for _, tt := range []struct {
+		name string
+
+		cfg          config
+		expectedOpts []option.ClientOption
+	}{
+		{
+			name: "with an empty config",
+		},
+		{
+			name: "with a credentials file path",
+
+			cfg: config{
+				CredsFilePath: "/tmp/file_path",
+			},
+			expectedOpts: []option.ClientOption{
+				option.WithCredentialsFile("/tmp/file_path"),
+			},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			opts := buildClientOptions(tt.cfg)
+			assert.Equal(t, tt.expectedOpts, opts)
+		})
 	}
 }

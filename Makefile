@@ -1,4 +1,4 @@
-BEAT_NAME?=inputrunner
+BEAT_NAME?=assetbeat
 BEAT_TITLE?=Inputruner
 SYSTEM_TESTS?=true
 TEST_ENVIRONMENT?=true

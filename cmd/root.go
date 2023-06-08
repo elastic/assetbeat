@@ -18,20 +18,21 @@
 package cmd
 
 import (
+	"github.com/spf13/pflag"
+
+	"github.com/elastic/assetbeat/beater"
 	"github.com/elastic/beats/v7/libbeat/cmd"
 	"github.com/elastic/beats/v7/libbeat/cmd/instance"
-	"github.com/elastic/inputrunner/beater"
-	"github.com/spf13/pflag"
 )
 
 // Name of this beat
-const Name = "inputrunner"
+const Name = "assetbeat"
 
 // RootCmd to handle beats cli
 var RootCmd *cmd.BeatsRootCmd
 
-// InputrunnerSettings contains the default settings for inputrunner
-func InputrunnerSettings() instance.Settings {
+// AssetbeatSettings contains the default settings for assetbeat
+func AssetbeatSettings() instance.Settings {
 	runFlags := pflag.NewFlagSet(Name, pflag.ExitOnError)
 	return instance.Settings{
 		RunFlags:      runFlags,
@@ -40,8 +41,8 @@ func InputrunnerSettings() instance.Settings {
 	}
 }
 
-// Inputrunner builds the beat root command for executing inputrunner and it's subcommands.
-func Inputrunner(inputs beater.PluginFactory, settings instance.Settings) *cmd.BeatsRootCmd {
+// Assetbeat builds the beat root command for executing assetbeat and it's subcommands.
+func Assetbeat(inputs beater.PluginFactory, settings instance.Settings) *cmd.BeatsRootCmd {
 	command := cmd.GenRootCmdWithSettings(beater.New(inputs), settings)
 	return command
 }

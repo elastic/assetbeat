@@ -84,7 +84,7 @@ func mergeConfigFiles(configFiles []string, config *Config) error {
 		logp.Info("Additional configs loaded from: %s", file)
 
 		tmpConfig := struct {
-			Inputrunner Config
+			Assetbeat Config
 		}{}
 		//nolint:staticcheck // Let's keep the logic here
 		err := cfgfile.Read(&tmpConfig, file)
@@ -92,7 +92,7 @@ func mergeConfigFiles(configFiles []string, config *Config) error {
 			return fmt.Errorf("failed to read %s: %w", file, err)
 		}
 
-		config.Inputs = append(config.Inputs, tmpConfig.Inputrunner.Inputs...)
+		config.Inputs = append(config.Inputs, tmpConfig.Assetbeat.Inputs...)
 	}
 
 	return nil

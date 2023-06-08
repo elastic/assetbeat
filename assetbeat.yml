@@ -1,0 +1,23 @@
+assetbeat.inputs:
+  - type: assets_aws
+    regions:
+        - us-east-1
+        - us-west-1
+        - eu-west-2
+    access_key_id:
+    secret_access_key:
+    session_token:
+    period: 600s
+
+output.elasticsearch:
+  hosts: ["localhost:9200"]
+  protocol: "https"
+  username: "elastic"
+  password: "changeme"
+  ssl.verification_mode: "none"
+
+
+logging.level: info
+logging.to_files: false
+logging.to_stderr: true
+logging.selectors: ["*"]

@@ -24,10 +24,10 @@ import (
 	"os"
 	"testing"
 
+	ircmd "github.com/elastic/assetbeat/cmd"
+	inputs "github.com/elastic/assetbeat/input/default-inputs"
 	"github.com/elastic/beats/v7/libbeat/cmd"
 	"github.com/elastic/beats/v7/libbeat/tests/system/template"
-	ircmd "github.com/elastic/inputrunner/cmd"
-	inputs "github.com/elastic/inputrunner/input/default-inputs"
 )
 
 var (
@@ -38,7 +38,7 @@ var (
 func init() {
 	testing.Init()
 	systemTest = flag.Bool("systemTest", false, "Set to true when running system tests")
-	irCommand = ircmd.Inputrunner(inputs.Init, ircmd.InputrunnerSettings())
+	irCommand = ircmd.Assetbeat(inputs.Init, ircmd.AssetbeatSettings())
 	irCommand.PersistentFlags().AddGoFlag(flag.CommandLine.Lookup("systemTest"))
 	irCommand.PersistentFlags().AddGoFlag(flag.CommandLine.Lookup("test.coverprofile"))
 }

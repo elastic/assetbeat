@@ -1,16 +1,16 @@
 FROM ubuntu:20.04
 
-RUN mkdir -p /usr/share/inputrunner
-COPY inputrunner /usr/share/inputrunner/inputrunner
+RUN mkdir -p /usr/share/assetbeat
+COPY assetbeat /usr/share/assetbeat/assetbeat
 
-RUN mkdir -p /usr/share/inputrunner/data /usr/share/inputrunner/logs && \
-    chown -R root:root /usr/share/inputrunner && \
-    find /usr/share/inputrunner -type d -exec chmod 0755 {} \; && \
-    find /usr/share/inputrunner -type f -exec chmod 0644 {} \; && \
-    chmod 0775 /usr/share/inputrunner/data /usr/share/inputrunner/logs
+RUN mkdir -p /usr/share/assetbeat/data /usr/share/assetbeat/logs && \
+    chown -R root:root /usr/share/assetbeat && \
+    find /usr/share/assetbeat -type d -exec chmod 0755 {} \; && \
+    find /usr/share/assetbeat -type f -exec chmod 0644 {} \; && \
+    chmod 0775 /usr/share/assetbeat/data /usr/share/assetbeat/logs
 
 
-RUN chmod 0755 /usr/share/inputrunner/inputrunner
+RUN chmod 0755 /usr/share/assetbeat/assetbeat
 RUN for iter in {1..10}; do \
         apt-get update -y && \
         DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --yes ca-certificates curl coreutils gawk libcap2-bin xz-utils && \
@@ -20,9 +20,9 @@ RUN for iter in {1..10}; do \
     (exit $exit_code)
 
 
-RUN groupadd --gid 1000 inputrunner
-RUN useradd -M --uid 1000 --gid 1000 --groups 0 --home /usr/share/inputrunner inputrunner
-USER inputrunner
+RUN groupadd --gid 1000 assetbeat
+RUN useradd -M --uid 1000 --gid 1000 --groups 0 --home /usr/share/assetbeat assetbeat
+USER assetbeat
 
-WORKDIR /usr/share/inputrunner
-CMD [ "/bin/bash", "-c", "./inputrunner", "run" ]
+WORKDIR /usr/share/assetbeat
+CMD [ "/bin/bash", "-c", "./assetbeat", "run" ]
