@@ -33,7 +33,7 @@ import (
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
-	"github.com/elastic/inputrunner/input/assets/internal"
+	"github.com/elastic/inputrunner/input/internal"
 )
 
 type listClustersAPIClient interface {

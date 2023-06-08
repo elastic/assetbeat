@@ -25,14 +25,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	k8sfake "k8s.io/client-go/kubernetes/fake"
+
 	v2 "github.com/elastic/beats/v7/filebeat/input/v2"
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/inputrunner/input/assets/k8s"
+	"github.com/elastic/inputrunner/input/k8s"
 	"github.com/elastic/inputrunner/input/testutil"
-	"github.com/stretchr/testify/assert"
-	k8sfake "k8s.io/client-go/kubernetes/fake"
 )
 
 func TestAssetsK8s_Run_startsAndStopsTheInput(t *testing.T) {

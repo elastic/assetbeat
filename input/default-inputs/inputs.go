@@ -22,9 +22,9 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/inputrunner/beater"
-	"github.com/elastic/inputrunner/input/assets/aws"
-	"github.com/elastic/inputrunner/input/assets/gcp"
-	"github.com/elastic/inputrunner/input/assets/k8s"
+	"github.com/elastic/inputrunner/input/aws"
+	"github.com/elastic/inputrunner/input/gcp"
+	"github.com/elastic/inputrunner/input/k8s"
 )
 
 func Init(info beat.Info, log *logp.Logger, components beater.StateStore) []v2.Plugin {

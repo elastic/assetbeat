@@ -26,13 +26,14 @@ import (
 	"time"
 
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
-	"github.com/elastic/inputrunner/input/assets/gcp"
+	"github.com/elastic/inputrunner/input/gcp"
 	"github.com/elastic/inputrunner/input/testutil"
+
+	"github.com/stretchr/testify/assert"
 
 	v2 "github.com/elastic/beats/v7/filebeat/input/v2"
 	"github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestAssetsGCP_Run_startsAndStopsTheInput(t *testing.T) {

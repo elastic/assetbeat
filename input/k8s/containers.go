@@ -26,7 +26,7 @@ import (
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	kube "github.com/elastic/elastic-agent-autodiscover/kubernetes"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/inputrunner/input/assets/internal"
+	"github.com/elastic/inputrunner/input/internal"
 )
 
 // publishK8sPods publishes the pod assets stored in pod watcher cache

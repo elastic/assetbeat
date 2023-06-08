@@ -7,7 +7,7 @@ But the intention is that this is as lightweight as possible, until the day when
 
 ## Inputs
 
-Documentation for each input can be found in the releveant directory (e.g. input/assets_aws).
+Documentation for each input can be found in the releveant directory (e.g. input/aws).
 
 ## Development
 

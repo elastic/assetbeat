@@ -30,7 +30,7 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
-	"github.com/elastic/inputrunner/input/assets/internal"
+	"github.com/elastic/inputrunner/input/internal"
 	"github.com/elastic/inputrunner/input/testutil"
 )
 

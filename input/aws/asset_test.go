@@ -15,19 +15,20 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package gcp
+package aws
 
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/mapstr"
-	"github.com/elastic/inputrunner/input/assets/internal"
+	"github.com/elastic/inputrunner/input/internal"
 	"github.com/elastic/inputrunner/input/testutil"
-	"github.com/stretchr/testify/assert"
 )
 
-func TestWithAssetLabels(t *testing.T) {
+func TestWithAssetTags(t *testing.T) {
 	for _, tt := range []struct {
 		name string
 
@@ -35,29 +36,29 @@ func TestWithAssetLabels(t *testing.T) {
 		expectedEvent beat.Event
 	}{
 		{
-			name: "with valid labels",
+			name: "with valid tags",
 			opts: []internal.AssetOption{
-				internal.WithAssetCloudProvider("gcp"),
-				WithAssetLabels(mapstr.M{"label1": "a", "label2": "b"}),
+				internal.WithAssetCloudProvider("aws"),
+				WithAssetTags(mapstr.M{"tag1": "a", "tag2": "b"}),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
-				"cloud.provider":               "gcp",
-				"asset.metadata.labels.label1": "a",
-				"asset.metadata.labels.label2": "b",
+				"cloud.provider":           "aws",
+				"asset.metadata.tags.tag1": "a",
+				"asset.metadata.tags.tag2": "b",
 			}, Meta: mapstr.M{}},
 		},
 		{
-			name: "with valid labels and metadata",
+			name: "with valid tags and metadata",
 			opts: []internal.AssetOption{
-				internal.WithAssetCloudProvider("gcp"),
+				internal.WithAssetCloudProvider("aws"),
 				internal.WithAssetMetadata(mapstr.M{"foo": "bar"}),
-				WithAssetLabels(mapstr.M{"label1": "a", "label2": "b"}),
+				WithAssetTags(mapstr.M{"tag1": "a", "tag2": "b"}),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
-				"cloud.provider":               "gcp",
-				"asset.metadata.foo":           "bar",
-				"asset.metadata.labels.label1": "a",
-				"asset.metadata.labels.label2": "b",
+				"cloud.provider":           "aws",
+				"asset.metadata.foo":       "bar",
+				"asset.metadata.tags.tag1": "a",
+				"asset.metadata.tags.tag2": "b",
 			}, Meta: mapstr.M{}},
 		},
 	} {

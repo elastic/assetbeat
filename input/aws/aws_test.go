@@ -19,14 +19,15 @@ package aws
 
 import (
 	"context"
-	v2 "github.com/elastic/beats/v7/filebeat/input/v2"
-	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/inputrunner/input/testutil"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/elastic/inputrunner/input/assets/internal"
+	v2 "github.com/elastic/beats/v7/filebeat/input/v2"
+	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/inputrunner/input/testutil"
+
+	"github.com/elastic/inputrunner/input/internal"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/stretchr/testify/assert"
