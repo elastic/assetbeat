@@ -1,9 +1,9 @@
 /_meta/filebeat.dev.yml
 .vagrant
 /docs/html_docs
-inputrunner-dev.yml
+assetbeat-dev.yml
 
-inputrunner
+assetbeat
 data
 
 build

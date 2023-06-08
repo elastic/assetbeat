@@ -2,13 +2,13 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: inputrunnerconfig
+  name: assetbeatconfig
   namespace: kube-system
   labels:
-    k8s-app: inputrunner
+    k8s-app: assetbeat
 data:
-  inputrunner.yml: |-
-      inputrunner.inputs:
+  assetbeat.yml: |-
+      assetbeat.inputs:
          - type: assets_k8s
            period: 600s
            kube_config: ""
@@ -28,26 +28,26 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: inputrunner
+  name: assetbeat
   namespace: kube-system
   labels:
-    k8s-app: inputrunner
+    k8s-app: assetbeat
 spec:
   replicas: 1
   selector:
     matchLabels:
-      k8s-app: inputrunner
+      k8s-app: assetbeat
   template:
     metadata:
       labels:
-        k8s-app: inputrunner
+        k8s-app: assetbeat
     spec:
-      serviceAccountName: inputrunner
+      serviceAccountName: assetbeat
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       containers:
-         - name: inputrunner
-           image: docker.elastic.co/observability/inputrunner:latest
+         - name: assetbeat
+           image: docker.elastic.co/observability/assetbeat:latest
            env:
                   # The basic authentication username used to connect to Elasticsearch
                   # This user needs the privileges required to publish events to Elasticsearch.
@@ -64,29 +64,29 @@ spec:
                     value: "9200"
            volumeMounts:
                   - name: config
-                    mountPath: /usr/share/inputrunner/inputrunner.yml
+                    mountPath: /usr/share/assetbeat/assetbeat.yml
                     readOnly: true
-                    subPath: inputrunner.yml
+                    subPath: assetbeat.yml
       volumes:
         - name: config
           configMap:
             defaultMode: 0640
-            name: inputrunnerconfig
+            name: assetbeatconfig
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: inputrunner
+  name: assetbeat
   namespace: kube-system
   labels:
-    k8s-app: inputrunner
+    k8s-app: assetbeat
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: inputrunner
+  name: assetbeat
   labels:
-    k8s-app: inputrunner
+    k8s-app: assetbeat
 rules:
   - apiGroups: [""]
     resources:
@@ -128,13 +128,13 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: inputrunner
+  name: assetbeat
 subjects:
 - kind: ServiceAccount
-  name: inputrunner
+  name: assetbeat
   namespace: kube-system
 roleRef:
   kind: ClusterRole
-  name: inputrunner
+  name: assetbeat
   apiGroup: rbac.authorization.k8s.io
 ---

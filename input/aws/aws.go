@@ -25,8 +25,8 @@ import (
 
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 
+	"github.com/elastic/assetbeat/input/internal"
 	input "github.com/elastic/beats/v7/filebeat/input/v2"
-	"github.com/elastic/inputrunner/input/internal"
 
 	"github.com/elastic/beats/v7/libbeat/feature"
 	conf "github.com/elastic/elastic-agent-libs/config"
@@ -125,7 +125,7 @@ func getAWSConfigForRegion(ctx context.Context, cfg config, region string) (aws.
 		credentialsProvider := credentials.StaticCredentialsProvider{
 			Value: aws.Credentials{
 				AccessKeyID: cfg.AccessKeyId, SecretAccessKey: cfg.SecretAccessKey, SessionToken: cfg.SessionToken,
-				Source: "inputrunner configuration",
+				Source: "assetbeat configuration",
 			},
 		}
 		options = append(options, aws_config.WithCredentialsProvider(credentialsProvider))

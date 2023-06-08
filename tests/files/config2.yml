@@ -1,4 +1,4 @@
-inputrunner:
+assetbeat:
   inputs:
     - type: assets_aws
       regions:

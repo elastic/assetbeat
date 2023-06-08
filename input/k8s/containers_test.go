@@ -27,8 +27,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sfake "k8s.io/client-go/kubernetes/fake"
 
+	"github.com/elastic/assetbeat/input/testutil"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/inputrunner/input/testutil"
 )
 
 func TestPublishK8sContainers(t *testing.T) {

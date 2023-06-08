@@ -1,12 +1,14 @@
 package internal
 
 import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/assetbeat/input/testutil"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/mapstr"
-	"github.com/elastic/inputrunner/input/testutil"
-	"testing"
 )
-import "github.com/stretchr/testify/assert"
 
 func TestIndex_WithIndex(t *testing.T) {
 	for _, tt := range []struct {

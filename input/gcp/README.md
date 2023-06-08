@@ -22,7 +22,7 @@ B[GKE Cluster] -->|is parent of| D[Compute Engine Instance 2];
 ## Configuration
 
 ```yaml
-inputrunner.inputs:
+assetbeat.inputs:
   - type: assets_gcp
     regions:
         - <region>
@@ -75,7 +75,7 @@ The following GCP API permissions are required for the GCP Assets Input to funct
       "ephemeral_id": "725b9844-db35-45b3-83d2-1a77a3b3ad90",
       "id": "405043e0-cd6a-4ff4-b3c9-a3d483645ce0",
       "name": "test",
-      "type": "inputrunner"
+      "type": "assetbeat"
     },
     "asset.children": [
       "host:3307406948865894335",
@@ -141,7 +141,7 @@ The following GCP API permissions are required for the GCP Assets Input to funct
     "agent": {
       "id": "405043e0-cd6a-4ff4-b3c9-a3d483645ce0",
       "name": "test",
-      "type": "inputrunner",
+      "type": "assetbeat",
       "version": "8.7.0",
       "ephemeral_id": "725b9844-db35-45b3-83d2-1a77a3b3ad90"
     },

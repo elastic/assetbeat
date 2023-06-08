@@ -23,11 +23,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/assetbeat/input/testutil"
 	v2 "github.com/elastic/beats/v7/filebeat/input/v2"
 	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/inputrunner/input/testutil"
 
-	"github.com/elastic/inputrunner/input/internal"
+	"github.com/elastic/assetbeat/input/internal"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/stretchr/testify/assert"
@@ -61,7 +61,7 @@ func TestGetAWSConfigForRegion(t *testing.T) {
 				AccessKeyID:     "accesskey123",
 				SecretAccessKey: "secretkey123",
 				SessionToken:    "token123",
-				Source:          "inputrunner configuration",
+				Source:          "assetbeat configuration",
 			},
 		},
 		{

@@ -23,11 +23,12 @@ import (
 	"testing"
 	"time"
 
-	v2 "github.com/elastic/beats/v7/filebeat/input/v2"
-	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/inputrunner/input/testutil"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/api/option"
+
+	"github.com/elastic/assetbeat/input/testutil"
+	v2 "github.com/elastic/beats/v7/filebeat/input/v2"
+	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 func TestPlugin(t *testing.T) {

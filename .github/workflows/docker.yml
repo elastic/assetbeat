@@ -12,14 +12,14 @@ env:
   PLATFORMS: linux/amd64
   TYPES: docker
   DOCKER_REGISTRY: docker.elastic.co
-  DOCKER_IMG: docker.elastic.co/observability/inputrunner
-  DOCKER_IMG_TAG_LATEST: docker.elastic.co/observability/inputrunner:latest
+  DOCKER_IMG: docker.elastic.co/observability/assetbeat
+  DOCKER_IMG_TAG_LATEST: docker.elastic.co/observability/assetbeat:latest
 jobs:
   pkg-docker:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
-      - name: Package inputrunner in a Dockerfile
+      - name: Package assetbeat in a Dockerfile
         uses: magefile/mage-action@v2
         with:
           version: latest
@@ -55,13 +55,13 @@ jobs:
       - name: Build and push image with version
         uses: docker/build-push-action@v4
         with:
-          context: ./build/package/inputrunner/inputrunner-linux-amd64.docker/docker-build
+          context: ./build/package/assetbeat/assetbeat-linux-amd64.docker/docker-build
           push: true
           tags: ${{ env.DOCKER_IMG }}:${{ steps.set-version.outputs.VERSION }}-SNAPSHOT
       - name: Build and push with latest tag
         if: ${{ success() }}
         uses: docker/build-push-action@v4
         with:
-          context: ./build/package/inputrunner/inputrunner-linux-amd64.docker/docker-build
+          context: ./build/package/assetbeat/assetbeat-linux-amd64.docker/docker-build
           push: true
           tags: ${{ env.DOCKER_IMG_TAG_LATEST }}

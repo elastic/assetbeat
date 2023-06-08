@@ -23,7 +23,7 @@ C[K8s Pod 2] -->|is parent of| E[K8s Container 2];
 ## Configuration
 
 ```yaml
-inputrunner.inputs:
+assetbeat.inputs:
   - type: assets_k8s
     kube_config:
       - <kube_config>
@@ -31,7 +31,7 @@ inputrunner.inputs:
 
 The K8s Assets Input supports the following configuration options plus the [Common options](../README.md#Common options).
 
-* `kube_config`: To ensure that the inputrunner process can collect data, regardless of the environment it runs from, the kube config file path should be configured accordingly. If the inputrunner runs as a pod within the same Kubernetes cluster it needs to collect assets from, the kube_config should be obtained from within the cluster (inClusterconfig). In this case, the kube_config option should be left empty.
+* `kube_config`: To ensure that the assetbeat process can collect data, regardless of the environment it runs from, the kube config file path should be configured accordingly. If the assetbeat runs as a pod within the same Kubernetes cluster it needs to collect assets from, the kube_config should be obtained from within the cluster (inClusterconfig). In this case, the kube_config option should be left empty.
 
 ## Asset schema
 
@@ -68,7 +68,7 @@ The K8s Assets Input supports the following configuration options plus the [Comm
   "agent": {
     "id": "eb7b3d8f-acd7-4611-9689-0f4f1fecbeb2",
     "name": "gke-mytestcluster-te-default-pool-41126842-jyae",
-    "type": "inputrunner",
+    "type": "assetbeat",
     "version": "8.7.0",
     "ephemeral_id": "aa31ac85-e574-46fa-9126-971c0d27175a"
   },
@@ -109,7 +109,7 @@ The K8s Assets Input supports the following configuration options plus the [Comm
   "kubernetes.pod.start_time": "2023-05-09T23:42:10Z",
   "kubernetes.namespace": "kube-system",
   "agent": {
-    "type": "inputrunner",
+    "type": "assetbeat",
     "version": "8.7.0",
     "ephemeral_id": "86ed5bd7-d0c3-4953-8b19-7592efd25491",
     "id": "c7014b78-a026-43fe-9450-8347ff731575",
@@ -167,7 +167,7 @@ The K8s Assets Input supports the following configuration options plus the [Comm
     "type": "assets_k8s"
   },
   "agent": {
-    "type": "inputrunner",
+    "type": "assetbeat",
     "version": "8.7.0",
     "ephemeral_id": "86ed5bd7-d0c3-4953-8b19-7592efd25491",
     "id": "c7014b78-a026-43fe-9450-8347ff731575",
@@ -189,12 +189,12 @@ The K8s Assets Input supports the following configuration options plus the [Comm
 
 ## Deploy in a Kubernetes Cluster
 
-In order to deploy inputrunner as a deployment inside a kubernetes cluster
+In order to deploy assetbeat as a deployment inside a kubernetes cluster
 the following steps are needed.
 
 1. Download the manifest file:
 ```shell 
-curl -L -O https://github.com/elastic/inputrunner/blob/main/deploy/inputrunner-kubernetes-manifest.yml`
+curl -L -O https://github.com/elastic/assetbeat/blob/main/deploy/assetbeat-kubernetes-manifest.yml`
 ```
 2. Edit the file to adjust `ELASTICSEARCH_USERNAME`, `ELASTICSEARCH_PASSWORD` and `ELASTICSEARCH_PORT` environment variables:
 ```yaml
@@ -213,11 +213,11 @@ env:
       - name: ELASTICSEARCH_PORT
         value: "9200"
 ```
-3. Deploy the inputrunner:
+3. Deploy the assetbeat:
 ```shell
-kubectl create -f inputrunner-kubernetes-manifest.yml
+kubectl create -f assetbeat-kubernetes-manifest.yml
 ```
 4. Check the status:
 ```shell
-kubectl -n kube-system get pods -l k8s-app=inputrunner
+kubectl -n kube-system get pods -l k8s-app=assetbeat
 ```

@@ -27,7 +27,7 @@ B1[EKS Cluster] -->|is parent of| D1[EC2 instance 2];
 ## Configuration
 
 ```yaml
-inputrunner.inputs:
+assetbeat.inputs:
   - type: assets_aws
     regions:
         - <region>
@@ -45,7 +45,7 @@ The AWS Assets Input supports the following configuration options plus the [Comm
 
 **_Note_:** `access_key_id`, `secret_access_key` and `session_token` can be omitted if:
 * The environment variables `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and/or `AWS_SESSION_TOKEN` are set.
-* Inputrunner is running on an EC2 instance with an attached Instance Role.
+* assetbeat is running on an EC2 instance with an attached Instance Role.
 
 
 ## AWS Permissions
@@ -100,7 +100,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
     "asset.type": "aws.ec2.instance",
     "asset.kind": "host",
     "agent": {
-      "type": "inputrunner",
+      "type": "assetbeat",
       "version": "8.7.0",
       "ephemeral_id": "111f0ffc-c138-43fd-bea3-e5c298612436",
       "id": "6427b093-afa2-4b1d-9d4a-b3a2273c2719",
@@ -143,7 +143,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
       "ephemeral_id": "111f0ffc-c138-43fd-bea3-e5c298612436",
       "id": "6427b093-afa2-4b1d-9d4a-b3a2273c2719",
       "name": "test",
-      "type": "inputrunner",
+      "type": "assetbeat",
       "version": "8.7.0"
     },
     "cloud.account.id": "1111111111",
@@ -207,7 +207,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
       "ephemeral_id": "111f0ffc-c138-43fd-bea3-e5c298612436",
       "id": "6427b093-afa2-4b1d-9d4a-b3a2273c2719",
       "name": "test",
-      "type": "inputrunner"
+      "type": "assetbeat"
     }
   }
 ```
@@ -250,7 +250,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
       "ephemeral_id": "111f0ffc-c138-43fd-bea3-e5c298612436",
       "id": "6427b093-afa2-4b1d-9d4a-b3a2273c2719",
       "name": "test",
-      "type": "inputrunner",
+      "type": "assetbeat",
       "version": "8.7.0"
     },
     "ecs": {

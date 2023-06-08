@@ -9,10 +9,10 @@ import (
 	"github.com/aws/smithy-go/middleware"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/elastic/assetbeat/input/testutil"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
-	"github.com/elastic/inputrunner/input/testutil"
 )
 
 var vpcId1 = "vpc-id-1"

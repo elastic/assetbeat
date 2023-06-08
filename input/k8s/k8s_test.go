@@ -27,11 +27,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sfake "k8s.io/client-go/kubernetes/fake"
 
+	"github.com/elastic/assetbeat/input/internal"
+	"github.com/elastic/assetbeat/input/testutil"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
-	"github.com/elastic/inputrunner/input/internal"
-	"github.com/elastic/inputrunner/input/testutil"
 )
 
 var startTime = metav1.Time{Time: time.Date(2021, 8, 15, 14, 30, 45, 100, time.Local)}

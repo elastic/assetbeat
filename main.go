@@ -20,8 +20,9 @@ package main
 import (
 	"os"
 
-	"github.com/elastic/inputrunner/cmd"
-	inputs "github.com/elastic/inputrunner/input/default-inputs"
+	"github.com/elastic/assetbeat/cmd"
+
+	inputs "github.com/elastic/assetbeat/input/default-inputs"
 )
 
 // The basic model of execution:
@@ -33,7 +34,7 @@ import (
 // Finally, input uses the registrar information, on restart, to
 // determine where in each file to restart a harvester.
 func main() {
-	if err := cmd.Inputrunner(inputs.Init, cmd.InputrunnerSettings()).Execute(); err != nil {
+	if err := cmd.Assetbeat(inputs.Init, cmd.AssetbeatSettings()).Execute(); err != nil {
 		os.Exit(1)
 	}
 }

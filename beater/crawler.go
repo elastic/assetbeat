@@ -19,8 +19,9 @@ package beater
 
 import (
 	"fmt"
-	"github.com/elastic/beats/v7/filebeat/input"
 	"sync"
+
+	"github.com/elastic/beats/v7/filebeat/input"
 
 	"github.com/mitchellh/hashstructure"
 
@@ -123,8 +124,8 @@ func (c *crawler) startInput(
 	if err != nil {
 		return fmt.Errorf("error while initializing input: %w", err)
 	}
-	if inputRunner, ok := runner.(*input.Runner); ok {
-		inputRunner.Once = c.once
+	if assetbeat, ok := runner.(*input.Runner); ok {
+		assetbeat.Once = c.once
 	}
 
 	c.inputs[id] = runner

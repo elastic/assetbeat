@@ -23,9 +23,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/elastic/assetbeat/input/internal"
 	input "github.com/elastic/beats/v7/filebeat/input/v2"
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
-	"github.com/elastic/inputrunner/input/internal"
 
 	kube "github.com/elastic/elastic-agent-autodiscover/kubernetes"
 	conf "github.com/elastic/elastic-agent-libs/config"

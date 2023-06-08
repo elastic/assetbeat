@@ -89,7 +89,6 @@ func TestMergeConfigFiles(t *testing.T) {
 	assert.NoError(t, err)
 
 	files, err := getConfigFiles(absPath)
-
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(files))
 

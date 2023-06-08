@@ -22,8 +22,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/elastic/assetbeat/input/internal"
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
-	"github.com/elastic/inputrunner/input/internal"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"

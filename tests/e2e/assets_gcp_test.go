@@ -25,9 +25,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/assetbeat/input/gcp"
+	"github.com/elastic/assetbeat/input/testutil"
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
-	"github.com/elastic/inputrunner/input/gcp"
-	"github.com/elastic/inputrunner/input/testutil"
 
 	"github.com/stretchr/testify/assert"
 

@@ -21,9 +21,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/elastic/assetbeat/input/internal"
+	"github.com/elastic/assetbeat/util"
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
-	"github.com/elastic/inputrunner/input/internal"
-	"github.com/elastic/inputrunner/util"
 
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"

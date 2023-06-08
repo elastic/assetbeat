@@ -18,8 +18,8 @@
 package gcp
 
 import (
+	"github.com/elastic/assetbeat/input/internal"
 	"github.com/elastic/elastic-agent-libs/mapstr"
-	"github.com/elastic/inputrunner/input/internal"
 )
 
 func WithAssetLabels(value mapstr.M) internal.AssetOption {

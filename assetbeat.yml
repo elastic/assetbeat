@@ -1,4 +1,4 @@
-inputrunner.inputs:
+assetbeat.inputs:
   - type: assets_aws
     regions:
         - us-east-1

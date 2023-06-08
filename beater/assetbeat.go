@@ -20,11 +20,14 @@ package beater
 import (
 	"flag"
 	"fmt"
-	v2 "github.com/elastic/beats/v7/filebeat/input/v2"
 	"strings"
 	"sync"
 	"time"
 
+	v2 "github.com/elastic/beats/v7/filebeat/input/v2"
+
+	"github.com/elastic/assetbeat/channel"
+	cfg "github.com/elastic/assetbeat/config"
 	"github.com/elastic/beats/v7/libbeat/autodiscover"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
@@ -36,16 +39,14 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/go-concert/unison"
-	"github.com/elastic/inputrunner/channel"
-	cfg "github.com/elastic/inputrunner/config"
 
 	"github.com/elastic/beats/v7/filebeat/input/v2/compat"
 )
 
-var once = flag.Bool("once", false, "Run inputrunner only once until all harvesters reach EOF")
+var once = flag.Bool("once", false, "Run assetbeat only once until all harvesters reach EOF")
 
-// Inputrunner is a beater object. Contains all objects needed to run the beat
-type Inputrunner struct {
+// assetbeat is a beater object. Contains all objects needed to run the beat
+type assetbeat struct {
 	config        *cfg.Config
 	pluginFactory PluginFactory
 	done          chan struct{}
@@ -60,7 +61,7 @@ type StateStore interface {
 	CleanupInterval() time.Duration
 }
 
-// New creates a new Inputrunner pointer instance.
+// New creates a new assetbeat pointer instance.
 func New(plugins PluginFactory) beat.Creator {
 	return func(b *beat.Beat, rawConfig *conf.C) (beat.Beater, error) {
 		return newBeater(b, plugins, rawConfig)
@@ -100,7 +101,7 @@ func newBeater(b *beat.Beat, plugins PluginFactory, rawConfig *conf.C) (beat.Bea
 		return nil, fmt.Errorf("stdin requires to be run in exclusive mode, configured inputs: %s", strings.Join(enabledInputs, ", "))
 	}
 
-	ir := &Inputrunner{
+	ir := &assetbeat{
 		done:          make(chan struct{}),
 		config:        &config,
 		pluginFactory: plugins,
@@ -110,7 +111,7 @@ func newBeater(b *beat.Beat, plugins PluginFactory, rawConfig *conf.C) (beat.Bea
 }
 
 // Run allows the beater to be run as a beat.
-func (ir *Inputrunner) Run(b *beat.Beat) error {
+func (ir *assetbeat) Run(b *beat.Beat) error {
 	var err error
 	config := ir.config
 
@@ -135,7 +136,7 @@ func (ir *Inputrunner) Run(b *beat.Beat) error {
 	ir.pipeline = withPipelineEventCounter(b.Publisher, wgEvents)
 	//ir.pipeline = pipetool.WithACKer(ir.pipeline, eventACKer(finishedLogger, registrarChannel))
 
-	// Inputrunner by default required infinite retry. Let's configure this for all
+	// assetbeat by default required infinite retry. Let's configure this for all
 	// inputs by default.  Inputs (and InputController) can overwrite the sending
 	// guarantees explicitly when connecting with the pipeline.
 	ir.pipeline = pipetool.WithDefaultGuarantees(ir.pipeline, beat.GuaranteedSend)
@@ -208,7 +209,7 @@ func (ir *Inputrunner) Run(b *beat.Beat) error {
 	var adiscover *autodiscover.Autodiscover
 	if ir.config.Autodiscover != nil {
 		adiscover, err = autodiscover.NewAutodiscover(
-			"inputrunner",
+			"assetbeat",
 			ir.pipeline,
 			cfgfile.MultiplexedRunnerFactory(
 				cfgfile.MatchDefault(inputLoader),
@@ -265,8 +266,8 @@ func (ir *Inputrunner) Run(b *beat.Beat) error {
 }
 
 // Stop is called on exit to stop the crawling, spooling and registration processes.
-func (ir *Inputrunner) Stop() {
-	logp.Info("Stopping inputrunner")
+func (ir *assetbeat) Stop() {
+	logp.Info("Stopping assetbeat")
 
 	ir.stopOnce.Do(func() { close(ir.done) })
 }

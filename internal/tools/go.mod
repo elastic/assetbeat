@@ -1,4 +1,4 @@
-module github.com/elastic/inputrunner/internal/tools
+module github.com/elastic/assetbeat/internal/tools
 
 go 1.20
 

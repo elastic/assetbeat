@@ -26,9 +26,9 @@ import (
 	"github.com/googleapis/gax-go/v2"
 	"google.golang.org/api/iterator"
 
+	"github.com/elastic/assetbeat/input/internal"
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/elastic-agent-libs/mapstr"
-	"github.com/elastic/inputrunner/input/internal"
 )
 
 type AggregatedInstanceIterator interface {

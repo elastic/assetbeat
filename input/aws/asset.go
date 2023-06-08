@@ -18,8 +18,8 @@
 package aws
 
 import (
+	"github.com/elastic/assetbeat/input/internal"
 	"github.com/elastic/elastic-agent-libs/mapstr"
-	"github.com/elastic/inputrunner/input/internal"
 )
 
 func WithAssetTags(value mapstr.M) internal.AssetOption {
