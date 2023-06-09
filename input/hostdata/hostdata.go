@@ -20,18 +20,21 @@ package hostdata
 import (
 	"context"
 	"fmt"
+	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/beats/v7/libbeat/processors/util"
 	"time"
 
 	"github.com/elastic/assetbeat/input/internal"
 
 	input "github.com/elastic/beats/v7/filebeat/input/v2"
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
-	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/feature"
-	"github.com/elastic/beats/v7/libbeat/processors/add_host_metadata"
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-libs/mapstr"
+	"github.com/elastic/elastic-agent-system-metrics/metric/system/host"
 	"github.com/elastic/go-concert/ctxtool"
+	"github.com/elastic/go-sysinfo"
 )
 
 func Plugin() input.Plugin {
@@ -49,8 +52,8 @@ type config struct {
 }
 
 type hostdata struct {
-	config                   config
-	addHostMetadataProcessor beat.Processor
+	config   config
+	hostInfo mapstr.M
 }
 
 func configure(inputCfg *conf.C) (stateless.Input, error) {
@@ -67,14 +70,14 @@ func configure(inputCfg *conf.C) (stateless.Input, error) {
 }
 
 func newHostdata(cfg config) (*hostdata, error) {
-	processor, err := add_host_metadata.New(conf.NewConfig())
+	hostDataProvider, err := sysinfo.Host()
 	if err != nil {
-		return nil, fmt.Errorf("error creating host metadata processor: %w", err)
+		return nil, fmt.Errorf("error getting host data: %w", err)
 	}
 
 	return &hostdata{
-		config:                   cfg,
-		addHostMetadataProcessor: processor,
+		config:   cfg,
+		hostInfo: host.MapHostInfo(hostDataProvider.Info()),
 	}, nil
 }
 
@@ -96,31 +99,35 @@ func (h *hostdata) Run(inputCtx input.Context, publisher stateless.Publisher) er
 	case <-ctx.Done():
 		return nil
 	default:
-		h.collectHostdataAssets(ctx, logger, publisher)
+		h.reportHostDataAssets(ctx, logger, publisher)
 	}
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case <-ticker.C:
-			h.collectHostdataAssets(ctx, logger, publisher)
+			h.reportHostDataAssets(ctx, logger, publisher)
 		}
 	}
 }
 
-func (h *hostdata) collectHostdataAssets(_ context.Context, logger *logp.Logger, publisher stateless.Publisher) {
+func (h *hostdata) reportHostDataAssets(_ context.Context, logger *logp.Logger, publisher stateless.Publisher) {
 	logger.Debug("collecting hostdata asset information")
 
-	// we make use of libbeat's add_host_metadata processor to populate all the necessary
-	// ECS host fields in the event, then add the required asset fields.
-	event := internal.NewEvent()
-	event, err := h.addHostMetadataProcessor.Run(event)
+	hostData := h.hostInfo.Clone()
+	ipList, hwList, err := util.GetNetInfo()
 	if err != nil {
-		logger.Error("error collecting hostdata: %w", err)
-		return
+		logger.Errorf("error when getting network information: %w", err)
 	}
 
-	hostID, err := event.Fields.GetValue("host.id")
+	if len(ipList) > 0 {
+		_, _ = hostData.Put("host.ip", ipList)
+	}
+	if len(hwList) > 0 {
+		_, _ = hostData.Put("host.mac", hwList)
+	}
+
+	hostID, err := hostData.GetValue("host.id")
 	if err != nil {
 		logger.Error("no host ID in collected hostdata")
 		return
@@ -128,7 +135,7 @@ func (h *hostdata) collectHostdataAssets(_ context.Context, logger *logp.Logger,
 
 	assetKind := "host"
 	assetType := "host"
-	internal.Publish(publisher, event,
+	internal.Publish(publisher, &beat.Event{Fields: hostData, Meta: mapstr.M{}},
 		internal.WithAssetKindAndID(assetKind, hostID.(string)),
 		internal.WithAssetType(assetType),
 		internal.WithIndex(assetType, h.config.IndexNamespace),
