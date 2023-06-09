@@ -66,7 +66,7 @@ func collectEC2Assets(ctx context.Context, client ec2.DescribeInstancesAPIClient
 		if parents != nil {
 			options = append(options, internal.WithAssetParents(parents))
 		}
-		internal.Publish(publisher,
+		internal.Publish(publisher, nil,
 			options...,
 		)
 	}

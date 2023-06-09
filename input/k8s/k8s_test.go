@@ -77,7 +77,7 @@ func TestPublishK8sPodAsset(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			publisher := testutil.NewInMemoryPublisher()
 
-			internal.Publish(publisher,
+			internal.Publish(publisher, nil,
 				internal.WithAssetKindAndID(tt.assetKind, tt.assetID),
 				internal.WithAssetType(tt.assetType),
 				internal.WithAssetParents(tt.parents),
@@ -132,7 +132,7 @@ func TestPublishK8sNodeAsset(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			publisher := testutil.NewInMemoryPublisher()
 
-			internal.Publish(publisher,
+			internal.Publish(publisher, nil,
 				internal.WithAssetKindAndID(tt.assetKind, tt.assetID),
 				internal.WithAssetType(tt.assetType),
 				internal.WithAssetParents(tt.parents),

@@ -166,7 +166,7 @@ func TestPublish(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			publisher := testutil.NewInMemoryPublisher()
 
-			Publish(publisher, tt.opts...)
+			Publish(publisher, nil, tt.opts...)
 			assert.Equal(t, 1, len(publisher.Events))
 			assert.Equal(t, tt.expectedEvent, publisher.Events[0])
 		})

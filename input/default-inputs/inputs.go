@@ -22,6 +22,7 @@ import (
 	"github.com/elastic/assetbeat/input/aws"
 	"github.com/elastic/assetbeat/input/gcp"
 	"github.com/elastic/assetbeat/input/k8s"
+	"github.com/elastic/assetbeat/input/hostdata"
 	v2 "github.com/elastic/beats/v7/filebeat/input/v2"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -34,7 +35,8 @@ func Init(info beat.Info, log *logp.Logger, components beater.StateStore) []v2.P
 func genericInputs(log *logp.Logger, components beater.StateStore) []v2.Plugin {
 	return []v2.Plugin{
 		aws.Plugin(),
-		k8s.Plugin(),
 		gcp.Plugin(),
+		hostdata.Plugin(),
+		k8s.Plugin(),
 	}
 }

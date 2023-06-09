@@ -94,7 +94,7 @@ func collectGKEAssets(ctx context.Context, cfg config, log *logp.Logger, publish
 			children = append(children, "host:"+instance)
 		}
 
-		internal.Publish(publisher,
+		internal.Publish(publisher, nil,
 			internal.WithAssetCloudProvider("gcp"),
 			internal.WithAssetRegion(cluster.Region),
 			internal.WithAssetAccountID(cluster.Account),

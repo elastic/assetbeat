@@ -74,7 +74,7 @@ func collectComputeAssets(ctx context.Context, cfg config, publisher stateless.P
 			parents = append(parents, "network:"+vpc)
 		}
 
-		internal.Publish(publisher,
+		internal.Publish(publisher, nil,
 			internal.WithAssetCloudProvider("gcp"),
 			internal.WithAssetRegion(instance.Region),
 			internal.WithAssetAccountID(instance.Account),

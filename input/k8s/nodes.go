@@ -156,7 +156,7 @@ func publishK8sNodes(ctx context.Context, log *logp.Logger, indexNamespace strin
 			if assetParents != nil {
 				options = append(options, internal.WithAssetParents(assetParents))
 			}
-			internal.Publish(publisher, options...)
+			internal.Publish(publisher, nil, options...)
 
 		} else {
 			log.Error("Publishing nodes assets failed. Type assertion of node object failed")

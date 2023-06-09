@@ -40,7 +40,7 @@ func collectVPCAssets(ctx context.Context, client ec2.DescribeVpcsAPIClient, reg
 	assetType := "aws.vpc"
 	assetKind := "network"
 	for _, vpc := range vpcs {
-		internal.Publish(publisher,
+		internal.Publish(publisher, nil,
 			internal.WithAssetCloudProvider("aws"),
 			internal.WithAssetRegion(region),
 			internal.WithAssetAccountID(*vpc.OwnerId),
@@ -71,7 +71,7 @@ func collectSubnetAssets(ctx context.Context, client ec2.DescribeSubnetsAPIClien
 			parents = []string{"network:" + *subnet.VpcId}
 		}
 
-		internal.Publish(publisher,
+		internal.Publish(publisher, nil,
 			internal.WithAssetCloudProvider("aws"),
 			internal.WithAssetRegion(region),
 			internal.WithAssetAccountID(*subnet.OwnerId),
