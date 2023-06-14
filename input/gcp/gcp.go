@@ -121,7 +121,11 @@ func (s *assetsGCP) collectAll(ctx context.Context, log *logp.Logger, publisher 
 			if err != nil {
 				log.Errorf("error collecting compute assets: %+v", err)
 			}
-			defer client.Close()
+			defer func() {
+				if client != nil {
+					client.Close()
+				}
+			}()
 			listClient := listInstanceAPIClient{
 				AggregatedList: func(ctx context.Context, req *computepb.AggregatedListInstancesRequest, opts ...gax.CallOption) AggregatedInstanceIterator {
 					return client.AggregatedList(ctx, req, opts...)
