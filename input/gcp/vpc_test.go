@@ -1,16 +1,18 @@
 package gcp
 
 import (
-	"cloud.google.com/go/compute/apiv1/computepb"
 	"context"
-	"github.com/elastic/assetbeat/input/testutil"
-	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/elastic-agent-libs/mapstr"
+	"testing"
+
+	"cloud.google.com/go/compute/apiv1/computepb"
 	"github.com/gogo/protobuf/proto"
 	"github.com/googleapis/gax-go/v2"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/api/iterator"
-	"testing"
+
+	"github.com/elastic/assetbeat/input/testutil"
+	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 type StubNetworksListIterator struct {
@@ -77,7 +79,7 @@ func (s *SubnetClientStub) List(ctx context.Context, req *computepb.ListSubnetwo
 	return s.SubnetListIterator[project]
 }
 
-func TestGetAllVPCs(t *testing.T) {
+func TestCollectVpcAssets(t *testing.T) {
 	for _, tt := range []struct {
 		name           string
 		cfg            config
@@ -240,7 +242,7 @@ func TestGetAllVPCs(t *testing.T) {
 	}
 }
 
-func TestGetAllSubnets(t *testing.T) {
+func TestCollectSubnetAssets(t *testing.T) {
 	for _, tt := range []struct {
 		name           string
 		cfg            config
