@@ -37,6 +37,8 @@ import (
 	"github.com/elastic/go-sysinfo"
 )
 
+const defaultCollectionPeriod = time.Minute
+
 func Plugin() input.Plugin {
 	return input.Plugin{
 		Name:       "hostdata",
@@ -59,7 +61,7 @@ type hostdata struct {
 func configure(inputCfg *conf.C) (stateless.Input, error) {
 	cfg := config{
 		BaseConfig: internal.BaseConfig{
-			Period: time.Minute,
+			Period: defaultCollectionPeriod,
 		},
 	}
 	if err := inputCfg.Unpack(&cfg); err != nil {
