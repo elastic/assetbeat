@@ -2,7 +2,10 @@ module github.com/elastic/assetbeat/internal/tools
 
 go 1.20
 
-require github.com/golangci/golangci-lint v1.53.2
+require (
+	github.com/elastic/go-licenser v0.4.0
+	github.com/golangci/golangci-lint v1.53.2
+)
 
 require (
 	4d63.com/gocheckcompilerdirectives v1.2.1 // indirect
