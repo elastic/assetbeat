@@ -67,11 +67,20 @@ spec:
                     mountPath: /usr/share/assetbeat/assetbeat.yml
                     readOnly: true
                     subPath: assetbeat.yml
+                  - name: etc-mid
+                    mountPath: /etc/machine-id
+
       volumes:
         - name: config
           configMap:
             defaultMode: 0640
             name: assetbeatconfig
+
+        # Mount /etc/machine-id from the host to determine host ID; needed for 'hostdata' input
+        - name: etc-mid
+          hostPath:
+            path: /etc/machine-id
+            type: File
 ---
 apiVersion: v1
 kind: ServiceAccount
