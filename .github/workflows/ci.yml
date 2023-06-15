@@ -47,7 +47,7 @@ jobs:
           version: latest
           args: build
 
-  check:
+  check-lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -68,6 +68,28 @@ jobs:
         with:
           version: latest
           args: lint
+
+  check-license-headers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.DEFAULT_GO_VERSION }}
+          cache: true
+      - name: Tools cache
+        uses: actions/cache@v3
+        with:
+          path: .tools
+          key: ${{ runner.os }}-tools-cache-${{ hashFiles('./internal/tools/**') }}
+
+      - name: Lint
+        uses: magefile/mage-action@v2
+        with:
+          version: latest
+          args: checkLicenseHeaders
 
   unit-test:
     runs-on: ubuntu-latest
