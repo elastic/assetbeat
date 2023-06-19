@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euxo pipefail
+set -uxo pipefail
 
 # Install Go
 if ! command -v go &>/dev/null; then
