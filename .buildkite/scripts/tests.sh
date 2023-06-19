@@ -6,5 +6,5 @@ MY_DIR=$(dirname $(readlink -f "$0"))
 source $MY_DIR/install-prereq.sh
 
 #Building the assetbeat binary
-echo "Building assetbeat..."
-mage build
+echo "Running unitTests"
+mage unitTest
