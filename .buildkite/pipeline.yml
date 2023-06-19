@@ -1,3 +1,5 @@
+agents:
+  provider: "gcp"
 steps:
   - label: ":wave: Greetings"            # Label (with rich emojis https://ela.st/bk-emoji).
     command: "echo 'Assetbeat pipeline'"
