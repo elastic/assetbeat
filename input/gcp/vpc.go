@@ -69,7 +69,7 @@ func collectVpcAssets(ctx context.Context, cfg config, client listNetworkAPIClie
 	indexNamespace := cfg.IndexNamespace
 	for _, vpc := range vpcs {
 
-		internal.Publish(publisher,
+		internal.Publish(publisher, nil,
 			internal.WithAssetCloudProvider("gcp"),
 			internal.WithAssetAccountID(vpc.Account),
 			internal.WithAssetKindAndID(assetKind, vpc.ID),
@@ -122,7 +122,7 @@ func collectSubnetAssets(ctx context.Context, cfg config, client listSubnetworkA
 	indexNamespace := cfg.IndexNamespace
 	for _, subnet := range subnets {
 
-		internal.Publish(publisher,
+		internal.Publish(publisher, nil,
 			internal.WithAssetCloudProvider("gcp"),
 			internal.WithAssetAccountID(subnet.Account),
 			internal.WithAssetKindAndID(assetKind, subnet.ID),
