@@ -11,6 +11,7 @@ if ! command -v go &>/dev/null; then
   tar -xf go"$GO_VERSION".linux-amd64.tar.gz -C "$HOME"
   # shellcheck disable=SC2016
   echo 'export PATH=$PATH:$HOME/go/bin' >> ~/.bashrc
+  echo $PATH
   # shellcheck disable=SC1090
   source ~/.bashrc
   echo "Go has been installed."
