@@ -21,16 +21,19 @@ import (
 	"context"
 	"time"
 
+	compute "cloud.google.com/go/compute/apiv1"
+	"cloud.google.com/go/compute/apiv1/computepb"
+	container "cloud.google.com/go/container/apiv1"
+	"github.com/googleapis/gax-go/v2"
 	"google.golang.org/api/option"
 
 	"github.com/elastic/assetbeat/input/internal"
 	input "github.com/elastic/beats/v7/filebeat/input/v2"
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
-	"github.com/elastic/go-concert/ctxtool"
-
 	"github.com/elastic/beats/v7/libbeat/feature"
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/go-concert/ctxtool"
 )
 
 func Plugin() input.Plugin {
@@ -114,7 +117,21 @@ func (s *assetsGCP) Run(inputCtx input.Context, publisher stateless.Publisher) e
 func (s *assetsGCP) collectAll(ctx context.Context, log *logp.Logger, publisher stateless.Publisher) error {
 	if internal.IsTypeEnabled(s.config.AssetTypes, "gcp.compute.instance") {
 		go func() {
-			err := collectComputeAssets(ctx, s.config, publisher)
+			client, err := compute.NewInstancesRESTClient(ctx, buildClientOptions(s.config)...)
+			if err != nil {
+				log.Errorf("error collecting compute assets: %+v", err)
+			}
+			defer func() {
+				if client != nil {
+					client.Close()
+				}
+			}()
+			listClient := listInstanceAPIClient{
+				AggregatedList: func(ctx context.Context, req *computepb.AggregatedListInstancesRequest, opts ...gax.CallOption) AggregatedInstanceIterator {
+					return client.AggregatedList(ctx, req, opts...)
+				},
+			}
+			err = collectComputeAssets(ctx, s.config, listClient, publisher)
 			if err != nil {
 				log.Errorf("error collecting compute assets: %+v", err)
 			}
@@ -122,7 +139,69 @@ func (s *assetsGCP) collectAll(ctx context.Context, log *logp.Logger, publisher 
 	}
 	if internal.IsTypeEnabled(s.config.AssetTypes, "k8s.cluster") {
 		go func() {
-			err := collectGKEAssets(ctx, s.config, log, publisher)
+			client, err := container.NewClusterManagerClient(ctx)
+			if err != nil {
+				log.Errorf("error collecting GKE assets: %+v", err)
+			}
+
+			computeClient, err := compute.NewInstancesRESTClient(ctx, buildClientOptions(s.config)...)
+			if err != nil {
+				log.Errorf("error collecting GKE assets: %+v", err)
+			}
+			defer func() {
+				if client != nil {
+					client.Close()
+				}
+				if computeClient != nil {
+					computeClient.Close()
+				}
+			}()
+			listClient := listInstanceAPIClient{
+				AggregatedList: func(ctx context.Context, req *computepb.AggregatedListInstancesRequest, opts ...gax.CallOption) AggregatedInstanceIterator {
+					return computeClient.AggregatedList(ctx, req, opts...)
+				},
+			}
+			err = collectGKEAssets(ctx, s.config, log, listClient, client, publisher)
+			if err != nil {
+				log.Errorf("error collecting GKE assets: %+v", err)
+			}
+		}()
+	}
+	if internal.IsTypeEnabled(s.config.AssetTypes, "gcp.vpc") {
+		go func() {
+			client, err := compute.NewNetworksRESTClient(ctx, buildClientOptions(s.config)...)
+			if err != nil {
+				log.Errorf("error collecting GKE assets: %+v", err)
+			}
+			defer func() {
+				if client != nil {
+					client.Close()
+				}
+			}()
+			listClient := listNetworkAPIClient{List: func(ctx context.Context, req *computepb.ListNetworksRequest, opts ...gax.CallOption) NetworkIterator {
+				return client.List(ctx, req, opts...)
+			}}
+			err = collectVpcAssets(ctx, s.config, listClient, publisher)
+			if err != nil {
+				log.Errorf("error collecting GKE assets: %+v", err)
+			}
+		}()
+	}
+	if internal.IsTypeEnabled(s.config.AssetTypes, "gcp.subnet") {
+		go func() {
+			client, err := compute.NewSubnetworksRESTClient(ctx, buildClientOptions(s.config)...)
+			if err != nil {
+				log.Errorf("error collecting GKE assets: %+v", err)
+			}
+			defer func() {
+				if client != nil {
+					client.Close()
+				}
+			}()
+			listClient := listSubnetworkAPIClient{List: func(ctx context.Context, req *computepb.ListSubnetworksRequest, opts ...gax.CallOption) SubnetIterator {
+				return client.List(ctx, req, opts...)
+			}}
+			err = collectSubnetAssets(ctx, s.config, listClient, publisher)
 			if err != nil {
 				log.Errorf("error collecting GKE assets: %+v", err)
 			}

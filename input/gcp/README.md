@@ -154,3 +154,91 @@ The following GCP API permissions are required for the GCP Assets Input to funct
     }
 }
 ```
+
+### VPCs
+
+#### Exported fields
+
+| Field                              | Description                                                                                                                                        | Example                         |
+|------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------|
+| asset.type                         | The type of asset                                                                                                                                  | `"gcp.vpc"`                     |
+| asset.kind                         | The kind of asset                                                                                                                                  | `"network"`                     |
+| asset.id                           | The id of the Compute Engine instance                                                                                                              | `"5252379740648465638"`         |
+| asset.ean                          | the EAN of this specific resource                                                                                                                  | `"gcp.vpc:5252379740648465638"` |
+
+
+
+#### Example
+
+```json
+{
+  "@timestamp": "2023-06-06T10:43:26.585Z",
+  "cloud.account.id": "test-project",
+  "asset.id": "583649779116735201",
+  "ecs": {
+    "version": "8.0.0"
+  },
+  "asset.ean": "gcp.vpc:583649779116735201",
+  "input": {
+    "type": "assets_gcp"
+  },
+  "host": {
+    "name": "test"
+  },
+  "agent": {
+    "id": "6427b093-afa2-4b1d-9d4a-b3a2273c2719",
+    "name": "test",
+    "type": "assetbeat",
+    "version": "8.7.0",
+    "ephemeral_id": "15509c26-f740-4133-9609-9af21430fb97"
+  },
+  "asset.name": "test-k8s-vpc",
+  "asset.kind": "network",
+  "cloud.provider": "gcp",
+  "asset.type": "gcp.vpc"
+}
+```
+
+### VPC Subnets
+
+#### Exported fields
+
+| Field                              | Description                                                                                                                                        | Example                            |
+|------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
+| asset.type                         | The type of asset                                                                                                                                  | `"gcp.subnet"`                     |
+| asset.kind                         | The kind of asset                                                                                                                                  | `"network"`                        |
+| asset.id                           | The id of the Compute Engine instance                                                                                                              | `"5252379740648465638"`            |
+| asset.ean                          | the EAN of this specific resource                                                                                                                  | `"gcp.subnet:5252379740648465638"` |
+
+
+
+#### Example
+
+```json
+{
+  "@timestamp": "2023-06-07T10:22:06.476Z",
+  "cloud.provider": "gcp",
+  "asset.type": "gcp.subnet",
+  "asset.id": "8876074353049608900",
+  "asset.ean": "gcp.subnet:8876074353049608900",
+  "ecs": {
+    "version": "8.0.0"
+  },
+  "host": {
+    "name": "test"
+  },
+  "agent": {
+    "id": "6427b093-afa2-4b1d-9d4a-b3a2273c2719",
+    "name": "test",
+    "type": "assetbeat",
+    "version": "8.7.0",
+    "ephemeral_id": "8793edb9-4f21-4845-8e3b-965e37d5dc26"
+  },
+  "asset.kind": "network",
+  "asset.name": "test-subnet",
+  "input": {
+    "type": "assets_gcp"
+  },
+  "cloud.account.id": "test-project"
+}
+```
