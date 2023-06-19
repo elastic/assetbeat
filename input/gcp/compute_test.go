@@ -18,16 +18,20 @@
 package gcp
 
 import (
+	"context"
+	"testing"
+
 	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"
-	"context"
 	"github.com/gogo/protobuf/proto"
 	"github.com/googleapis/gax-go/v2"
 	"google.golang.org/api/iterator"
-	"testing"
 
-	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/elastic/assetbeat/input/testutil"
+	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
 type StubAggregatedInstanceListIterator struct {
@@ -63,13 +67,14 @@ func (s *InstancesClientStub) AggregatedList(ctx context.Context, req *computepb
 }
 
 func TestGetAllComputeInstances(t *testing.T) {
+	var parents []string
 	for _, tt := range []struct {
 		name string
 
-		ctx               context.Context
-		cfg               config
-		instances         map[string]*StubAggregatedInstanceListIterator
-		expectedInstances []computeInstance
+		ctx            context.Context
+		cfg            config
+		instances      map[string]*StubAggregatedInstanceListIterator
+		expectedEvents []beat.Event
 	}{
 		{
 			name: "with no project specified",
@@ -106,15 +111,21 @@ func TestGetAllComputeInstances(t *testing.T) {
 					},
 				},
 			},
-
-			expectedInstances: []computeInstance{
+			expectedEvents: []beat.Event{
 				{
-					ID:      "1",
-					Region:  "europe-west1",
-					Account: "my_project",
-					VPCs:    []string{"my_network"},
-					Metadata: mapstr.M{
-						"state": "RUNNING",
+					Fields: mapstr.M{
+						"asset.ean":            "host:1",
+						"asset.id":             "1",
+						"asset.type":           "gcp.compute.instance",
+						"asset.kind":           "host",
+						"asset.parents":        []string{"network:my_network"},
+						"asset.metadata.state": "RUNNING",
+						"cloud.account.id":     "my_project",
+						"cloud.provider":       "gcp",
+						"cloud.region":         "europe-west1",
+					},
+					Meta: mapstr.M{
+						"index": "assets-gcp.compute.instance-default",
 					},
 				},
 			},
@@ -157,22 +168,37 @@ func TestGetAllComputeInstances(t *testing.T) {
 					},
 				},
 			},
-
-			expectedInstances: []computeInstance{
+			expectedEvents: []beat.Event{
 				{
-					ID:      "1",
-					Region:  "europe-west1",
-					Account: "my_project",
-					Metadata: mapstr.M{
-						"state": "PROVISIONING",
+					Fields: mapstr.M{
+						"asset.ean":            "host:1",
+						"asset.id":             "1",
+						"asset.type":           "gcp.compute.instance",
+						"asset.kind":           "host",
+						"asset.parents":        parents,
+						"asset.metadata.state": "PROVISIONING",
+						"cloud.account.id":     "my_project",
+						"cloud.provider":       "gcp",
+						"cloud.region":         "europe-west1",
+					},
+					Meta: mapstr.M{
+						"index": "assets-gcp.compute.instance-default",
 					},
 				},
 				{
-					ID:      "42",
-					Region:  "europe-west1",
-					Account: "my_second_project",
-					Metadata: mapstr.M{
-						"state": "STOPPED",
+					Fields: mapstr.M{
+						"asset.ean":            "host:42",
+						"asset.id":             "42",
+						"asset.type":           "gcp.compute.instance",
+						"asset.kind":           "host",
+						"asset.parents":        parents,
+						"asset.metadata.state": "STOPPED",
+						"cloud.account.id":     "my_second_project",
+						"cloud.provider":       "gcp",
+						"cloud.region":         "europe-west1",
+					},
+					Meta: mapstr.M{
+						"index": "assets-gcp.compute.instance-default",
 					},
 				},
 			},
@@ -219,29 +245,37 @@ func TestGetAllComputeInstances(t *testing.T) {
 					},
 				},
 			},
-
-			expectedInstances: []computeInstance{
+			expectedEvents: []beat.Event{
 				{
-					ID:      "42",
-					Region:  "us-west1",
-					Account: "my_project",
-					Metadata: mapstr.M{
-						"state": "RUNNING",
+					Fields: mapstr.M{
+						"asset.ean":            "host:42",
+						"asset.id":             "42",
+						"asset.type":           "gcp.compute.instance",
+						"asset.kind":           "host",
+						"asset.parents":        parents,
+						"asset.metadata.state": "RUNNING",
+						"cloud.account.id":     "my_project",
+						"cloud.provider":       "gcp",
+						"cloud.region":         "us-west1",
+					},
+					Meta: mapstr.M{
+						"index": "assets-gcp.compute.instance-default",
 					},
 				},
 			},
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
+			publisher := testutil.NewInMemoryPublisher()
 			client := InstancesClientStub{AggregatedInstanceListIterator: tt.instances}
 			clientCreator := listInstanceAPIClient{
 				AggregatedList: func(ctx context.Context, req *computepb.AggregatedListInstancesRequest, opts ...gax.CallOption) AggregatedInstanceIterator {
 					return client.AggregatedList(ctx, req, opts...)
 				},
 			}
-			instances, err := getAllComputeInstances(tt.ctx, tt.cfg, clientCreator)
+			err := collectComputeAssets(tt.ctx, tt.cfg, clientCreator, publisher)
 			assert.NoError(t, err)
-			assert.Equal(t, tt.expectedInstances, instances)
+			assert.Equal(t, tt.expectedEvents, publisher.Events)
 		})
 	}
 }

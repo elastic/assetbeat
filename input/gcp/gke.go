@@ -23,9 +23,7 @@ import (
 	"strconv"
 	"strings"
 
-	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"
-	container "cloud.google.com/go/container/apiv1"
 	"cloud.google.com/go/container/apiv1/containerpb"
 	"github.com/googleapis/gax-go/v2"
 	"google.golang.org/api/iterator"
@@ -50,25 +48,9 @@ type containerCluster struct {
 	Metadata  mapstr.M
 }
 
-func collectGKEAssets(ctx context.Context, cfg config, log *logp.Logger, publisher stateless.Publisher) error {
-	client, err := container.NewClusterManagerClient(ctx)
-	if err != nil {
-		return err
-	}
-	defer client.Close()
+func collectGKEAssets(ctx context.Context, cfg config, log *logp.Logger, listInstanceClient listInstanceAPIClient, listClusterClient listClustersAPIClient, publisher stateless.Publisher) error {
 
-	computeClient, err := compute.NewInstancesRESTClient(ctx, buildClientOptions(cfg)...)
-	if err != nil {
-		return err
-	}
-	defer computeClient.Close()
-	listClient := listInstanceAPIClient{
-		AggregatedList: func(ctx context.Context, req *computepb.AggregatedListInstancesRequest, opts ...gax.CallOption) AggregatedInstanceIterator {
-			return computeClient.AggregatedList(ctx, req, opts...)
-		},
-	}
-
-	clusters, err := getAllGKEClusters(ctx, cfg, client)
+	clusters, err := getAllGKEClusters(ctx, cfg, listClusterClient)
 	if err != nil {
 		return err
 	}
@@ -85,7 +67,7 @@ func collectGKEAssets(ctx context.Context, cfg config, log *logp.Logger, publish
 			parents = append(parents, "network:"+cluster.VPC)
 		}
 
-		instances, err := getAllInstancesForGKECluster(ctx, cluster.Account, cluster.Region, cluster.NodePools, listClient)
+		instances, err := getAllInstancesForGKECluster(ctx, cluster.Account, cluster.Region, cluster.NodePools, listInstanceClient)
 		// We should not fail hard here since the core information for the asset comes from the GKE cluster data
 		if err != nil {
 			log.Warnf("Error while retrieving instances for GKE cluster %s: %+v", cluster.ID, err)

@@ -48,18 +48,9 @@ type computeInstance struct {
 	Metadata mapstr.M
 }
 
-func collectComputeAssets(ctx context.Context, cfg config, publisher stateless.Publisher) error {
-	client, err := compute.NewInstancesRESTClient(ctx, buildClientOptions(cfg)...)
-	if err != nil {
-		return err
-	}
-	defer client.Close()
-	listClient := listInstanceAPIClient{
-		AggregatedList: func(ctx context.Context, req *computepb.AggregatedListInstancesRequest, opts ...gax.CallOption) AggregatedInstanceIterator {
-			return client.AggregatedList(ctx, req, opts...)
-		},
-	}
-	instances, err := getAllComputeInstances(ctx, cfg, listClient)
+func collectComputeAssets(ctx context.Context, cfg config, client listInstanceAPIClient, publisher stateless.Publisher) error {
+
+	instances, err := getAllComputeInstances(ctx, cfg, client)
 	if err != nil {
 		return err
 	}
@@ -70,7 +61,6 @@ func collectComputeAssets(ctx context.Context, cfg config, publisher stateless.P
 	for _, instance := range instances {
 		var parents []string
 		for _, vpc := range instance.VPCs {
-			//TODO: Amend asset_type, if required, once VPCs gets actually collected for GCP
 			parents = append(parents, "network:"+vpc)
 		}
 
