@@ -5,5 +5,13 @@ steps:
     command: "echo 'Assetbeat pipeline'"
   - name: ":golang: mage build"
     command: "./.buildkite/scripts/build.sh"
+    plugins:
+      - golang#v2.0.0:
+          version: 1.19.10
+          import: github.com/buildkite/agent
   - name: ":golang: mage unitTests"
     command: "./.buildkite/scripts/tests.sh"
+    plugins:
+      - golang#v2.0.0:
+          version: 1.19.10
+          import: github.com/buildkite/agent
