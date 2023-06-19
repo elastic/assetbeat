@@ -25,3 +25,8 @@ if ! command -v mage &>/dev/null; then
 else
   echo "Mage is already installed. Skipping installation..."
 fi
+
+# To avoid
+# error obtaining VCS status: exit status 128
+#	Use -buildvcs=false to disable VCS stamping.
+go env -w GOFLAGS="-buildvcs=false"

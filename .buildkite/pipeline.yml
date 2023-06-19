@@ -8,10 +8,10 @@ steps:
     plugins:
       - golang#v2.0.0:
           version: 1.19.10
-          import: github.com/buildkite/agent
+          import: github.com/elastic/assetbeat
   - name: ":golang: mage unitTests"
     command: "./.buildkite/scripts/tests.sh"
     plugins:
       - golang#v2.0.0:
           version: 1.19.10
-          import: github.com/buildkite/agent
+          import: github.com/elastic/assetbeat
