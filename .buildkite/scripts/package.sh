@@ -2,7 +2,7 @@
 set -uxo pipefail
 
 env
-export PLATFORMS="linux/arm64"
+export PLATFORMS="linux/amd64 linux/arm64"
 export TYPES="tar.gz"
 
 WORKFLOW=$1

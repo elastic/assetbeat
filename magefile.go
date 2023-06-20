@@ -214,7 +214,7 @@ func Package() error {
 
 	for _, fullPlatform := range platformsList {
 		platform := getPlatform(fullPlatform)
-
+		fmt.Printf("Packaging assetbeat for platform: %s\n", fullPlatform)
 		for _, packageType := range typesList {
 			fmt.Printf("Packaging assetbeat for platform: %s packageType:%s\n", fullPlatform, packageType)
 			executablePath, err := crossBuild(platform)
@@ -253,7 +253,10 @@ func Package() error {
 					return err
 				}
 				tarFilePath := filepath.Join(defaultPackageFolder, tarFileName)
-				return createTarball(tarFilePath, filesPathList)
+				err := createTarball(tarFilePath, filesPathList)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -358,6 +361,7 @@ func getPlatformsList(platforms string) []string {
 			fmt.Printf("Unsupported platform %s. Skipping...", platform)
 		}
 	}
+	fmt.Printf("PlatformsList: %+v len: %d\n", platformsList, len(platformsList))
 	return platformsList
 }
 
