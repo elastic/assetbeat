@@ -20,16 +20,35 @@
 package main
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"fmt"
+	"io"
+	"k8s.io/utils/strings/slices"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
+	settings "github.com/elastic/assetbeat/cmd"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 )
+
+type Platform struct {
+	GOOS   string
+	GOARCH string
+}
+
+var supportedPlatforms = []string{"linux/amd64", "linux/arm64"}
+var supportedPackageTypes = []string{"docker", "tar.gz"}
+var defaultCrossBuildFolder = filepath.Join("build", "golang-crossbuild")
+var defaultPackageFolder = filepath.Join("build", "distributions")
+
+// TODO: should we move this or define it differently?
+const assetBeatVersion = "8.9.0"
 
 // Format formats all source files with `go fmt`
 func Format() error {
@@ -172,40 +191,195 @@ func Package() error {
 	start := time.Now()
 	defer func() { fmt.Println("package ran for", time.Since(start)) }()
 
-	platform, ok := os.LookupEnv("PLATFORMS")
-	if !ok {
-		return fmt.Errorf("PLATFORMS env var is not set. Available options are %s", "linux/amd64")
+	var platformsList []string
+	var typesList []string
+
+	platforms, ok := os.LookupEnv("PLATFORMS")
+	fmt.Printf("package command called for Platforms=%s\n", platforms)
+	if ok {
+		platformsList = getPlatformsList(platforms)
+	} else {
+		fmt.Printf("PLATFORMS env variable not defined. Package will run for all supported platforms %+v", supportedPlatforms)
+		platformsList = supportedPlatforms
 	}
+
 	types, ok := os.LookupEnv("TYPES")
-	if !ok {
-		return fmt.Errorf("TYPES env var is not set. Available options are %s", "docker")
+	fmt.Printf("package command called for Package Types=%s\n", types)
+	if ok {
+		typesList = getTypesList(types)
+	} else {
+		fmt.Printf("TYPES env variable not defined. Package will run for all supported package types %+v", supportedPackageTypes)
+		typesList = supportedPackageTypes
 	}
 
-	fmt.Printf("package command called for Platforms=%s and TYPES=%s\n", platform, types)
-	if platform == "linux/amd64" && types == "docker" {
-		filePath := "build/package/assetbeat/assetbeat-linux-amd64.docker/docker-build"
-		executable := filePath + "/assetbeat"
-		dockerfile := filePath + "/Dockerfile"
+	for _, fullPlatform := range platformsList {
+		platform := getPlatform(fullPlatform)
 
-		fmt.Printf("Creating filepath %s\n", filePath)
-		if err := sh.RunV("mkdir", "-p", filePath); err != nil {
-			return err
-		}
-		var envMap = map[string]string{
-			"GOOS":   "linux",
-			"GOARCH": "amd64",
-		}
-		fmt.Println("Building assetbeat binary")
-		if err := sh.RunWithV(envMap, "go", "build", "-o", executable); err != nil {
-			return err
-		}
-		fmt.Println("Copying Dockerfile")
-		if err := sh.RunV("cp", "Dockerfile.reference", dockerfile); err != nil {
-			return err
+		for _, packageType := range typesList {
+			fmt.Printf("Packaging assetbeat for platform: %s packageType:%s\n", fullPlatform, packageType)
+			executablePath, err := crossBuild(platform)
+			if err != nil {
+				return err
+			}
+			if packageType == "docker" {
+				filePath := fmt.Sprintf("build/package/assetbeat/assetbeat-%s-%s.docker/docker-build", platform.GOOS, platform.GOARCH)
+				dockerfile := filePath + "/Dockerfile"
+				executable := filePath + "/assetbeat"
+
+				fmt.Printf("Creating filepath %s\n", filePath)
+				if err := sh.RunV("mkdir", "-p", filePath); err != nil {
+					return err
+				}
+
+				fmt.Println("Copying Executable")
+				if err := sh.RunV("cp", executablePath, executable); err != nil {
+					return err
+				}
+
+				fmt.Println("Copying Dockerfile")
+				if err := sh.RunV("cp", "Dockerfile.reference", dockerfile); err != nil {
+					return err
+				}
+			} else {
+				fmt.Println("Creating tarball...")
+				filesPathList := []string{executablePath, "LICENSE.txt", "README.md", "assetbeat.yml"}
+				tarFileNameElements := []string{"assetbeat", settings.Version}
+				if isSnapshot() {
+					tarFileNameElements = append(tarFileNameElements, "SNAPSHOT")
+				}
+				tarFileNameElements = append(tarFileNameElements, []string{platform.GOOS, platform.GOARCH}...)
+				tarFileName := strings.Join(tarFileNameElements, "-") + ".tar.gz"
+				if err := sh.RunV("mkdir", "-p", defaultPackageFolder); err != nil {
+					return err
+				}
+				tarFilePath := filepath.Join(defaultPackageFolder, tarFileName)
+				return createTarball(tarFilePath, filesPathList)
+			}
 		}
 	}
 
 	return nil
+}
+
+func isSnapshot() bool {
+	isSnapshot, ok := os.LookupEnv("SNAPSHOT")
+	if ok {
+		return isSnapshot == "true"
+	}
+	return false
+}
+
+func createTarball(tarballFilePath string, filePaths []string) error {
+	file, err := os.Create(tarballFilePath)
+	if err != nil {
+		return fmt.Errorf("could not create tarball file '%s', got error '%s'", tarballFilePath, err)
+	}
+	defer file.Close()
+
+	gzipWriter := gzip.NewWriter(file)
+	defer gzipWriter.Close()
+
+	tarWriter := tar.NewWriter(gzipWriter)
+	defer tarWriter.Close()
+
+	for _, filePath := range filePaths {
+		err := addFileToTarWriter(filePath, tarWriter)
+		if err != nil {
+			return fmt.Errorf("could not add file '%s', to tarball, got error '%s'", filePath, err)
+		}
+	}
+
+	return nil
+}
+
+func addFileToTarWriter(filePath string, tarWriter *tar.Writer) error {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return fmt.Errorf("could not open file '%s', got error '%s'", filePath, err)
+	}
+	defer file.Close()
+
+	stat, err := file.Stat()
+	if err != nil {
+		return fmt.Errorf("could not get stat for file '%s', got error '%s'", filePath, err)
+	}
+
+	headerName := filepath.Base(filePath)
+	if strings.Contains(headerName, "assetbeat") {
+		//This makes sure that platform details are removed from the packaged assetbeat binary filename
+		headerName = "assetbeat"
+	}
+	header := &tar.Header{
+		Name:    headerName,
+		Size:    stat.Size(),
+		Mode:    int64(stat.Mode()),
+		ModTime: stat.ModTime(),
+	}
+
+	err = tarWriter.WriteHeader(header)
+	if err != nil {
+		return fmt.Errorf("could not write header for file '%s', got error '%s'", filePath, err)
+	}
+
+	_, err = io.Copy(tarWriter, file)
+	if err != nil {
+		return fmt.Errorf("could not copy the file '%s' data to the tarball, got error '%s'", filePath, err)
+	}
+
+	return nil
+}
+
+func crossBuild(platform Platform) (string, error) {
+	fmt.Printf("Building assetbeat binary for platform %+v\n", platform)
+	if err := sh.RunV("mkdir", "-p", defaultCrossBuildFolder); err != nil {
+		return "", err
+	}
+	executable := strings.Join([]string{"assetbeat", platform.GOOS, platform.GOARCH}, "-")
+
+	envMap := map[string]string{
+		"GOOS":   platform.GOOS,
+		"GOARCH": platform.GOARCH,
+	}
+	executablePath := filepath.Join(defaultCrossBuildFolder, executable)
+	err := sh.RunWithV(envMap, "go", "build", "-o", executablePath)
+	if err != nil {
+		return "", nil
+	}
+	return executablePath, nil
+}
+
+func getPlatformsList(platforms string) []string {
+	var platformsList []string
+	inputPlatformsList := strings.Split(platforms, " ")
+	for _, platform := range inputPlatformsList {
+		if slices.Contains(supportedPlatforms, platform) {
+			platformsList = append(platformsList, platform)
+		} else {
+			fmt.Printf("Unsupported platform %s. Skipping...", platform)
+		}
+	}
+	return platformsList
+}
+
+func getTypesList(types string) []string {
+	var typesList []string
+	inputTypesList := strings.Split(types, " ")
+	for _, packageType := range inputTypesList {
+		if slices.Contains(supportedPackageTypes, packageType) {
+			typesList = append(typesList, packageType)
+		} else {
+			fmt.Printf("Unsupported packageType %s. Skipping...", packageType)
+		}
+	}
+	return typesList
+}
+
+func getPlatform(p string) Platform {
+	platformSplit := strings.Split(p, "/")
+	return Platform{
+		GOOS:   platformSplit[0],
+		GOARCH: platformSplit[1],
+	}
 }
 
 // GetVersion returns the version of assetbeat
