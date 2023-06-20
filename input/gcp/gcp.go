@@ -56,7 +56,10 @@ func configure(cfg *conf.C) (stateless.Input, error) {
 }
 
 func newAssetsGCP(config config) (*assetsGCP, error) {
-	return &assetsGCP{config}, nil
+	vpcAssetsCache := &VpcAssetsCache{
+		vpcAssets: make(map[string]*vpc),
+	}
+	return &assetsGCP{config, vpcAssetsCache}, nil
 }
 
 type config struct {
@@ -76,6 +79,7 @@ func defaultConfig() config {
 
 type assetsGCP struct {
 	config
+	VpcAssetsCache *VpcAssetsCache
 }
 
 func (s *assetsGCP) Name() string { return "assets_gcp" }
@@ -131,7 +135,7 @@ func (s *assetsGCP) collectAll(ctx context.Context, log *logp.Logger, publisher 
 					return client.AggregatedList(ctx, req, opts...)
 				},
 			}
-			err = collectComputeAssets(ctx, s.config, listClient, publisher)
+			err = collectComputeAssets(ctx, s.config, s.VpcAssetsCache, listClient, publisher, log)
 			if err != nil {
 				log.Errorf("error collecting compute assets: %+v", err)
 			}
@@ -161,7 +165,7 @@ func (s *assetsGCP) collectAll(ctx context.Context, log *logp.Logger, publisher 
 					return computeClient.AggregatedList(ctx, req, opts...)
 				},
 			}
-			err = collectGKEAssets(ctx, s.config, log, listClient, client, publisher)
+			err = collectGKEAssets(ctx, s.config, s.VpcAssetsCache, log, listClient, client, publisher)
 			if err != nil {
 				log.Errorf("error collecting GKE assets: %+v", err)
 			}
@@ -171,7 +175,7 @@ func (s *assetsGCP) collectAll(ctx context.Context, log *logp.Logger, publisher 
 		go func() {
 			client, err := compute.NewNetworksRESTClient(ctx, buildClientOptions(s.config)...)
 			if err != nil {
-				log.Errorf("error collecting GKE assets: %+v", err)
+				log.Errorf("error collecting VPC assets: %+v", err)
 			}
 			defer func() {
 				if client != nil {
@@ -181,9 +185,9 @@ func (s *assetsGCP) collectAll(ctx context.Context, log *logp.Logger, publisher 
 			listClient := listNetworkAPIClient{List: func(ctx context.Context, req *computepb.ListNetworksRequest, opts ...gax.CallOption) NetworkIterator {
 				return client.List(ctx, req, opts...)
 			}}
-			err = collectVpcAssets(ctx, s.config, listClient, publisher)
+			err = collectVpcAssets(ctx, s.config, s.VpcAssetsCache, listClient, publisher, log)
 			if err != nil {
-				log.Errorf("error collecting GKE assets: %+v", err)
+				log.Errorf("error collecting VPC assets: %+v", err)
 			}
 		}()
 	}
@@ -191,7 +195,7 @@ func (s *assetsGCP) collectAll(ctx context.Context, log *logp.Logger, publisher 
 		go func() {
 			client, err := compute.NewSubnetworksRESTClient(ctx, buildClientOptions(s.config)...)
 			if err != nil {
-				log.Errorf("error collecting GKE assets: %+v", err)
+				log.Errorf("error collecting Subnet assets: %+v", err)
 			}
 			defer func() {
 				if client != nil {
@@ -203,7 +207,7 @@ func (s *assetsGCP) collectAll(ctx context.Context, log *logp.Logger, publisher 
 			}}
 			err = collectSubnetAssets(ctx, s.config, listClient, publisher)
 			if err != nil {
-				log.Errorf("error collecting GKE assets: %+v", err)
+				log.Errorf("error collecting Subnet assets: %+v", err)
 			}
 		}()
 	}

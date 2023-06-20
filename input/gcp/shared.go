@@ -17,7 +17,11 @@
 
 package gcp
 
-import "strings"
+import (
+	"strings"
+
+	"cloud.google.com/go/container/apiv1/containerpb"
+)
 
 func getResourceNameFromURL(res string) string {
 	s := strings.Split(res, "/")
@@ -28,4 +32,23 @@ func getRegionFromZoneURL(zone string) string {
 	z := getResourceNameFromURL(zone)
 	r := strings.Split(z, "-")
 	return strings.Join(r[:len(r)-1], "-")
+}
+
+func getVpcIdFromLink(selfLink string, vpcAssetCache *VpcAssetsCache) string {
+	vpcAssetCache.lock.Lock()
+	defer vpcAssetCache.lock.Unlock()
+	v := vpcAssetCache.getAssetEntry(selfLink)
+	if v != nil {
+		return v.ID
+	}
+	return ""
+}
+
+func getNetSelfLinkFromNetConfig(networkConfig *containerpb.NetworkConfig) string {
+	network := networkConfig.Network
+	if len(network) > 0 {
+		return "https://www.googleapis.com/compute/v1/" + network
+	}
+
+	return ""
 }

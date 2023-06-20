@@ -28,6 +28,7 @@ import (
 
 	"github.com/elastic/assetbeat/input/internal"
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
@@ -48,9 +49,9 @@ type computeInstance struct {
 	Metadata mapstr.M
 }
 
-func collectComputeAssets(ctx context.Context, cfg config, client listInstanceAPIClient, publisher stateless.Publisher) error {
+func collectComputeAssets(ctx context.Context, cfg config, vpcAssetCache *VpcAssetsCache, client listInstanceAPIClient, publisher stateless.Publisher, log *logp.Logger) error {
 
-	instances, err := getAllComputeInstances(ctx, cfg, client)
+	instances, err := getAllComputeInstances(ctx, cfg, vpcAssetCache, client)
 	if err != nil {
 		return err
 	}
@@ -61,9 +62,11 @@ func collectComputeAssets(ctx context.Context, cfg config, client listInstanceAP
 	for _, instance := range instances {
 		var parents []string
 		for _, vpc := range instance.VPCs {
-			parents = append(parents, "network:"+vpc)
+			if len(vpc) > 0 {
+				parents = append(parents, "network:"+vpc)
+			}
 		}
-
+		log.Debug("Publishing GCP compute instances")
 		internal.Publish(publisher,
 			internal.WithAssetCloudProvider("gcp"),
 			internal.WithAssetRegion(instance.Region),
@@ -80,7 +83,7 @@ func collectComputeAssets(ctx context.Context, cfg config, client listInstanceAP
 	return nil
 }
 
-func getAllComputeInstances(ctx context.Context, cfg config, client listInstanceAPIClient) ([]computeInstance, error) {
+func getAllComputeInstances(ctx context.Context, cfg config, vpcAssetCache *VpcAssetsCache, client listInstanceAPIClient) ([]computeInstance, error) {
 	var instances []computeInstance
 
 	for _, p := range cfg.Projects {
@@ -101,7 +104,7 @@ func getAllComputeInstances(ctx context.Context, cfg config, client listInstance
 				if wantInstance(cfg, i) {
 					var vpcs []string
 					for _, ni := range i.NetworkInterfaces {
-						vpcs = append(vpcs, getResourceNameFromURL(*ni.Network))
+						vpcs = append(vpcs, getVpcIdFromLink(*ni.Network, vpcAssetCache))
 					}
 
 					instances = append(instances, computeInstance{

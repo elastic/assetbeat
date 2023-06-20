@@ -18,13 +18,16 @@
 package gcp
 
 import (
-	"cloud.google.com/go/compute/apiv1/computepb"
 	"context"
-	"github.com/elastic/assetbeat/input/internal"
-	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
+	"strconv"
+
+	"cloud.google.com/go/compute/apiv1/computepb"
 	"github.com/googleapis/gax-go/v2"
 	"google.golang.org/api/iterator"
-	"strconv"
+
+	"github.com/elastic/assetbeat/input/internal"
+	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
+	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 type NetworkIterator interface {
@@ -56,17 +59,16 @@ type subnet struct {
 	Region  string
 }
 
-func collectVpcAssets(ctx context.Context, cfg config, client listNetworkAPIClient, publisher stateless.Publisher) error {
-
-	vpcs, err := getAllVPCs(ctx, cfg, client)
-
+func collectVpcAssets(ctx context.Context, cfg config, vpcAssetCache *VpcAssetsCache, client listNetworkAPIClient, publisher stateless.Publisher, log *logp.Logger) error {
+	vpcs, err := getAllVPCs(ctx, cfg, vpcAssetCache, client)
 	if err != nil {
 		return err
 	}
-
 	assetType := "gcp.vpc"
 	assetKind := "network"
 	indexNamespace := cfg.IndexNamespace
+
+	log.Debug("Publishing VPCs")
 	for _, vpc := range vpcs {
 
 		internal.Publish(publisher,
@@ -81,7 +83,7 @@ func collectVpcAssets(ctx context.Context, cfg config, client listNetworkAPIClie
 	return nil
 }
 
-func getAllVPCs(ctx context.Context, cfg config, client listNetworkAPIClient) ([]vpc, error) {
+func getAllVPCs(ctx context.Context, cfg config, vpcAssetCache *VpcAssetsCache, client listNetworkAPIClient) ([]vpc, error) {
 	var vpcs []vpc
 	for _, project := range cfg.Projects {
 		req := &computepb.ListNetworksRequest{
@@ -98,11 +100,16 @@ func getAllVPCs(ctx context.Context, cfg config, client listNetworkAPIClient) ([
 			if err != nil {
 				return nil, err
 			}
-			vpcs = append(vpcs, vpc{
+			nv := vpc{
 				ID:      strconv.FormatUint(*v.Id, 10),
 				Account: project,
 				Name:    *v.Name,
-			})
+			}
+			vpcs = append(vpcs, nv)
+			selfLink := *v.SelfLink
+			//vpcAssetCache.lock.Lock()
+			//defer vpcAssetCache.lock.Unlock()
+			vpcAssetCache.setAssetEntry(selfLink, &nv)
 		}
 	}
 	return vpcs, nil

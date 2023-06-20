@@ -48,9 +48,9 @@ type containerCluster struct {
 	Metadata  mapstr.M
 }
 
-func collectGKEAssets(ctx context.Context, cfg config, log *logp.Logger, listInstanceClient listInstanceAPIClient, listClusterClient listClustersAPIClient, publisher stateless.Publisher) error {
+func collectGKEAssets(ctx context.Context, cfg config, vpcAssetCache *VpcAssetsCache, log *logp.Logger, listInstanceClient listInstanceAPIClient, listClusterClient listClustersAPIClient, publisher stateless.Publisher) error {
 
-	clusters, err := getAllGKEClusters(ctx, cfg, listClusterClient)
+	clusters, err := getAllGKEClusters(ctx, cfg, listClusterClient, vpcAssetCache, log)
 	if err != nil {
 		return err
 	}
@@ -162,7 +162,7 @@ func makeListClusterRequests(project string, zones []string) []*containerpb.List
 	return requests
 }
 
-func getAllGKEClusters(ctx context.Context, cfg config, client listClustersAPIClient) ([]containerCluster, error) {
+func getAllGKEClusters(ctx context.Context, cfg config, client listClustersAPIClient, vpcAssetCache *VpcAssetsCache, log *logp.Logger) ([]containerCluster, error) {
 	var clusters []containerCluster
 	var zones []string
 	if len(cfg.Regions) > 0 {
@@ -181,12 +181,12 @@ func getAllGKEClusters(ctx context.Context, cfg config, client listClustersAPICl
 			}
 
 			for _, c := range list.Clusters {
-
+				net := getNetSelfLinkFromNetConfig(c.NetworkConfig)
 				clusters = append(clusters, containerCluster{
 					ID:        c.Id,
 					Region:    c.Location,
 					Account:   p,
-					VPC:       c.Network,
+					VPC:       getVpcIdFromLink(net, vpcAssetCache),
 					NodePools: c.NodePools,
 					Labels:    c.ResourceLabels,
 					Metadata: mapstr.M{
