@@ -1,6 +1,6 @@
 # Buildkite
 
-This README provides an overview of the Buildkite pipeline used to automate the build and publish process for Cloudbeat artifacts.
+This README provides an overview of the Buildkite pipeline used to automate the build and publish process for Assetbeat artifacts.
 
 ## Pipeline Configuration
 
