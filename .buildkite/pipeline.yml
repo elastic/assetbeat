@@ -2,7 +2,7 @@ agents:
   provider: "gcp"
 steps:
   - label: ":package: Package Assetbeat - Snapshot"
-    if: build.branch == 'main'
+    if: build.branch == 'buildkite-dev'
     key: "package-snapshot"
     command: "./.buildkite/scripts/package.sh snapshot"
     artifact_paths: "build/distributions/*"
@@ -11,6 +11,6 @@ steps:
           version: 1.19.10
           import: github.com/elastic/assetbeat
   - label: ":rocket: Publishing Snapshot DRA artifacts"
-    if: build.branch == 'main'
+    if: build.branch == 'buildkite-dev'
     depends_on: "package-snapshot"
     command: "./.buildkite/scripts/publish.sh snapshot"
