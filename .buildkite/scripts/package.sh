@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -uxo pipefail
 
-env
 export PLATFORMS="linux/amd64 linux/arm64"
 export TYPES="tar.gz"
 
