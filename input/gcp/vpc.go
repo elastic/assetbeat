@@ -91,7 +91,6 @@ func getAllVPCs(ctx context.Context, cfg config, vpcAssetCache *VpcAssetsCache, 
 		}
 
 		it := client.List(ctx, req)
-
 		for {
 			v, err := it.Next()
 			if err == iterator.Done {
@@ -107,9 +106,10 @@ func getAllVPCs(ctx context.Context, cfg config, vpcAssetCache *VpcAssetsCache, 
 			}
 			vpcs = append(vpcs, nv)
 			selfLink := *v.SelfLink
-			//vpcAssetCache.lock.Lock()
-			//defer vpcAssetCache.lock.Unlock()
+
+			vpcAssetCache.lock.Lock()
 			vpcAssetCache.setAssetEntry(selfLink, &nv)
+			vpcAssetCache.lock.Unlock()
 		}
 	}
 	return vpcs, nil
