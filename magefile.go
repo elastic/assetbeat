@@ -49,9 +49,6 @@ var supportedPackageTypes = []string{"docker", "tar.gz"}
 var defaultCrossBuildFolder = filepath.Join("build", "golang-crossbuild")
 var defaultPackageFolder = filepath.Join("build", "distributions")
 
-// TODO: should we move this or define it differently?
-const assetBeatVersion = "8.9.0"
-
 // Format formats all source files with `go fmt`
 func Format() error {
 	if err := sh.RunV("go", "fmt", "./..."); err != nil {
@@ -387,7 +384,6 @@ func getPlatformsList(platforms string) []string {
 			fmt.Printf("Unsupported platform %s. Skipping...", platform)
 		}
 	}
-	fmt.Printf("PlatformsList: %+v len: %d\n", platformsList, len(platformsList))
 	return platformsList
 }
 
