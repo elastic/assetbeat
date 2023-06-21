@@ -32,6 +32,7 @@ import (
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
+	"github.com/elastic/go-freelru"
 )
 
 type listClustersAPIClient interface {
@@ -48,7 +49,7 @@ type containerCluster struct {
 	Metadata  mapstr.M
 }
 
-func collectGKEAssets(ctx context.Context, cfg config, vpcAssetCache *VpcAssetsCache, log *logp.Logger, listInstanceClient listInstanceAPIClient, listClusterClient listClustersAPIClient, publisher stateless.Publisher) error {
+func collectGKEAssets(ctx context.Context, cfg config, vpcAssetCache *freelru.LRU[string, *vpc], log *logp.Logger, listInstanceClient listInstanceAPIClient, listClusterClient listClustersAPIClient, publisher stateless.Publisher) error {
 
 	clusters, err := getAllGKEClusters(ctx, cfg, listClusterClient, vpcAssetCache, log)
 	if err != nil {
@@ -162,7 +163,7 @@ func makeListClusterRequests(project string, zones []string) []*containerpb.List
 	return requests
 }
 
-func getAllGKEClusters(ctx context.Context, cfg config, client listClustersAPIClient, vpcAssetCache *VpcAssetsCache, log *logp.Logger) ([]containerCluster, error) {
+func getAllGKEClusters(ctx context.Context, cfg config, client listClustersAPIClient, vpcAssetCache *freelru.LRU[string, *vpc], log *logp.Logger) ([]containerCluster, error) {
 	var clusters []containerCluster
 	var zones []string
 	if len(cfg.Regions) > 0 {

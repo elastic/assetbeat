@@ -28,6 +28,7 @@ import (
 	"github.com/elastic/assetbeat/input/internal"
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/go-freelru"
 )
 
 type NetworkIterator interface {
@@ -59,7 +60,7 @@ type subnet struct {
 	Region  string
 }
 
-func collectVpcAssets(ctx context.Context, cfg config, vpcAssetCache *VpcAssetsCache, client listNetworkAPIClient, publisher stateless.Publisher, log *logp.Logger) error {
+func collectVpcAssets(ctx context.Context, cfg config, vpcAssetCache *freelru.LRU[string, *vpc], client listNetworkAPIClient, publisher stateless.Publisher, log *logp.Logger) error {
 	vpcs, err := getAllVPCs(ctx, cfg, vpcAssetCache, client)
 	if err != nil {
 		return err
@@ -83,7 +84,7 @@ func collectVpcAssets(ctx context.Context, cfg config, vpcAssetCache *VpcAssetsC
 	return nil
 }
 
-func getAllVPCs(ctx context.Context, cfg config, vpcAssetCache *VpcAssetsCache, client listNetworkAPIClient) ([]vpc, error) {
+func getAllVPCs(ctx context.Context, cfg config, vpcAssetCache *freelru.LRU[string, *vpc], client listNetworkAPIClient) ([]vpc, error) {
 	var vpcs []vpc
 	for _, project := range cfg.Projects {
 		req := &computepb.ListNetworksRequest{
@@ -106,10 +107,7 @@ func getAllVPCs(ctx context.Context, cfg config, vpcAssetCache *VpcAssetsCache, 
 			}
 			vpcs = append(vpcs, nv)
 			selfLink := *v.SelfLink
-
-			vpcAssetCache.lock.Lock()
-			vpcAssetCache.setAssetEntry(selfLink, &nv)
-			vpcAssetCache.lock.Unlock()
+			vpcAssetCache.AddWithExpire(selfLink, &nv, cfg.Period*2)
 		}
 	}
 	return vpcs, nil

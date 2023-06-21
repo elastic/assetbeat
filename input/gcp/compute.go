@@ -30,6 +30,7 @@ import (
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
+	"github.com/elastic/go-freelru"
 )
 
 type AggregatedInstanceIterator interface {
@@ -49,7 +50,7 @@ type computeInstance struct {
 	Metadata mapstr.M
 }
 
-func collectComputeAssets(ctx context.Context, cfg config, vpcAssetCache *VpcAssetsCache, client listInstanceAPIClient, publisher stateless.Publisher, log *logp.Logger) error {
+func collectComputeAssets(ctx context.Context, cfg config, vpcAssetCache *freelru.LRU[string, *vpc], client listInstanceAPIClient, publisher stateless.Publisher, log *logp.Logger) error {
 
 	instances, err := getAllComputeInstances(ctx, cfg, vpcAssetCache, client)
 	if err != nil {
@@ -83,7 +84,7 @@ func collectComputeAssets(ctx context.Context, cfg config, vpcAssetCache *VpcAss
 	return nil
 }
 
-func getAllComputeInstances(ctx context.Context, cfg config, vpcAssetCache *VpcAssetsCache, client listInstanceAPIClient) ([]computeInstance, error) {
+func getAllComputeInstances(ctx context.Context, cfg config, vpcAssetCache *freelru.LRU[string, *vpc], client listInstanceAPIClient) ([]computeInstance, error) {
 	var instances []computeInstance
 
 	for _, p := range cfg.Projects {

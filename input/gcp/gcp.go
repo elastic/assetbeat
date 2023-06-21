@@ -24,6 +24,7 @@ import (
 	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"
 	container "cloud.google.com/go/container/apiv1"
+	"github.com/cespare/xxhash"
 	"github.com/googleapis/gax-go/v2"
 	"google.golang.org/api/option"
 
@@ -34,6 +35,7 @@ import (
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/go-concert/ctxtool"
+	"github.com/elastic/go-freelru"
 )
 
 func Plugin() input.Plugin {
@@ -55,10 +57,13 @@ func configure(cfg *conf.C) (stateless.Input, error) {
 	return newAssetsGCP(config)
 }
 
+// more hash function in https://github.com/elastic/go-freelru/blob/main/bench/hash.go
+func hashStringXXHASH(s string) uint32 {
+	return uint32(xxhash.Sum64String(s))
+}
+
 func newAssetsGCP(config config) (*assetsGCP, error) {
-	vpcAssetsCache := &VpcAssetsCache{
-		vpcAssets: make(map[string]*vpc),
-	}
+	vpcAssetsCache, _ := freelru.New[string, *vpc](8192, hashStringXXHASH)
 	return &assetsGCP{config, vpcAssetsCache}, nil
 }
 
@@ -79,7 +84,7 @@ func defaultConfig() config {
 
 type assetsGCP struct {
 	config
-	VpcAssetsCache *VpcAssetsCache
+	VpcAssetsCache *freelru.LRU[string, *vpc]
 }
 
 func (s *assetsGCP) Name() string { return "assets_gcp" }

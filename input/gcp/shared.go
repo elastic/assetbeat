@@ -21,6 +21,8 @@ import (
 	"strings"
 
 	"cloud.google.com/go/container/apiv1/containerpb"
+
+	"github.com/elastic/go-freelru"
 )
 
 func getResourceNameFromURL(res string) string {
@@ -34,11 +36,9 @@ func getRegionFromZoneURL(zone string) string {
 	return strings.Join(r[:len(r)-1], "-")
 }
 
-func getVpcIdFromLink(selfLink string, vpcAssetCache *VpcAssetsCache) string {
-	vpcAssetCache.lock.Lock()
-	defer vpcAssetCache.lock.Unlock()
-	v := vpcAssetCache.getAssetEntry(selfLink)
-	if v != nil {
+func getVpcIdFromLink(selfLink string, vpcAssetCache *freelru.LRU[string, *vpc]) string {
+	v, ok := vpcAssetCache.Get(selfLink)
+	if ok {
 		return v.ID
 	}
 	return ""
