@@ -71,7 +71,7 @@ func Build() error {
 		return err
 	}
 
-	return sh.RunV("go", "build", ".")
+	return sh.RunV("go", "build", "-ldflags=-s -w", "-trimpath", ".")
 }
 
 // Lint runs golangci-lint
@@ -367,7 +367,7 @@ func crossBuild(platform Platform) (string, error) {
 		"GOARCH": platform.GOARCH,
 	}
 	executablePath := filepath.Join(defaultCrossBuildFolder, executable)
-	err := sh.RunWithV(envMap, "go", "build", "-o", executablePath)
+	err := sh.RunWithV(envMap, "go", "build", "-o", executablePath, "-trimpath", "-ldflags=-s -w")
 	if err != nil {
 		return "", nil
 	}
