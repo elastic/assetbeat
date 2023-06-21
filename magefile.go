@@ -22,6 +22,8 @@ package main
 import (
 	"archive/tar"
 	"compress/gzip"
+	"crypto/sha512"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"k8s.io/utils/strings/slices"
@@ -214,7 +216,6 @@ func Package() error {
 
 	for _, fullPlatform := range platformsList {
 		platform := getPlatform(fullPlatform)
-		fmt.Printf("Packaging assetbeat for platform: %s\n", fullPlatform)
 		for _, packageType := range typesList {
 			fmt.Printf("Packaging assetbeat for platform: %s packageType:%s\n", fullPlatform, packageType)
 			executablePath, err := crossBuild(platform)
@@ -241,7 +242,6 @@ func Package() error {
 					return err
 				}
 			} else {
-				fmt.Println("Creating tarball...")
 				filesPathList := []string{executablePath, "LICENSE.txt", "README.md", "assetbeat.yml"}
 				tarFileNameElements := []string{"assetbeat", settings.Version}
 				if isSnapshot() {
@@ -257,11 +257,36 @@ func Package() error {
 				if err != nil {
 					return err
 				}
+				err = createSHA512File(tarFilePath)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
 
 	return nil
+}
+
+// CreateSHA512File computes the sha512 sum of the specified file the writes
+// a sidecar file containing the hash and filename.
+func createSHA512File(file string) error {
+	fmt.Printf("Creating SHA512 hash... Filepath: %s\n", file+".sha512")
+	f, err := os.Open(file)
+	if err != nil {
+		return fmt.Errorf("failed to open file for sha512 summing. Error %s", err)
+	}
+	defer f.Close()
+
+	sum := sha512.New()
+	if _, err := io.Copy(sum, f); err != nil {
+		return fmt.Errorf("failed reading from input file. Error %s", err)
+	}
+
+	computedHash := hex.EncodeToString(sum.Sum(nil))
+	out := fmt.Sprintf("%v  %v", computedHash, filepath.Base(file))
+
+	return os.WriteFile(file+".sha512", []byte(out), 0644)
 }
 
 func isSnapshot() bool {
@@ -273,6 +298,7 @@ func isSnapshot() bool {
 }
 
 func createTarball(tarballFilePath string, filePaths []string) error {
+	fmt.Printf("Creating tarball... Filepath: %s\n", tarballFilePath)
 	file, err := os.Create(tarballFilePath)
 	if err != nil {
 		return fmt.Errorf("could not create tarball file '%s', got error '%s'", tarballFilePath, err)
