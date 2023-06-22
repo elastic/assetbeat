@@ -207,10 +207,13 @@ func (s *assetsGCP) collectAll(ctx context.Context, log *logp.Logger, publisher 
 					client.Close()
 				}
 			}()
-			listClient := listSubnetworkAPIClient{List: func(ctx context.Context, req *computepb.ListSubnetworksRequest, opts ...gax.CallOption) SubnetIterator {
-				return client.List(ctx, req, opts...)
-			}}
-			err = collectSubnetAssets(ctx, s.config, listClient, publisher)
+
+			listClient := listSubnetworkAPIClient{
+				AggregatedList: func(ctx context.Context, req *computepb.AggregatedListSubnetworksRequest, opts ...gax.CallOption) AggregatedSubnetworkIterator {
+					return client.AggregatedList(ctx, req, opts...)
+				},
+			}
+			err = collectSubnetAssets(ctx, s.config, listClient, publisher, log)
 			if err != nil {
 				log.Errorf("error collecting Subnet assets: %+v", err)
 			}
