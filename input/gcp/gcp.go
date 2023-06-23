@@ -24,7 +24,6 @@ import (
 	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"
 	container "cloud.google.com/go/container/apiv1"
-	"github.com/cespare/xxhash"
 	"github.com/googleapis/gax-go/v2"
 	"google.golang.org/api/option"
 
@@ -55,11 +54,6 @@ func configure(cfg *conf.C) (stateless.Input, error) {
 	}
 
 	return newAssetsGCP(config)
-}
-
-// more hash function in https://github.com/elastic/go-freelru/blob/main/bench/hash.go
-func hashStringXXHASH(s string) uint32 {
-	return uint32(xxhash.Sum64String(s))
 }
 
 func newAssetsGCP(config config) (*assetsGCP, error) {

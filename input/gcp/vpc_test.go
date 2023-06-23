@@ -21,6 +21,7 @@ import (
 	"context"
 	"testing"
 
+	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"
 	"github.com/gogo/protobuf/proto"
 	"github.com/googleapis/gax-go/v2"
@@ -29,7 +30,9 @@ import (
 
 	"github.com/elastic/assetbeat/input/testutil"
 	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
+	"github.com/elastic/go-freelru"
 )
 
 type StubNetworksListIterator struct {
@@ -64,23 +67,23 @@ func (s *NetworkClientStub) List(ctx context.Context, req *computepb.ListNetwork
 	return s.NetworkListIterator[project]
 }
 
-type StubSubnetsListIterator struct {
-	iterCounter        int
-	ReturnSubnetsList  []*computepb.Subnetwork
-	ReturnSubnetsError error
+type StubAggregatedSubnetListIterator struct {
+	iterCounter             int
+	ReturnScopedSubnetsList []compute.SubnetworksScopedListPair
+	ReturnInstancesError    error
 }
 
-func (it *StubSubnetsListIterator) Next() (*computepb.Subnetwork, error) {
+func (it *StubAggregatedSubnetListIterator) Next() (compute.SubnetworksScopedListPair, error) {
 
-	if it.ReturnSubnetsError != nil {
-		return &computepb.Subnetwork{}, it.ReturnSubnetsError
+	if it.ReturnInstancesError != nil {
+		return compute.SubnetworksScopedListPair{}, it.ReturnInstancesError
 	}
 
-	if it.iterCounter == len(it.ReturnSubnetsList) {
-		return &computepb.Subnetwork{}, iterator.Done
+	if it.iterCounter == len(it.ReturnScopedSubnetsList) {
+		return compute.SubnetworksScopedListPair{}, iterator.Done
 	}
 
-	networks := it.ReturnSubnetsList[it.iterCounter]
+	networks := it.ReturnScopedSubnetsList[it.iterCounter]
 	it.iterCounter++
 
 	return networks, nil
@@ -88,14 +91,13 @@ func (it *StubSubnetsListIterator) Next() (*computepb.Subnetwork, error) {
 }
 
 type SubnetClientStub struct {
-	SubnetListIterator map[string]*StubSubnetsListIterator
+	AggregatedSubnetworkIterator map[string]*StubAggregatedSubnetListIterator
 }
 
-func (s *SubnetClientStub) List(ctx context.Context, req *computepb.ListSubnetworksRequest, opts ...gax.CallOption) SubnetIterator {
+func (s *SubnetClientStub) AggregatedList(ctx context.Context, req *computepb.AggregatedListSubnetworksRequest, opts ...gax.CallOption) AggregatedSubnetworkIterator {
 	project := req.Project
-	return s.SubnetListIterator[project]
+	return s.AggregatedSubnetworkIterator[project]
 }
-
 func TestCollectVpcAssets(t *testing.T) {
 	for _, tt := range []struct {
 		name           string
@@ -112,12 +114,14 @@ func TestCollectVpcAssets(t *testing.T) {
 				"my_project": {
 					ReturnNetworksList: []*computepb.Network{
 						{
-							Id:   proto.Uint64(1),
-							Name: proto.String("test-vpc-1"),
+							Id:       proto.Uint64(1),
+							Name:     proto.String("test-vpc-1"),
+							SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/myproject/global/networks/test-vpc-1"),
 						},
 						{
-							Id:   proto.Uint64(2),
-							Name: proto.String("test-vpc-2"),
+							Id:       proto.Uint64(2),
+							Name:     proto.String("test-vpc-2"),
+							SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/myproject/global/networks/test-vpc-2"),
 						},
 					},
 				},
@@ -162,24 +166,28 @@ func TestCollectVpcAssets(t *testing.T) {
 				"my_first_project": {
 					ReturnNetworksList: []*computepb.Network{
 						{
-							Id:   proto.Uint64(1),
-							Name: proto.String("test-vpc-1"),
+							Id:       proto.Uint64(1),
+							Name:     proto.String("test-vpc-1"),
+							SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/myproject/global/networks/test-vpc-1"),
 						},
 						{
-							Id:   proto.Uint64(2),
-							Name: proto.String("test-vpc-2"),
+							Id:       proto.Uint64(2),
+							Name:     proto.String("test-vpc-2"),
+							SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/myproject/global/networks/test-vpc-2"),
 						},
 					},
 				},
 				"my_second_project": {
 					ReturnNetworksList: []*computepb.Network{
 						{
-							Id:   proto.Uint64(3),
-							Name: proto.String("test-vpc-3"),
+							Id:       proto.Uint64(3),
+							Name:     proto.String("test-vpc-3"),
+							SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/myproject/global/networks/test-vpc-3"),
 						},
 						{
-							Id:   proto.Uint64(4),
-							Name: proto.String("test-vpc-4"),
+							Id:       proto.Uint64(4),
+							Name:     proto.String("test-vpc-4"),
+							SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/myproject/global/networks/test-vpc-4"),
 						},
 					},
 				},
@@ -252,7 +260,9 @@ func TestCollectVpcAssets(t *testing.T) {
 			listClient := listNetworkAPIClient{List: func(ctx context.Context, req *computepb.ListNetworksRequest, opts ...gax.CallOption) NetworkIterator {
 				return client.List(ctx, req, opts...)
 			}}
-			err := collectVpcAssets(ctx, tt.cfg, listClient, publisher)
+			log := logp.NewLogger("mylogger")
+			vpcAssetsCache, _ := freelru.New[string, *vpc](8192, hashStringXXHASH)
+			err := collectVpcAssets(ctx, tt.cfg, vpcAssetsCache, listClient, publisher, log)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedEvents, publisher.Events)
 		})
@@ -263,7 +273,7 @@ func TestCollectSubnetAssets(t *testing.T) {
 	for _, tt := range []struct {
 		name           string
 		cfg            config
-		subnets        map[string]*StubSubnetsListIterator
+		subnets        map[string]*StubAggregatedSubnetListIterator
 		expectedEvents []beat.Event
 	}{
 		{
@@ -271,18 +281,32 @@ func TestCollectSubnetAssets(t *testing.T) {
 			cfg: config{
 				Projects: []string{"my_project"},
 			},
-			subnets: map[string]*StubSubnetsListIterator{
+			subnets: map[string]*StubAggregatedSubnetListIterator{
 				"my_project": {
-					ReturnSubnetsList: []*computepb.Subnetwork{
+					ReturnScopedSubnetsList: []compute.SubnetworksScopedListPair{
 						{
-							Id:     proto.Uint64(1),
-							Name:   proto.String("test-subnet-1"),
-							Region: proto.String("europe-west-1"),
+							Key: "europe-west-1",
+							Value: &computepb.SubnetworksScopedList{
+								Subnetworks: []*computepb.Subnetwork{
+									{
+										Id:     proto.Uint64(1),
+										Name:   proto.String("test-subnet-1"),
+										Region: proto.String("europe-west-1"),
+									},
+								},
+							},
 						},
 						{
-							Id:     proto.Uint64(2),
-							Name:   proto.String("test-subnet-2"),
-							Region: proto.String("europe-west-1"),
+							Key: "europe-west-1",
+							Value: &computepb.SubnetworksScopedList{
+								Subnetworks: []*computepb.Subnetwork{
+									{
+										Id:     proto.Uint64(2),
+										Name:   proto.String("test-subnet-2"),
+										Region: proto.String("europe-west-1"),
+									},
+								},
+							},
 						},
 					},
 				},
@@ -326,42 +350,84 @@ func TestCollectSubnetAssets(t *testing.T) {
 				Projects: []string{"my_first_project", "my_second_project"},
 				Regions:  []string{"europe-west-1", "us-central1"},
 			},
-			subnets: map[string]*StubSubnetsListIterator{
+			subnets: map[string]*StubAggregatedSubnetListIterator{
 				"my_first_project": {
-					ReturnSubnetsList: []*computepb.Subnetwork{
+					ReturnScopedSubnetsList: []compute.SubnetworksScopedListPair{
 						{
-							Id:     proto.Uint64(1),
-							Name:   proto.String("test-subnet-1"),
-							Region: proto.String("europe-west-1"),
+							Key: "europe-west-1",
+							Value: &computepb.SubnetworksScopedList{
+								Subnetworks: []*computepb.Subnetwork{
+									{
+										Id:     proto.Uint64(1),
+										Name:   proto.String("test-subnet-1"),
+										Region: proto.String("europe-west-1"),
+									},
+								},
+							},
 						},
 						{
-							Id:     proto.Uint64(2),
-							Name:   proto.String("test-subnet-2"),
-							Region: proto.String("europe-west-1"),
+							Key: "europe-west-1",
+							Value: &computepb.SubnetworksScopedList{
+								Subnetworks: []*computepb.Subnetwork{
+									{
+										Id:     proto.Uint64(2),
+										Name:   proto.String("test-subnet-2"),
+										Region: proto.String("europe-west-1"),
+									},
+								},
+							},
 						},
 					},
 				},
 				"my_second_project": {
-					ReturnSubnetsList: []*computepb.Subnetwork{
+					ReturnScopedSubnetsList: []compute.SubnetworksScopedListPair{
 						{
-							Id:     proto.Uint64(3),
-							Name:   proto.String("test-subnet-3"),
-							Region: proto.String("europe-west-1"),
+							Key: "europe-west-1",
+							Value: &computepb.SubnetworksScopedList{
+								Subnetworks: []*computepb.Subnetwork{
+									{
+										Id:     proto.Uint64(3),
+										Name:   proto.String("test-subnet-3"),
+										Region: proto.String("europe-west-1"),
+									},
+								},
+							},
 						},
 						{
-							Id:     proto.Uint64(4),
-							Name:   proto.String("test-subnet-4"),
-							Region: proto.String("europe-west-1"),
+							Key: "europe-west-1",
+							Value: &computepb.SubnetworksScopedList{
+								Subnetworks: []*computepb.Subnetwork{
+									{
+										Id:     proto.Uint64(4),
+										Name:   proto.String("test-subnet-4"),
+										Region: proto.String("europe-west-1"),
+									},
+								},
+							},
 						},
 						{
-							Id:     proto.Uint64(5), //this should not appear in the events
-							Name:   proto.String("test-subnet-5"),
-							Region: proto.String("us-west1"),
+							Key: "us-west1",
+							Value: &computepb.SubnetworksScopedList{
+								Subnetworks: []*computepb.Subnetwork{
+									{
+										Id:     proto.Uint64(5), //this should not appear in the events
+										Name:   proto.String("test-subnet-5"),
+										Region: proto.String("us-west1"),
+									},
+								},
+							},
 						},
 						{
-							Id:     proto.Uint64(6),
-							Name:   proto.String("test-subnet-6"),
-							Region: proto.String("us-central1"),
+							Key: "us-central1",
+							Value: &computepb.SubnetworksScopedList{
+								Subnetworks: []*computepb.Subnetwork{
+									{
+										Id:     proto.Uint64(6),
+										Name:   proto.String("test-subnet-6"),
+										Region: proto.String("us-central1"),
+									},
+								},
+							},
 						},
 					},
 				},
@@ -449,11 +515,14 @@ func TestCollectSubnetAssets(t *testing.T) {
 			publisher := testutil.NewInMemoryPublisher()
 
 			ctx := context.Background()
-			client := SubnetClientStub{SubnetListIterator: tt.subnets}
-			listClient := listSubnetworkAPIClient{List: func(ctx context.Context, req *computepb.ListSubnetworksRequest, opts ...gax.CallOption) SubnetIterator {
-				return client.List(ctx, req, opts...)
-			}}
-			err := collectSubnetAssets(ctx, tt.cfg, listClient, publisher)
+			client := SubnetClientStub{AggregatedSubnetworkIterator: tt.subnets}
+			clientCreator := listSubnetworkAPIClient{
+				AggregatedList: func(ctx context.Context, req *computepb.AggregatedListSubnetworksRequest, opts ...gax.CallOption) AggregatedSubnetworkIterator {
+					return client.AggregatedList(ctx, req, opts...)
+				},
+			}
+			log := logp.NewLogger("mylogger")
+			err := collectSubnetAssets(ctx, tt.cfg, clientCreator, publisher, log)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedEvents, publisher.Events)
 		})

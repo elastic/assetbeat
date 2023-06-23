@@ -22,6 +22,8 @@ import (
 
 	"cloud.google.com/go/container/apiv1/containerpb"
 
+	"github.com/cespare/xxhash"
+
 	"github.com/elastic/go-freelru"
 )
 
@@ -51,4 +53,8 @@ func getNetSelfLinkFromNetConfig(networkConfig *containerpb.NetworkConfig) strin
 	}
 
 	return ""
+}
+
+func hashStringXXHASH(s string) uint32 {
+	return uint32(xxhash.Sum64String(s))
 }
