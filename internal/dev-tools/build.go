@@ -20,8 +20,12 @@ func DefaultBuildArgs() BuildArgs {
 	return BuildArgs{
 		name:         "assetbeat",
 		targetFolder: "",
-		flags:        []string{"-trimpath", "-ldflags=-s -w"}, //TODO: add comment
-		env:          map[string]string{},
+		// -trimpath -> remove all file system paths from the resulting executable.
+		// E.g a stack trace for /home/me/stuff/src/github.com/me/something.go:9 would be shown as github.com/me/something.go:9
+		//
+		// -ldflags=-s -w -> removes debug symbols from the resulting executable, reducing its size.
+		flags: []string{"-trimpath", "-ldflags=-s -w"},
+		env:   map[string]string{},
 	}
 }
 
