@@ -174,11 +174,11 @@ func Package() error {
 
 	for _, platform := range devtools.GetPlatforms() {
 		executablePath, err := devtools.Build(devtools.DefaultCrossBuildArgs(platform))
+		if err != nil {
+			return err
+		}
 		for _, packageType := range devtools.GetPackageTypes() {
 			fmt.Printf(">>>>> Packaging assetbeat for platform: %+v packageType:%s\n", platform, packageType)
-			if err != nil {
-				return err
-			}
 			packageSpec := devtools.PackageSpec{
 				Os:             platform.GOOS,
 				Arch:           platform.GOARCH,
