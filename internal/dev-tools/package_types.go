@@ -26,7 +26,7 @@ import (
 
 var supportedPackageTypes = []string{"docker", "tar.gz"}
 
-// GetPackageTypes return the list of package types to use for packaging/release distribution.
+// GetPackageTypes returns the list of package types to use for packaging/release distribution.
 // By default, it returns the list of supported package types. It can be overridden by setting the TYPES
 // environment variable.
 func GetPackageTypes() []string {
