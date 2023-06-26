@@ -59,7 +59,7 @@ func DefaultCrossBuildArgs(platform Platform) BuildArgs {
 	return args
 }
 
-// Build builds assetbeat using the defined BuildArgs
+// Build builds assetbeat using the defined BuildArgs and returns the executable file path.
 func Build(args BuildArgs) (string, error) {
 
 	if err := sh.RunV("go", "mod", "download"); err != nil {
