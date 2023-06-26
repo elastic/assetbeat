@@ -166,7 +166,7 @@ func installTools() error {
 
 // Package packages assetbeat for distribution
 // Use PLATFORMS to control the target platforms. Only linux/amd64 and linux/arm64 are supported.
-// Use TYPES to control the target Type. Only Docker is supported
+// Use TYPES to control the target Type. Only tar.gz and Docker are supported.
 // Example of Usage: PLATFORMS=linux/amd64 TYPES=docker mage package
 func Package() error {
 	start := time.Now()
