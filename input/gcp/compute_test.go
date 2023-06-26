@@ -20,6 +20,7 @@ package gcp
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/elastic/go-freelru"
 
@@ -69,7 +70,18 @@ func (s *InstancesClientStub) AggregatedList(ctx context.Context, req *computepb
 	return s.AggregatedInstanceListIterator[project]
 }
 
+func getVpcCache() *freelru.LRU[string, *vpc] {
+	vpcAssetsCache, _ := freelru.New[string, *vpc](8192, hashStringXXHASH)
+	nv := vpc{
+		ID: "1",
+	}
+	selfLink := "https://www.googleapis.com/compute/v1/projects/my_project/global/networks/my_network"
+	vpcAssetsCache.AddWithExpire(selfLink, &nv, 60*time.Second)
+	return vpcAssetsCache
+}
+
 func TestGetAllComputeInstances(t *testing.T) {
+	vpcAssetsCache := getVpcCache()
 	var parents []string
 	for _, tt := range []struct {
 		name string
@@ -121,7 +133,7 @@ func TestGetAllComputeInstances(t *testing.T) {
 						"asset.id":             "1",
 						"asset.type":           "gcp.compute.instance",
 						"asset.kind":           "host",
-						"asset.parents":        parents,
+						"asset.parents":        []string{"network:1"},
 						"asset.metadata.state": "RUNNING",
 						"cloud.account.id":     "my_project",
 						"cloud.provider":       "gcp",
@@ -277,7 +289,7 @@ func TestGetAllComputeInstances(t *testing.T) {
 					return client.AggregatedList(ctx, req, opts...)
 				},
 			}
-			vpcAssetsCache, _ := freelru.New[string, *vpc](8192, hashStringXXHASH)
+
 			err := collectComputeAssets(tt.ctx, tt.cfg, vpcAssetsCache, clientCreator, publisher, log)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedEvents, publisher.Events)

@@ -23,8 +23,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/elastic/go-freelru"
-
 	"github.com/gogo/protobuf/proto"
 
 	"github.com/elastic/assetbeat/input/testutil"
@@ -56,6 +54,7 @@ func (s *ClustersClientStub) ListClusters(ctx context.Context, req *containerpb.
 var findGKEProjectRe = regexp.MustCompile("projects/([a-z_-]+)/locations/([0-9a-z_,-]+)")
 
 func TestCollectGKEAssets(t *testing.T) {
+	vpcAssetsCache := getVpcCache()
 	var children []string
 	var parents []string
 	for _, tt := range []struct {
@@ -89,7 +88,7 @@ func TestCollectGKEAssets(t *testing.T) {
 							Location: "europe-west1",
 							Network:  "my_network",
 							NetworkConfig: &containerpb.NetworkConfig{
-								Network: "my_network",
+								Network: "projects/my_project/global/networks/my_network",
 							},
 							Status: containerpb.Cluster_RUNNING,
 						},
@@ -113,7 +112,7 @@ func TestCollectGKEAssets(t *testing.T) {
 						"asset.id":             "1",
 						"asset.type":           "k8s.cluster",
 						"asset.kind":           "cluster",
-						"asset.parents":        parents,
+						"asset.parents":        []string{"network:1"},
 						"asset.metadata.state": "RUNNING",
 						"asset.children":       children,
 						"cloud.account.id":     "my_project",
@@ -142,7 +141,7 @@ func TestCollectGKEAssets(t *testing.T) {
 							Location: "europe-west1",
 							Network:  "my_network",
 							NetworkConfig: &containerpb.NetworkConfig{
-								Network: "my_network",
+								Network: "projects/my_project/global/networks/my_network",
 							},
 							Status: containerpb.Cluster_RUNNING,
 						},
@@ -185,7 +184,7 @@ func TestCollectGKEAssets(t *testing.T) {
 						"asset.id":             "1",
 						"asset.type":           "k8s.cluster",
 						"asset.kind":           "cluster",
-						"asset.parents":        parents,
+						"asset.parents":        []string{"network:1"},
 						"asset.metadata.state": "RUNNING",
 						"asset.children":       children,
 						"cloud.account.id":     "my_project",
@@ -232,7 +231,7 @@ func TestCollectGKEAssets(t *testing.T) {
 							Location: "us-west1",
 							Network:  "my_network",
 							NetworkConfig: &containerpb.NetworkConfig{
-								Network: "my_network",
+								Network: "projects/my_project/global/networks/my_network",
 							},
 							Status: containerpb.Cluster_RUNNING,
 						},
@@ -255,7 +254,7 @@ func TestCollectGKEAssets(t *testing.T) {
 						"asset.id":             "2",
 						"asset.type":           "k8s.cluster",
 						"asset.kind":           "cluster",
-						"asset.parents":        parents,
+						"asset.parents":        []string{"network:1"},
 						"asset.metadata.state": "RUNNING",
 						"asset.children":       children,
 						"cloud.account.id":     "my_project",
@@ -285,7 +284,7 @@ func TestCollectGKEAssets(t *testing.T) {
 							Location: "us-west1",
 							Network:  "my_network",
 							NetworkConfig: &containerpb.NetworkConfig{
-								Network: "my_network",
+								Network: "projects/my_project/global/networks/my_network",
 							},
 							Status: containerpb.Cluster_RUNNING,
 						},
@@ -294,7 +293,7 @@ func TestCollectGKEAssets(t *testing.T) {
 							Location: "europe-west1",
 							Network:  "my_network",
 							NetworkConfig: &containerpb.NetworkConfig{
-								Network: "my_network",
+								Network: "projects/my_project/global/networks/my_network",
 							},
 							Status: containerpb.Cluster_RUNNING,
 						},
@@ -318,7 +317,7 @@ func TestCollectGKEAssets(t *testing.T) {
 						"asset.id":             "2",
 						"asset.type":           "k8s.cluster",
 						"asset.kind":           "cluster",
-						"asset.parents":        parents,
+						"asset.parents":        []string{"network:1"},
 						"asset.metadata.state": "RUNNING",
 						"asset.children":       children,
 						"cloud.account.id":     "my_project",
@@ -335,7 +334,7 @@ func TestCollectGKEAssets(t *testing.T) {
 						"asset.id":             "1",
 						"asset.type":           "k8s.cluster",
 						"asset.kind":           "cluster",
-						"asset.parents":        parents,
+						"asset.parents":        []string{"network:1"},
 						"asset.metadata.state": "RUNNING",
 						"asset.children":       children,
 						"cloud.account.id":     "my_project",
@@ -364,7 +363,7 @@ func TestCollectGKEAssets(t *testing.T) {
 							Location: "europe-west1",
 							Network:  "my_network",
 							NetworkConfig: &containerpb.NetworkConfig{
-								Network: "my_network",
+								Network: "projects/my_project/global/networks/my_network",
 							},
 							Status: containerpb.Cluster_RUNNING,
 							NodePools: []*containerpb.NodePool{
@@ -413,7 +412,7 @@ func TestCollectGKEAssets(t *testing.T) {
 						"asset.id":             "1",
 						"asset.type":           "k8s.cluster",
 						"asset.kind":           "cluster",
-						"asset.parents":        parents,
+						"asset.parents":        []string{"network:1"},
 						"asset.metadata.state": "RUNNING",
 						"asset.children":       []string{"host:123"},
 						"cloud.account.id":     "my_project",
@@ -438,7 +437,6 @@ func TestCollectGKEAssets(t *testing.T) {
 			}
 			publisher := testutil.NewInMemoryPublisher()
 			log := logp.NewLogger("mylogger")
-			vpcAssetsCache, _ := freelru.New[string, *vpc](8192, hashStringXXHASH)
 			err := collectGKEAssets(tt.ctx, tt.cfg, vpcAssetsCache, log, listInstanceClientCreator, &listClusterClient, publisher)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedEvents, publisher.Events)
