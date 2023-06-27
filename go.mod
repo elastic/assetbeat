@@ -5,7 +5,7 @@ go 1.19
 require (
 	cloud.google.com/go/compute v1.20.0
 	cloud.google.com/go/container v1.22.0
-	github.com/aws/aws-sdk-go-v2 v1.18.0
+	github.com/aws/aws-sdk-go-v2 v1.18.1
 	github.com/aws/aws-sdk-go-v2/config v1.18.25
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.24
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.28.7
