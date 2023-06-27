@@ -58,3 +58,34 @@ func getNetSelfLinkFromNetConfig(networkConfig *containerpb.NetworkConfig) strin
 func hashStringXXHASH(s string) uint32 {
 	return uint32(xxhash.Sum64String(s))
 }
+
+// region is in the form of regions/us-west2
+func wantRegion(region string, confRegions []string) bool {
+	if len(confRegions) == 0 {
+		return true
+	}
+	ss := strings.Split(region, "/")
+	subnetsRegion := ss[len(ss)-1]
+	for _, region := range confRegions {
+		if region == subnetsRegion {
+			return true
+		}
+	}
+
+	return false
+}
+
+func wantZone(zone string, confRegions []string) bool {
+	if len(confRegions) == 0 {
+		return true
+	}
+
+	region := getRegionFromZoneURL(zone)
+	for _, z := range confRegions {
+		if z == region {
+			return true
+		}
+	}
+
+	return false
+}

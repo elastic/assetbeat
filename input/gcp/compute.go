@@ -103,8 +103,8 @@ func getAllComputeInstances(ctx context.Context, cfg config, vpcAssetCache *free
 				return nil, err
 			}
 			zone := instanceScopedPair.Key
-			for _, i := range instanceScopedPair.Value.Instances {
-				if wantInstance(cfg, zone) {
+			if wantZone(zone, cfg.Regions) {
+				for _, i := range instanceScopedPair.Value.Instances {
 					var vpcs []string
 					for _, ni := range i.NetworkInterfaces {
 						vpcs = append(vpcs, getVpcIdFromLink(*ni.Network, vpcAssetCache))
@@ -122,23 +122,9 @@ func getAllComputeInstances(ctx context.Context, cfg config, vpcAssetCache *free
 					})
 				}
 			}
+
 		}
 	}
 
 	return instances, nil
-}
-
-func wantInstance(cfg config, zone string) bool {
-	if len(cfg.Regions) == 0 {
-		return true
-	}
-
-	region := getRegionFromZoneURL(zone)
-	for _, z := range cfg.Regions {
-		if z == region {
-			return true
-		}
-	}
-
-	return false
 }

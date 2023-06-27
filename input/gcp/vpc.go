@@ -20,7 +20,6 @@ package gcp
 import (
 	"context"
 	"strconv"
-	"strings"
 
 	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"
@@ -162,8 +161,8 @@ func getAllSubnets(ctx context.Context, cfg config, client listSubnetworkAPIClie
 				return nil, err
 			}
 			region := subnetScopedPair.Key
-			for _, s := range subnetScopedPair.Value.Subnetworks {
-				if wantSubnet(region, cfg.Regions) {
+			if wantRegion(region, cfg.Regions) {
+				for _, s := range subnetScopedPair.Value.Subnetworks {
 					subnets = append(subnets, subnet{
 						ID:      strconv.FormatUint(*s.Id, 10),
 						Account: project,
@@ -172,25 +171,8 @@ func getAllSubnets(ctx context.Context, cfg config, client listSubnetworkAPIClie
 					})
 				}
 			}
-
 		}
 	}
 	return subnets, nil
 
-}
-
-// region is in the form of regions/us-west2
-func wantSubnet(region string, confRegions []string) bool {
-	if len(confRegions) == 0 {
-		return true
-	}
-	ss := strings.Split(region, "/")
-	subnetsRegion := ss[len(ss)-1]
-	for _, region := range confRegions {
-		if region == subnetsRegion {
-			return true
-		}
-	}
-
-	return false
 }
