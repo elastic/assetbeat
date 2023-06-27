@@ -118,7 +118,7 @@ func publishK8sPods(ctx context.Context, log *logp.Logger, indexNamespace string
 				}
 			}
 
-			internal.Publish(publisher,
+			internal.Publish(publisher, nil,
 				internal.WithAssetKindAndID(assetKind, assetId),
 				internal.WithAssetType(assetType),
 				internal.WithAssetParents(assetParents),

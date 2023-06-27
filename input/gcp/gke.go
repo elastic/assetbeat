@@ -51,7 +51,7 @@ type containerCluster struct {
 
 func collectGKEAssets(ctx context.Context, cfg config, vpcAssetCache *freelru.LRU[string, *vpc], log *logp.Logger, listInstanceClient listInstanceAPIClient, listClusterClient listClustersAPIClient, publisher stateless.Publisher) error {
 
-	clusters, err := getAllGKEClusters(ctx, cfg, listClusterClient, vpcAssetCache, log)
+	clusters, err := getAllGKEClusters(ctx, cfg, listClusterClient, vpcAssetCache)
 	if err != nil {
 		return err
 	}
@@ -59,6 +59,7 @@ func collectGKEAssets(ctx context.Context, cfg config, vpcAssetCache *freelru.LR
 	indexNamespace := cfg.IndexNamespace
 	assetType := "k8s.cluster"
 	assetKind := "cluster"
+	log.Debug("Publishing kubernetes clusters")
 	for _, cluster := range clusters {
 		var parents []string
 		var children []string
@@ -77,7 +78,7 @@ func collectGKEAssets(ctx context.Context, cfg config, vpcAssetCache *freelru.LR
 			children = append(children, "host:"+instance)
 		}
 
-		internal.Publish(publisher,
+		internal.Publish(publisher, nil,
 			internal.WithAssetCloudProvider("gcp"),
 			internal.WithAssetRegion(cluster.Region),
 			internal.WithAssetAccountID(cluster.Account),
@@ -163,7 +164,7 @@ func makeListClusterRequests(project string, zones []string) []*containerpb.List
 	return requests
 }
 
-func getAllGKEClusters(ctx context.Context, cfg config, client listClustersAPIClient, vpcAssetCache *freelru.LRU[string, *vpc], log *logp.Logger) ([]containerCluster, error) {
+func getAllGKEClusters(ctx context.Context, cfg config, client listClustersAPIClient, vpcAssetCache *freelru.LRU[string, *vpc]) ([]containerCluster, error) {
 	var clusters []containerCluster
 	var zones []string
 	if len(cfg.Regions) > 0 {

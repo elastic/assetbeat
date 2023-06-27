@@ -60,6 +60,8 @@ func collectComputeAssets(ctx context.Context, cfg config, vpcAssetCache *freelr
 	assetType := "gcp.compute.instance"
 	assetKind := "host"
 	indexNamespace := cfg.IndexNamespace
+	log.Debug("Publishing GCP compute instances")
+
 	for _, instance := range instances {
 		var parents []string
 		for _, vpc := range instance.VPCs {
@@ -67,8 +69,7 @@ func collectComputeAssets(ctx context.Context, cfg config, vpcAssetCache *freelr
 				parents = append(parents, "network:"+vpc)
 			}
 		}
-		log.Debug("Publishing GCP compute instances")
-		internal.Publish(publisher,
+		internal.Publish(publisher, nil,
 			internal.WithAssetCloudProvider("gcp"),
 			internal.WithAssetRegion(instance.Region),
 			internal.WithAssetAccountID(instance.Account),

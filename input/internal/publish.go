@@ -27,12 +27,21 @@ import (
 	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
+func NewEvent() *beat.Event {
+	return &beat.Event{Fields: mapstr.M{}, Meta: mapstr.M{}}
+}
+
 type AssetOption func(beat.Event) beat.Event
 
-// Publish emits a `beat.Event` to the specified publisher, with the provided
-// parameters
-func Publish(publisher stateless.Publisher, opts ...AssetOption) {
-	event := beat.Event{Fields: mapstr.M{}, Meta: mapstr.M{}}
+// Publish emits a `beat.Event` to the specified publisher, with the provided parameters
+func Publish(publisher stateless.Publisher, baseEvent *beat.Event, opts ...AssetOption) {
+	var event beat.Event
+	if baseEvent == nil {
+		event = *NewEvent()
+	} else {
+		event = *baseEvent
+	}
+
 	for _, o := range opts {
 		event = o(event)
 	}

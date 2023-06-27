@@ -61,7 +61,7 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, indexNamespace string
 			clusterARN, _ := arn.Parse(*clusterDetail.Arn)
 			assetType := "k8s.cluster"
 			assetKind := "cluster"
-			internal.Publish(publisher,
+			internal.Publish(publisher, nil,
 				internal.WithAssetCloudProvider("aws"),
 				internal.WithAssetRegion(cfg.Region),
 				internal.WithAssetAccountID(clusterARN.AccountID),

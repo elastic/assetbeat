@@ -53,7 +53,7 @@ func TestIndex_WithIndex(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			publisher := testutil.NewInMemoryPublisher()
 
-			Publish(publisher, tt.assetOp)
+			Publish(publisher, nil, tt.assetOp)
 
 			assert.Equal(t, 1, len(publisher.Events))
 			assert.Equal(t, tt.expected, publisher.Events[0])

@@ -65,7 +65,7 @@ func TestWithAssetTags(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			publisher := testutil.NewInMemoryPublisher()
 
-			internal.Publish(publisher, tt.opts...)
+			internal.Publish(publisher, nil, tt.opts...)
 
 			assert.Equal(t, 1, len(publisher.Events))
 			assert.Equal(t, tt.expectedEvent, publisher.Events[0])

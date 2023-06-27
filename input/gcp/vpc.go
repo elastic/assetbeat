@@ -77,7 +77,7 @@ func collectVpcAssets(ctx context.Context, cfg config, vpcAssetCache *freelru.LR
 	log.Debug("Publishing VPCs")
 	for _, vpc := range vpcs {
 
-		internal.Publish(publisher,
+		internal.Publish(publisher, nil,
 			internal.WithAssetCloudProvider("gcp"),
 			internal.WithAssetAccountID(vpc.Account),
 			internal.WithAssetKindAndID(assetKind, vpc.ID),
@@ -132,7 +132,7 @@ func collectSubnetAssets(ctx context.Context, cfg config, client listSubnetworkA
 	log.Debug("Publishing Subnets")
 	for _, subnet := range subnets {
 
-		internal.Publish(publisher,
+		internal.Publish(publisher, nil,
 			internal.WithAssetCloudProvider("gcp"),
 			internal.WithAssetAccountID(subnet.Account),
 			internal.WithAssetKindAndID(assetKind, subnet.ID),
