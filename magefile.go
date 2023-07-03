@@ -23,11 +23,14 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
 	devtools "github.com/elastic/assetbeat/internal/dev-tools"
+	"github.com/elastic/elastic-agent-libs/dev-tools/mage"
+	"github.com/elastic/elastic-agent-libs/dev-tools/mage/gotool"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 )
@@ -56,33 +59,43 @@ func Build() error {
 
 // Lint runs golangci-lint
 func Lint() error {
-	err := installTools()
+	return mage.Linter{}.All()
+}
+
+// Notice generates a NOTICE.txt file for the module.
+func Notice() error {
+	// Runs "go mod download all" which may update go.sum unnecessarily.
+	err := mage.GenerateNotice(
+		filepath.Join("internal", "notice", "overrides.json"),
+		filepath.Join("internal", "notice", "rules.json"),
+		filepath.Join("internal", "notice", "NOTICE.txt.tmpl"),
+	)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("Running golangci-lint...")
-	return sh.RunV("./.tools/golangci-lint", "run")
+	// Run go mod tidy to remove any changes to go.sum that aren't actually needed.
+	// "go mod download all" isn't smart enough to know the minimum set of deps needed.
+	// See https://github.com/golang/go/issues/43994#issuecomment-770053099
+	return gotool.Mod.Tidy()
 }
 
 // AddLicenseHeaders add a license header to any *.go file where it is missing
 func AddLicenseHeaders() error {
-	err := installTools()
-	if err != nil {
-		return err
-	}
-	fmt.Println("adding license headers with go-licenser...")
-	return sh.RunV("./.tools/go-licenser", "-license", "ASL2")
+	mg.Deps(mage.InstallGoLicenser)
+	return gotool.Licenser(
+		gotool.Licenser.License("ASL2"),
+	)
 }
 
 // CheckLicenseHeaders check if all the *.go files have a license header
 func CheckLicenseHeaders() error {
-	err := installTools()
-	if err != nil {
-		return err
-	}
-	fmt.Println("checking license headers with go-licenser...")
-	return sh.RunV("./.tools/go-licenser", "-d", "-license", "ASL2")
+	mg.Deps(mage.InstallGoLicenser)
+
+	return gotool.Licenser(
+		gotool.Licenser.License("ASL2"),
+		gotool.Licenser.Check(),
+	)
 }
 
 // UnitTest runs all unit tests and writes a HTML coverage report to the build directory
