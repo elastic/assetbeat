@@ -21,6 +21,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/elastic/elastic-agent-libs/dev-tools/mage"
+	"github.com/elastic/elastic-agent-libs/dev-tools/mage/gotool"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -29,26 +31,18 @@ import (
 	"time"
 
 	devtools "github.com/elastic/assetbeat/internal/dev-tools"
-	"github.com/elastic/elastic-agent-libs/dev-tools/mage"
-	"github.com/elastic/elastic-agent-libs/dev-tools/mage/gotool"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 )
 
 // Format formats all source files with `go fmt`
 func Format() error {
-	if err := sh.RunV("go", "fmt", "./..."); err != nil {
-		return err
-	}
+	return sh.RunV("go", "fmt", "./...")
+}
 
-	if os.Getenv("CI") == "true" {
-		// fails if there are changes
-		if err := sh.RunV("git", "diff", "--quiet"); err != nil {
-			return fmt.Errorf("there are unformatted files; run `mage format` locally and commit the changes to fix")
-		}
-	}
-
-	return nil
+// Clean removes the build directory.
+func Clean() {
+	os.RemoveAll("build") // nolint:errcheck //not required
 }
 
 // Build builds the assetbeat binary with the default build arguments
@@ -64,20 +58,28 @@ func Lint() error {
 
 // Notice generates a NOTICE.txt file for the module.
 func Notice() error {
-	// Runs "go mod download all" which may update go.sum unnecessarily.
-	err := mage.GenerateNotice(
+	return devtools.GenerateNotice(
 		filepath.Join("internal", "notice", "overrides.json"),
 		filepath.Join("internal", "notice", "rules.json"),
 		filepath.Join("internal", "notice", "NOTICE.txt.tmpl"),
 	)
-	if err != nil {
-		return err
-	}
+}
 
-	// Run go mod tidy to remove any changes to go.sum that aren't actually needed.
-	// "go mod download all" isn't smart enough to know the minimum set of deps needed.
-	// See https://github.com/golang/go/issues/43994#issuecomment-770053099
-	return gotool.Mod.Tidy()
+// Check runs all the checks including licence, notice, gomod, git changes
+func Check() {
+	// these are not allowed in parallel
+	mg.SerialDeps(
+		Lint,
+		Format,
+		CheckLicenseHeaders,
+		Notice,
+		mage.Deps.CheckModuleTidy,
+		mage.CheckNoChanges,
+	)
+}
+
+func Update() {
+	mg.SerialDeps(gotool.Mod.Tidy, Format, AddLicenseHeaders, Notice)
 }
 
 // AddLicenseHeaders add a license header to any *.go file where it is missing
@@ -156,25 +158,6 @@ func isCoveragePercentageIsAboveThreshold(coverageFile string, thresholdPercent 
 	}
 
 	return int(coverage) >= thresholdPercent, nil
-}
-
-func installTools() error {
-	fmt.Println("Installing tools...")
-	oldPath, _ := os.Getwd()
-	toolsPath := oldPath + "/internal/tools"
-	os.Chdir(toolsPath)
-	defer os.Chdir(oldPath)
-
-	if err := sh.RunV("go", "mod", "download"); err != nil {
-		return err
-	}
-
-	tools, err := sh.Output("go", "list", "-f", "{{range .Imports}}{{.}} {{end}}", "tools.go")
-	if err != nil {
-		return err
-	}
-
-	return sh.RunWithV(map[string]string{"GOBIN": oldPath + "/.tools"}, "go", append([]string{"install"}, strings.Fields(tools)...)...)
 }
 
 // Package packages assetbeat for distribution
