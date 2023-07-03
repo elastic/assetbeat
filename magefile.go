@@ -78,6 +78,7 @@ func Check() {
 	)
 }
 
+// Update updates go.mod, and runs format, addLicenseHeaders and notice
 func Update() {
 	mg.SerialDeps(gotool.Mod.Tidy, Format, AddLicenseHeaders, Notice)
 }
