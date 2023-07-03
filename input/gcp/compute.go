@@ -48,11 +48,12 @@ type computeInstance struct {
 	VPCs     []string
 	Labels   map[string]string
 	Metadata mapstr.M
+	RawMd    *computepb.Metadata
 }
 
-func collectComputeAssets(ctx context.Context, cfg config, vpcAssetCache *freelru.LRU[string, *vpc], client listInstanceAPIClient, publisher stateless.Publisher, log *logp.Logger) error {
+func collectComputeAssets(ctx context.Context, cfg config, subnetAssetCache *freelru.LRU[string, *subnet], computeAssetCache *freelru.LRU[string, *computeInstance], client listInstanceAPIClient, publisher stateless.Publisher, log *logp.Logger) error {
 
-	instances, err := getAllComputeInstances(ctx, cfg, vpcAssetCache, client)
+	instances, err := getAllComputeInstances(ctx, cfg, subnetAssetCache, computeAssetCache, client)
 	if err != nil {
 		return err
 	}
@@ -85,7 +86,7 @@ func collectComputeAssets(ctx context.Context, cfg config, vpcAssetCache *freelr
 	return nil
 }
 
-func getAllComputeInstances(ctx context.Context, cfg config, vpcAssetCache *freelru.LRU[string, *vpc], client listInstanceAPIClient) ([]computeInstance, error) {
+func getAllComputeInstances(ctx context.Context, cfg config, subnetAssetCache *freelru.LRU[string, *subnet], computeAssetCache *freelru.LRU[string, *computeInstance], client listInstanceAPIClient) ([]computeInstance, error) {
 	var instances []computeInstance
 
 	for _, p := range cfg.Projects {
@@ -105,21 +106,24 @@ func getAllComputeInstances(ctx context.Context, cfg config, vpcAssetCache *free
 			zone := instanceScopedPair.Key
 			if wantZone(zone, cfg.Regions) {
 				for _, i := range instanceScopedPair.Value.Instances {
-					var vpcs []string
+					var subnets []string
 					for _, ni := range i.NetworkInterfaces {
-						vpcs = append(vpcs, getVpcIdFromLink(*ni.Network, vpcAssetCache))
+						subnets = append(subnets, getSubnetIdFromLink(*ni.Subnetwork, subnetAssetCache))
 					}
-
-					instances = append(instances, computeInstance{
+					cI := computeInstance{
 						ID:      strconv.FormatUint(*i.Id, 10),
 						Region:  getRegionFromZoneURL(zone),
 						Account: p,
-						VPCs:    vpcs,
+						VPCs:    subnets,
 						Labels:  i.Labels,
 						Metadata: mapstr.M{
 							"state": *i.Status,
 						},
-					})
+						RawMd: i.GetMetadata(),
+					}
+					selfLink := *i.SelfLink
+					computeAssetCache.AddWithExpire(selfLink, &cI, cfg.Period*2)
+					instances = append(instances, cI)
 				}
 			}
 

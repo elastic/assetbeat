@@ -46,6 +46,14 @@ func getVpcIdFromLink(selfLink string, vpcAssetCache *freelru.LRU[string, *vpc])
 	return ""
 }
 
+func getSubnetIdFromLink(selfLink string, subnetAssetCache *freelru.LRU[string, *subnet]) string {
+	v, ok := subnetAssetCache.Get(selfLink)
+	if ok {
+		return v.ID
+	}
+	return ""
+}
+
 func getNetSelfLinkFromNetConfig(networkConfig *containerpb.NetworkConfig) string {
 	network := networkConfig.Network
 	if len(network) > 0 {

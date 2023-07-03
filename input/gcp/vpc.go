@@ -118,8 +118,8 @@ func getAllVPCs(ctx context.Context, cfg config, vpcAssetCache *freelru.LRU[stri
 
 }
 
-func collectSubnetAssets(ctx context.Context, cfg config, client listSubnetworkAPIClient, publisher stateless.Publisher, log *logp.Logger) error {
-	subnets, err := getAllSubnets(ctx, cfg, client)
+func collectSubnetAssets(ctx context.Context, cfg config, subnetAssetCache *freelru.LRU[string, *subnet], client listSubnetworkAPIClient, publisher stateless.Publisher, log *logp.Logger) error {
+	subnets, err := getAllSubnets(ctx, cfg, subnetAssetCache, client)
 
 	if err != nil {
 		return err
@@ -144,7 +144,7 @@ func collectSubnetAssets(ctx context.Context, cfg config, client listSubnetworkA
 	return nil
 }
 
-func getAllSubnets(ctx context.Context, cfg config, client listSubnetworkAPIClient) ([]subnet, error) {
+func getAllSubnets(ctx context.Context, cfg config, subnetAssetCache *freelru.LRU[string, *subnet], client listSubnetworkAPIClient) ([]subnet, error) {
 	var subnets []subnet
 	for _, project := range cfg.Projects {
 		req := &computepb.AggregatedListSubnetworksRequest{
@@ -163,12 +163,15 @@ func getAllSubnets(ctx context.Context, cfg config, client listSubnetworkAPIClie
 			region := subnetScopedPair.Key
 			if wantRegion(region, cfg.Regions) {
 				for _, s := range subnetScopedPair.Value.Subnetworks {
-					subnets = append(subnets, subnet{
+					sb := subnet{
 						ID:      strconv.FormatUint(*s.Id, 10),
 						Account: project,
 						Name:    *s.Name,
 						Region:  *s.Region,
-					})
+					}
+					subnets = append(subnets, sb)
+					selfLink := *s.SelfLink
+					subnetAssetCache.AddWithExpire(selfLink, &sb, cfg.Period*2)
 				}
 			}
 		}
