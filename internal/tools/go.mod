@@ -3,7 +3,7 @@ module github.com/elastic/assetbeat/internal/tools
 go 1.20
 
 require (
-	github.com/elastic/go-licenser v0.4.0
+	github.com/elastic/go-licenser v0.4.1
 	github.com/golangci/golangci-lint v1.53.3
 )
 
