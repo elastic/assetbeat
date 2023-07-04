@@ -98,6 +98,7 @@ func (s *SubnetClientStub) AggregatedList(ctx context.Context, req *computepb.Ag
 	project := req.Project
 	return s.AggregatedSubnetworkIterator[project]
 }
+
 func TestCollectVpcAssets(t *testing.T) {
 	for _, tt := range []struct {
 		name           string
@@ -289,9 +290,10 @@ func TestCollectSubnetAssets(t *testing.T) {
 							Value: &computepb.SubnetworksScopedList{
 								Subnetworks: []*computepb.Subnetwork{
 									{
-										Id:     proto.Uint64(1),
-										Name:   proto.String("test-subnet-1"),
-										Region: proto.String("europe-west-1"),
+										Id:       proto.Uint64(1),
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/regions/europe-west-1/subnetworks/test-subnet-1"),
+										Name:     proto.String("test-subnet-1"),
+										Region:   proto.String("europe-west-1"),
 									},
 								},
 							},
@@ -301,9 +303,10 @@ func TestCollectSubnetAssets(t *testing.T) {
 							Value: &computepb.SubnetworksScopedList{
 								Subnetworks: []*computepb.Subnetwork{
 									{
-										Id:     proto.Uint64(2),
-										Name:   proto.String("test-subnet-2"),
-										Region: proto.String("europe-west-1"),
+										Id:       proto.Uint64(2),
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/regions/europe-west-1/subnetworks/test-subnet-2"),
+										Name:     proto.String("test-subnet-2"),
+										Region:   proto.String("europe-west-1"),
 									},
 								},
 							},
@@ -358,9 +361,10 @@ func TestCollectSubnetAssets(t *testing.T) {
 							Value: &computepb.SubnetworksScopedList{
 								Subnetworks: []*computepb.Subnetwork{
 									{
-										Id:     proto.Uint64(1),
-										Name:   proto.String("test-subnet-1"),
-										Region: proto.String("europe-west-1"),
+										Id:       proto.Uint64(1),
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/regions/europe-west-1/subnetworks/test-subnet-1"),
+										Name:     proto.String("test-subnet-1"),
+										Region:   proto.String("europe-west-1"),
 									},
 								},
 							},
@@ -370,9 +374,10 @@ func TestCollectSubnetAssets(t *testing.T) {
 							Value: &computepb.SubnetworksScopedList{
 								Subnetworks: []*computepb.Subnetwork{
 									{
-										Id:     proto.Uint64(2),
-										Name:   proto.String("test-subnet-2"),
-										Region: proto.String("europe-west-1"),
+										Id:       proto.Uint64(2),
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/regions/europe-west-1/subnetworks/test-subnet-2"),
+										Name:     proto.String("test-subnet-2"),
+										Region:   proto.String("europe-west-1"),
 									},
 								},
 							},
@@ -386,9 +391,10 @@ func TestCollectSubnetAssets(t *testing.T) {
 							Value: &computepb.SubnetworksScopedList{
 								Subnetworks: []*computepb.Subnetwork{
 									{
-										Id:     proto.Uint64(3),
-										Name:   proto.String("test-subnet-3"),
-										Region: proto.String("europe-west-1"),
+										Id:       proto.Uint64(3),
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/regions/europe-west-1/subnetworks/test-subnet-3"),
+										Name:     proto.String("test-subnet-3"),
+										Region:   proto.String("europe-west-1"),
 									},
 								},
 							},
@@ -398,9 +404,10 @@ func TestCollectSubnetAssets(t *testing.T) {
 							Value: &computepb.SubnetworksScopedList{
 								Subnetworks: []*computepb.Subnetwork{
 									{
-										Id:     proto.Uint64(4),
-										Name:   proto.String("test-subnet-4"),
-										Region: proto.String("europe-west-1"),
+										Id:       proto.Uint64(4),
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/regions/europe-west-1/subnetworks/test-subnet-4"),
+										Name:     proto.String("test-subnet-4"),
+										Region:   proto.String("europe-west-1"),
 									},
 								},
 							},
@@ -410,9 +417,10 @@ func TestCollectSubnetAssets(t *testing.T) {
 							Value: &computepb.SubnetworksScopedList{
 								Subnetworks: []*computepb.Subnetwork{
 									{
-										Id:     proto.Uint64(5), //this should not appear in the events
-										Name:   proto.String("test-subnet-5"),
-										Region: proto.String("us-west1"),
+										Id:       proto.Uint64(5), //this should not appear in the events
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/regions/us-west1/subnetworks/test-subnet-5"),
+										Name:     proto.String("test-subnet-5"),
+										Region:   proto.String("us-west1"),
 									},
 								},
 							},
@@ -422,9 +430,10 @@ func TestCollectSubnetAssets(t *testing.T) {
 							Value: &computepb.SubnetworksScopedList{
 								Subnetworks: []*computepb.Subnetwork{
 									{
-										Id:     proto.Uint64(6),
-										Name:   proto.String("test-subnet-6"),
-										Region: proto.String("us-central1"),
+										Id:       proto.Uint64(6),
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/regions/us-central1/subnetworks/test-subnet-6"),
+										Name:     proto.String("test-subnet-6"),
+										Region:   proto.String("us-central1"),
 									},
 								},
 							},
@@ -522,7 +531,8 @@ func TestCollectSubnetAssets(t *testing.T) {
 				},
 			}
 			log := logp.NewLogger("mylogger")
-			err := collectSubnetAssets(ctx, tt.cfg, clientCreator, publisher, log)
+			subnetAssetsCache, _ := freelru.New[string, *subnet](8192, hashStringXXHASH)
+			err := collectSubnetAssets(ctx, tt.cfg, subnetAssetsCache, clientCreator, publisher, log)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedEvents, publisher.Events)
 		})

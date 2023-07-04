@@ -20,7 +20,6 @@ package gcp
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/elastic/go-freelru"
 
@@ -70,18 +69,8 @@ func (s *InstancesClientStub) AggregatedList(ctx context.Context, req *computepb
 	return s.AggregatedInstanceListIterator[project]
 }
 
-func getVpcCache() *freelru.LRU[string, *vpc] {
-	vpcAssetsCache, _ := freelru.New[string, *vpc](8192, hashStringXXHASH)
-	nv := vpc{
-		ID: "1",
-	}
-	selfLink := "https://www.googleapis.com/compute/v1/projects/my_project/global/networks/my_network"
-	vpcAssetsCache.AddWithExpire(selfLink, &nv, 60*time.Second)
-	return vpcAssetsCache
-}
-
 func TestGetAllComputeInstances(t *testing.T) {
-	vpcAssetsCache := getVpcCache()
+	subnetAssetsCache := getSubnetCache()
 	var parents []string
 	for _, tt := range []struct {
 		name string
@@ -112,11 +101,13 @@ func TestGetAllComputeInstances(t *testing.T) {
 						Value: &computepb.InstancesScopedList{
 							Instances: []*computepb.Instance{
 								{
-									Id:   proto.Uint64(1),
-									Zone: proto.String("https://www.googleapis.com/compute/v1/projects/my_project/zones/europe-west1-d"),
+									Id:       proto.Uint64(1),
+									SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/zones/europe-west1-d/instances/my-instance-1"),
+									Zone:     proto.String("https://www.googleapis.com/compute/v1/projects/my_project/zones/europe-west1-d"),
 									NetworkInterfaces: []*computepb.NetworkInterface{
 										{
-											Network: proto.String("https://www.googleapis.com/compute/v1/projects/my_project/global/networks/my_network"),
+											Network:    proto.String("https://www.googleapis.com/compute/v1/projects/my_project/global/networks/my_network"),
+											Subnetwork: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/regions/us-central1/subnetworks/my_subnet"),
 										},
 									},
 									Status: proto.String("RUNNING")},
@@ -133,7 +124,7 @@ func TestGetAllComputeInstances(t *testing.T) {
 						"asset.id":             "1",
 						"asset.type":           "gcp.compute.instance",
 						"asset.kind":           "host",
-						"asset.parents":        []string{"network:1"},
+						"asset.parents":        []string{"network:2"},
 						"asset.metadata.state": "RUNNING",
 						"cloud.account.id":     "my_project",
 						"cloud.provider":       "gcp",
@@ -160,9 +151,10 @@ func TestGetAllComputeInstances(t *testing.T) {
 						Value: &computepb.InstancesScopedList{
 							Instances: []*computepb.Instance{
 								{
-									Id:     proto.Uint64(1),
-									Zone:   proto.String("https://www.googleapis.com/compute/v1/projects/my_project/zones/europe-west1-d"),
-									Status: proto.String("PROVISIONING")},
+									Id:       proto.Uint64(1),
+									SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/zones/europe-west1-d/instances/my-instance-1"),
+									Zone:     proto.String("https://www.googleapis.com/compute/v1/projects/my_project/zones/europe-west1-d"),
+									Status:   proto.String("PROVISIONING")},
 							},
 						},
 					},
@@ -174,9 +166,10 @@ func TestGetAllComputeInstances(t *testing.T) {
 						Value: &computepb.InstancesScopedList{
 							Instances: []*computepb.Instance{
 								{
-									Id:     proto.Uint64(42),
-									Zone:   proto.String("https://www.googleapis.com/compute/v1/projects/my_project/zones/europe-west1-d"),
-									Status: proto.String("STOPPED")},
+									Id:       proto.Uint64(42),
+									SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/zones/europe-west1-d/instances/my-instance-2"),
+									Zone:     proto.String("https://www.googleapis.com/compute/v1/projects/my_project/zones/europe-west1-d"),
+									Status:   proto.String("STOPPED")},
 							},
 						},
 					},
@@ -235,11 +228,13 @@ func TestGetAllComputeInstances(t *testing.T) {
 							Value: &computepb.InstancesScopedList{
 								Instances: []*computepb.Instance{
 									{
-										Id:   proto.Uint64(1),
-										Zone: proto.String("https://www.googleapis.com/compute/v1/projects/my_project/zones/europe-west1-d"),
+										Id:       proto.Uint64(1),
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/zones/europe-west1-d/instances/my-instance-1"),
+										Zone:     proto.String("https://www.googleapis.com/compute/v1/projects/my_project/zones/europe-west1-d"),
 										NetworkInterfaces: []*computepb.NetworkInterface{
 											{
-												Network: proto.String("https://www.googleapis.com/compute/v1/projects/my_project/global/networks/my_network"),
+												Network:    proto.String("https://www.googleapis.com/compute/v1/projects/my_project/global/networks/my_network"),
+												Subnetwork: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/regions/us-central1/subnetworks/my_subnet"),
 											},
 										},
 										Status: proto.String("RUNNING")},
@@ -251,9 +246,10 @@ func TestGetAllComputeInstances(t *testing.T) {
 							Value: &computepb.InstancesScopedList{
 								Instances: []*computepb.Instance{
 									{
-										Id:     proto.Uint64(42),
-										Zone:   proto.String("https://www.googleapis.com/compute/v1/projects/my_project/zones/us-west1-b"),
-										Status: proto.String("RUNNING")},
+										Id:       proto.Uint64(42),
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/zones/europe-west1-b/instances/my-instance-2"),
+										Zone:     proto.String("https://www.googleapis.com/compute/v1/projects/my_project/zones/us-west1-b"),
+										Status:   proto.String("RUNNING")},
 								},
 							},
 						},
@@ -289,8 +285,8 @@ func TestGetAllComputeInstances(t *testing.T) {
 					return client.AggregatedList(ctx, req, opts...)
 				},
 			}
-
-			err := collectComputeAssets(tt.ctx, tt.cfg, vpcAssetsCache, clientCreator, publisher, log)
+			computeAssetsCache, _ := freelru.New[string, *computeInstance](8192, hashStringXXHASH)
+			err := collectComputeAssets(tt.ctx, tt.cfg, subnetAssetsCache, computeAssetsCache, clientCreator, publisher, log)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedEvents, publisher.Events)
 		})

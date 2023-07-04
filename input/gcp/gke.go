@@ -70,7 +70,7 @@ func collectGKEAssets(ctx context.Context, cfg config, vpcAssetCache *freelru.LR
 			parents = append(parents, "network:"+cluster.VPC)
 		}
 
-		instances, err := getAllInstancesForGKECluster(ctx, cluster.Account, cluster.Region, cluster.NodePools, computeAssetCache, listInstanceClient, log)
+		instances, err := getAllInstancesForGKECluster(ctx, cluster.Account, cluster.Region, cluster.NodePools, computeAssetCache, listInstanceClient)
 		// We should not fail hard here since the core information for the asset comes from the GKE cluster data
 		if err != nil {
 			log.Warnf("Error while retrieving instances for GKE cluster %s: %+v", cluster.ID, err)
