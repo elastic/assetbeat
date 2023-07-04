@@ -101,7 +101,7 @@ func wantZone(zone string, confRegions []string) bool {
 	return false
 }
 
-func getVpcCache() *freelru.LRU[string, *vpc] {
+func getTestVpcCache() *freelru.LRU[string, *vpc] {
 	vpcAssetsCache, _ := freelru.New[string, *vpc](8192, hashStringXXHASH)
 	nv := vpc{
 		ID: "1",
@@ -111,7 +111,7 @@ func getVpcCache() *freelru.LRU[string, *vpc] {
 	return vpcAssetsCache
 }
 
-func getSubnetCache() *freelru.LRU[string, *subnet] {
+func getTestSubnetCache() *freelru.LRU[string, *subnet] {
 	subnetAssetsCache, _ := freelru.New[string, *subnet](8192, hashStringXXHASH)
 	sb := subnet{
 		ID: "2",
@@ -121,7 +121,7 @@ func getSubnetCache() *freelru.LRU[string, *subnet] {
 	return subnetAssetsCache
 }
 
-func getComputeCache() *freelru.LRU[string, *computeInstance] {
+func getTestComputeCache() *freelru.LRU[string, *computeInstance] {
 	computeAssetsCache, _ := freelru.New[string, *computeInstance](8192, hashStringXXHASH)
 	cI := computeInstance{
 		ID:     "123",
@@ -140,7 +140,17 @@ func getComputeCache() *freelru.LRU[string, *computeInstance] {
 	return computeAssetsCache
 }
 
-func getEmptyComputeCache() *freelru.LRU[string, *computeInstance] {
+func getComputeCache() *freelru.LRU[string, *computeInstance] {
 	computeAssetsCache, _ := freelru.New[string, *computeInstance](8192, hashStringXXHASH)
+	return computeAssetsCache
+}
+
+func getSubnetCache() *freelru.LRU[string, *subnet] {
+	computeAssetsCache, _ := freelru.New[string, *subnet](8192, hashStringXXHASH)
+	return computeAssetsCache
+}
+
+func getVpcCache() *freelru.LRU[string, *vpc] {
+	computeAssetsCache, _ := freelru.New[string, *vpc](8192, hashStringXXHASH)
 	return computeAssetsCache
 }

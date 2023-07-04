@@ -32,7 +32,6 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
-	"github.com/elastic/go-freelru"
 )
 
 type StubNetworksListIterator struct {
@@ -262,7 +261,7 @@ func TestCollectVpcAssets(t *testing.T) {
 				return client.List(ctx, req, opts...)
 			}}
 			log := logp.NewLogger("mylogger")
-			vpcAssetsCache, _ := freelru.New[string, *vpc](8192, hashStringXXHASH)
+			vpcAssetsCache := getVpcCache()
 			err := collectVpcAssets(ctx, tt.cfg, vpcAssetsCache, listClient, publisher, log)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedEvents, publisher.Events)
@@ -531,7 +530,7 @@ func TestCollectSubnetAssets(t *testing.T) {
 				},
 			}
 			log := logp.NewLogger("mylogger")
-			subnetAssetsCache, _ := freelru.New[string, *subnet](8192, hashStringXXHASH)
+			subnetAssetsCache := getSubnetCache()
 			err := collectSubnetAssets(ctx, tt.cfg, subnetAssetsCache, clientCreator, publisher, log)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedEvents, publisher.Events)

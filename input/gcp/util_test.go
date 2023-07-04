@@ -78,7 +78,7 @@ func TestGetRegionFromZoneURL(t *testing.T) {
 }
 
 func TestGetVpcIdFromLink(t *testing.T) {
-	vpcAssetsCache := getVpcCache()
+	vpcAssetsCache := getTestVpcCache()
 	for _, tt := range []struct {
 		name string
 

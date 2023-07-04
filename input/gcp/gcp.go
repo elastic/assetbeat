@@ -57,9 +57,9 @@ func configure(cfg *conf.C) (stateless.Input, error) {
 }
 
 func newAssetsGCP(config config) (*assetsGCP, error) {
-	vpcAssetsCache, _ := freelru.New[string, *vpc](8192, hashStringXXHASH)
-	subnetAssetsCache, _ := freelru.New[string, *subnet](8192, hashStringXXHASH)
-	computeAssetsCache, _ := freelru.New[string, *computeInstance](8192, hashStringXXHASH)
+	vpcAssetsCache := getVpcCache()
+	subnetAssetsCache := getSubnetCache()
+	computeAssetsCache := getComputeCache()
 	return &assetsGCP{config, vpcAssetsCache, subnetAssetsCache, computeAssetsCache}, nil
 }
 

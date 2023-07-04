@@ -56,7 +56,7 @@ func (s *ClustersClientStub) ListClusters(ctx context.Context, req *containerpb.
 var findGKEProjectRe = regexp.MustCompile("projects/([a-z_-]+)/locations/([0-9a-z_,-]+)")
 
 func TestCollectGKEAssets(t *testing.T) {
-	vpcAssetsCache := getVpcCache()
+	vpcAssetsCache := getTestVpcCache()
 	var children []string
 	var parents []string
 	for _, tt := range []struct {
@@ -107,7 +107,7 @@ func TestCollectGKEAssets(t *testing.T) {
 					},
 				},
 			},
-			computeAssetsCache: getComputeCache(),
+			computeAssetsCache: getTestComputeCache(),
 			expectedEvents: []beat.Event{
 				{
 					Fields: mapstr.M{
@@ -180,7 +180,7 @@ func TestCollectGKEAssets(t *testing.T) {
 					},
 				},
 			},
-			computeAssetsCache: getComputeCache(),
+			computeAssetsCache: getTestComputeCache(),
 			expectedEvents: []beat.Event{
 				{
 					Fields: mapstr.M{
@@ -251,7 +251,7 @@ func TestCollectGKEAssets(t *testing.T) {
 					},
 				},
 			},
-			computeAssetsCache: getComputeCache(),
+			computeAssetsCache: getTestComputeCache(),
 			expectedEvents: []beat.Event{
 				{
 					Fields: mapstr.M{
@@ -314,7 +314,7 @@ func TestCollectGKEAssets(t *testing.T) {
 					},
 				},
 			},
-			computeAssetsCache: getComputeCache(),
+			computeAssetsCache: getTestComputeCache(),
 			expectedEvents: []beat.Event{
 				{
 					Fields: mapstr.M{
@@ -409,7 +409,7 @@ func TestCollectGKEAssets(t *testing.T) {
 					},
 				},
 			},
-			computeAssetsCache: getComputeCache(),
+			computeAssetsCache: getTestComputeCache(),
 			expectedEvents: []beat.Event{
 				{
 					Fields: mapstr.M{
@@ -487,7 +487,7 @@ func TestCollectGKEAssets(t *testing.T) {
 					},
 				},
 			},
-			computeAssetsCache: getEmptyComputeCache(),
+			computeAssetsCache: getComputeCache(),
 			expectedEvents: []beat.Event{
 				{
 					Fields: mapstr.M{

@@ -21,8 +21,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/elastic/go-freelru"
-
 	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"
 	"github.com/gogo/protobuf/proto"
@@ -70,7 +68,7 @@ func (s *InstancesClientStub) AggregatedList(ctx context.Context, req *computepb
 }
 
 func TestGetAllComputeInstances(t *testing.T) {
-	subnetAssetsCache := getSubnetCache()
+	subnetAssetsCache := getTestSubnetCache()
 	var parents []string
 	for _, tt := range []struct {
 		name string
@@ -285,7 +283,7 @@ func TestGetAllComputeInstances(t *testing.T) {
 					return client.AggregatedList(ctx, req, opts...)
 				},
 			}
-			computeAssetsCache, _ := freelru.New[string, *computeInstance](8192, hashStringXXHASH)
+			computeAssetsCache := getComputeCache()
 			err := collectComputeAssets(tt.ctx, tt.cfg, subnetAssetsCache, computeAssetsCache, clientCreator, publisher, log)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedEvents, publisher.Events)
