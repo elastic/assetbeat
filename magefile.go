@@ -21,8 +21,11 @@ package main
 
 import (
 	"fmt"
+	"github.com/elastic/elastic-agent-libs/dev-tools/mage"
+	"github.com/elastic/elastic-agent-libs/dev-tools/mage/gotool"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -34,18 +37,12 @@ import (
 
 // Format formats all source files with `go fmt`
 func Format() error {
-	if err := sh.RunV("go", "fmt", "./..."); err != nil {
-		return err
-	}
+	return sh.RunV("go", "fmt", "./...")
+}
 
-	if os.Getenv("CI") == "true" {
-		// fails if there are changes
-		if err := sh.RunV("git", "diff", "--quiet"); err != nil {
-			return fmt.Errorf("there are unformatted files; run `mage format` locally and commit the changes to fix")
-		}
-	}
-
-	return nil
+// Clean removes the build directory.
+func Clean() {
+	os.RemoveAll("build") // nolint:errcheck //not required
 }
 
 // Build builds the assetbeat binary with the default build arguments
@@ -56,33 +53,52 @@ func Build() error {
 
 // Lint runs golangci-lint
 func Lint() error {
-	err := installTools()
-	if err != nil {
-		return err
-	}
+	return mage.Linter{}.All()
+}
 
-	fmt.Println("Running golangci-lint...")
-	return sh.RunV("./.tools/golangci-lint", "run")
+// Notice generates a NOTICE.txt file for the module.
+func Notice() error {
+	return devtools.GenerateNotice(
+		filepath.Join("internal", "notice", "overrides.json"),
+		filepath.Join("internal", "notice", "rules.json"),
+		filepath.Join("internal", "notice", "NOTICE.txt.tmpl"),
+	)
+}
+
+// Check runs all the checks including licence, notice, gomod, git changes
+func Check() {
+	// these are not allowed in parallel
+	mg.SerialDeps(
+		Lint,
+		Format,
+		CheckLicenseHeaders,
+		Notice,
+		mage.Deps.CheckModuleTidy,
+		mage.CheckNoChanges,
+	)
+}
+
+// Update updates go.mod, and runs format, addLicenseHeaders and notice
+func Update() {
+	mg.SerialDeps(gotool.Mod.Tidy, Format, AddLicenseHeaders, Notice)
 }
 
 // AddLicenseHeaders add a license header to any *.go file where it is missing
 func AddLicenseHeaders() error {
-	err := installTools()
-	if err != nil {
-		return err
-	}
-	fmt.Println("adding license headers with go-licenser...")
-	return sh.RunV("./.tools/go-licenser", "-license", "ASL2")
+	mg.Deps(mage.InstallGoLicenser)
+	return gotool.Licenser(
+		gotool.Licenser.License("ASL2"),
+	)
 }
 
 // CheckLicenseHeaders check if all the *.go files have a license header
 func CheckLicenseHeaders() error {
-	err := installTools()
-	if err != nil {
-		return err
-	}
-	fmt.Println("checking license headers with go-licenser...")
-	return sh.RunV("./.tools/go-licenser", "-d", "-license", "ASL2")
+	mg.Deps(mage.InstallGoLicenser)
+
+	return gotool.Licenser(
+		gotool.Licenser.License("ASL2"),
+		gotool.Licenser.Check(),
+	)
 }
 
 // UnitTest runs all unit tests and writes a HTML coverage report to the build directory
@@ -143,25 +159,6 @@ func isCoveragePercentageIsAboveThreshold(coverageFile string, thresholdPercent 
 	}
 
 	return int(coverage) >= thresholdPercent, nil
-}
-
-func installTools() error {
-	fmt.Println("Installing tools...")
-	oldPath, _ := os.Getwd()
-	toolsPath := oldPath + "/internal/tools"
-	os.Chdir(toolsPath)
-	defer os.Chdir(oldPath)
-
-	if err := sh.RunV("go", "mod", "download"); err != nil {
-		return err
-	}
-
-	tools, err := sh.Output("go", "list", "-f", "{{range .Imports}}{{.}} {{end}}", "tools.go")
-	if err != nil {
-		return err
-	}
-
-	return sh.RunWithV(map[string]string{"GOBIN": oldPath + "/.tools"}, "go", append([]string{"install"}, strings.Fields(tools)...)...)
 }
 
 // Package packages assetbeat for distribution

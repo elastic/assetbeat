@@ -20,7 +20,8 @@ Mage targets are self-explanitory and can be listed with `mage -l`.
 Build the assetbeat binary with `mage build`, and run it locally with `./assetbeat`.
 See `./assetbeat -h` for more detail on configuration options.
 
-PRs will fail CI checks unless formatted with `mage format`.
+Run `mage update` before creating new PRs. This command automatically updates `go.mod`, add license headers to any new *.go files and re-generate 
+NOTICE.txt. Also double-check that `mage check` returns with no errors, as the PR CI will fail otherwise.
 
 Please aim for 100% unit test coverage on new code.
 You can view the HTML coverage report by running `mage unitTest && [xdg-]open ./coverage.html`.

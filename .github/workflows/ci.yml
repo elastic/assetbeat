@@ -11,9 +11,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  DEFAULT_GO_VERSION: "1.19"
+  DEFAULT_GO_VERSION: "1.20"
 jobs:
-  check-format:
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -24,11 +24,11 @@ jobs:
           go-version: ${{ env.DEFAULT_GO_VERSION }}
           cache: true
 
-      - name: Check format
+      - name: Check
         uses: magefile/mage-action@v2
         with:
           version: latest
-          args: format
+          args: check
 
   build:
     runs-on: ubuntu-latest
@@ -46,50 +46,6 @@ jobs:
         with:
           version: latest
           args: build
-
-  check-lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ env.DEFAULT_GO_VERSION }}
-          cache: true
-      - name: Tools cache
-        uses: actions/cache@v3
-        with:
-          path: .tools
-          key: ${{ runner.os }}-tools-cache-${{ hashFiles('./internal/tools/**') }}
-
-      - name: Lint
-        uses: magefile/mage-action@v2
-        with:
-          version: latest
-          args: lint
-
-  check-license-headers:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ env.DEFAULT_GO_VERSION }}
-          cache: true
-      - name: Tools cache
-        uses: actions/cache@v3
-        with:
-          path: .tools
-          key: ${{ runner.os }}-tools-cache-${{ hashFiles('./internal/tools/**') }}
-
-      - name: Lint
-        uses: magefile/mage-action@v2
-        with:
-          version: latest
-          args: checkLicenseHeaders
 
   unit-test:
     runs-on: ubuntu-latest

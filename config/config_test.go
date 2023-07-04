@@ -20,10 +20,9 @@
 package config
 
 import (
+	"github.com/stretchr/testify/assert"
 	"path/filepath"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 
 	conf "github.com/elastic/elastic-agent-libs/config"
 )
