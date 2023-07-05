@@ -20,9 +20,12 @@ package hostdata
 import (
 	"context"
 	"fmt"
+	"time"
+
+	"github.com/elastic/beats/v7/libbeat/processors/add_cloud_metadata"
+
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/processors/util"
-	"time"
 
 	"github.com/elastic/assetbeat/input/internal"
 
@@ -54,8 +57,9 @@ type config struct {
 }
 
 type hostdata struct {
-	config   config
-	hostInfo mapstr.M
+	config                    config
+	hostInfo                  mapstr.M
+	addCloudMetadataProcessor beat.Processor
 }
 
 func configure(inputCfg *conf.C) (stateless.Input, error) {
@@ -76,10 +80,14 @@ func newHostdata(cfg config) (*hostdata, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting host data: %w", err)
 	}
-
+	cloudMetadataProcessor, err := add_cloud_metadata.New(conf.NewConfig())
+	if err != nil {
+		return nil, fmt.Errorf("error creating cloud metadata processor: %w", err)
+	}
 	return &hostdata{
-		config:   cfg,
-		hostInfo: host.MapHostInfo(hostDataProvider.Info()),
+		config:                    cfg,
+		hostInfo:                  host.MapHostInfo(hostDataProvider.Info()),
+		addCloudMetadataProcessor: cloudMetadataProcessor,
 	}, nil
 }
 
@@ -129,15 +137,27 @@ func (h *hostdata) reportHostDataAssets(_ context.Context, logger *logp.Logger, 
 		_, _ = hostData.Put("host.mac", hwList)
 	}
 
+	event := &beat.Event{Fields: hostData, Meta: mapstr.M{}}
+	// add cloud metadata
+	event, err = h.addCloudMetadataProcessor.Run(event)
+	if err != nil {
+		logger.Error("error collecting cloud metadata: %w", err)
+		return
+	}
+
+	cloudID, err := event.GetValue("cloud.instance.id")
+	if err == nil {
+		_, _ = event.PutValue("host.id", cloudID)
+	}
+
 	hostID, err := hostData.GetValue("host.id")
 	if err != nil {
 		logger.Error("no host ID in collected hostdata")
 		return
 	}
-
 	assetKind := "host"
 	assetType := "host"
-	internal.Publish(publisher, &beat.Event{Fields: hostData, Meta: mapstr.M{}},
+	internal.Publish(publisher, event,
 		internal.WithAssetKindAndID(assetKind, hostID.(string)),
 		internal.WithAssetType(assetType),
 		internal.WithIndex(assetType, h.config.IndexNamespace),
