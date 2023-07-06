@@ -19,13 +19,34 @@ package hostdata
 
 import (
 	"context"
-	"github.com/elastic/assetbeat/input/testutil"
-	"github.com/elastic/elastic-agent-libs/logp"
 	"testing"
 
-	conf "github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/go-sysinfo"
+
+	"github.com/elastic/beats/v7/libbeat/beat"
+	"github.com/elastic/elastic-agent-system-metrics/metric/system/host"
+
+	"github.com/elastic/assetbeat/input/testutil"
+	"github.com/elastic/elastic-agent-libs/logp"
+
 	"github.com/stretchr/testify/assert"
+
+	conf "github.com/elastic/elastic-agent-libs/config"
 )
+
+type fakeCloudMetadataProcessor struct{}
+
+func (p fakeCloudMetadataProcessor) Run(event *beat.Event) (*beat.Event, error) {
+	_, err := event.PutValue("cloud.instance.id", "i-12342")
+	if err != nil {
+		return nil, err
+	}
+	return event, err
+}
+
+func (p fakeCloudMetadataProcessor) String() string {
+	return "fake_add_cloud_metadata"
+}
 
 func TestHostdata_configurationAndInitialization(t *testing.T) {
 	input, err := configure(conf.NewConfig())
@@ -55,6 +76,45 @@ func TestHostdata_reportHostDataAssets(t *testing.T) {
 	destinationDatastream, _ := event.Meta.GetValue("index")
 
 	assert.NotEmpty(t, hostID)
+	assert.Equal(t, hostID, assetID)
+	assert.Equal(t, "host", assetType)
+	assert.Equal(t, "host", assetKind)
+	assert.Equal(t, "assets-host-default", destinationDatastream)
+
+	// check that the networking fields are populated
+	// (and that the stored host data has not been modified)
+	ips, _ := event.Fields.GetValue("host.ip")
+	assert.NotEmpty(t, ips)
+
+	_, err := input.(*hostdata).hostInfo.GetValue("host.ip")
+	assert.Error(t, err)
+}
+
+func TestHostdata_reportHostDataAssetsWithCloudMeta(t *testing.T) {
+	input, _ := configure(conf.NewConfig())
+	hostDataProvider, _ := sysinfo.Host()
+
+	hd := hostdata{
+		config:                    defaultConfig(),
+		hostInfo:                  host.MapHostInfo(hostDataProvider.Info()),
+		addCloudMetadataProcessor: fakeCloudMetadataProcessor{},
+	}
+	publisher := testutil.NewInMemoryPublisher()
+	hd.reportHostDataAssets(context.Background(), logp.NewLogger("test"), publisher)
+	assert.NotEmpty(t, publisher.Events)
+	event := publisher.Events[0]
+
+	// check that the base fields are populated
+	hostID, _ := event.Fields.GetValue("host.id")
+	assetID, _ := event.Fields.GetValue("asset.id")
+	assetType, _ := event.Fields.GetValue("asset.type")
+	assetKind, _ := event.Fields.GetValue("asset.kind")
+	destinationDatastream, _ := event.Meta.GetValue("index")
+	cloudID, _ := event.Fields.GetValue("cloud.instance.id")
+
+	assert.NotEmpty(t, hostID)
+	assert.NotEmpty(t, cloudID)
+	assert.Equal(t, cloudID, assetID)
 	assert.Equal(t, hostID, assetID)
 	assert.Equal(t, "host", assetType)
 	assert.Equal(t, "host", assetKind)

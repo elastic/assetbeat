@@ -62,12 +62,16 @@ type hostdata struct {
 	addCloudMetadataProcessor beat.Processor
 }
 
-func configure(inputCfg *conf.C) (stateless.Input, error) {
-	cfg := config{
+func defaultConfig() config {
+	return config{
 		BaseConfig: internal.BaseConfig{
 			Period: defaultCollectionPeriod,
 		},
 	}
+}
+
+func configure(inputCfg *conf.C) (stateless.Input, error) {
+	cfg := defaultConfig()
 	if err := inputCfg.Unpack(&cfg); err != nil {
 		return nil, fmt.Errorf("error unpacking config: %w", err)
 	}
