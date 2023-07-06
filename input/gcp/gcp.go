@@ -57,8 +57,10 @@ func configure(cfg *conf.C) (stateless.Input, error) {
 }
 
 func newAssetsGCP(config config) (*assetsGCP, error) {
-	vpcAssetsCache, _ := freelru.New[string, *vpc](8192, hashStringXXHASH)
-	return &assetsGCP{config, vpcAssetsCache}, nil
+	vpcAssetsCache := getVpcCache()
+	subnetAssetsCache := getSubnetCache()
+	computeAssetsCache := getComputeCache()
+	return &assetsGCP{config, vpcAssetsCache, subnetAssetsCache, computeAssetsCache}, nil
 }
 
 type config struct {
@@ -78,7 +80,9 @@ func defaultConfig() config {
 
 type assetsGCP struct {
 	config
-	VpcAssetsCache *freelru.LRU[string, *vpc]
+	VpcAssetsCache     *freelru.LRU[string, *vpc]
+	SubnetAssetsCache  *freelru.LRU[string, *subnet]
+	ComputeAssetsCache *freelru.LRU[string, *computeInstance]
 }
 
 func (s *assetsGCP) Name() string { return "assets_gcp" }
@@ -134,7 +138,7 @@ func (s *assetsGCP) collectAll(ctx context.Context, log *logp.Logger, publisher 
 					return client.AggregatedList(ctx, req, opts...)
 				},
 			}
-			err = collectComputeAssets(ctx, s.config, s.VpcAssetsCache, listClient, publisher, log)
+			err = collectComputeAssets(ctx, s.config, s.SubnetAssetsCache, s.ComputeAssetsCache, listClient, publisher, log)
 			if err != nil {
 				log.Errorf("error collecting compute assets: %+v", err)
 			}
@@ -164,7 +168,7 @@ func (s *assetsGCP) collectAll(ctx context.Context, log *logp.Logger, publisher 
 					return computeClient.AggregatedList(ctx, req, opts...)
 				},
 			}
-			err = collectGKEAssets(ctx, s.config, s.VpcAssetsCache, log, listClient, client, publisher)
+			err = collectGKEAssets(ctx, s.config, s.VpcAssetsCache, s.ComputeAssetsCache, log, listClient, client, publisher)
 			if err != nil {
 				log.Errorf("error collecting GKE assets: %+v", err)
 			}
@@ -207,7 +211,7 @@ func (s *assetsGCP) collectAll(ctx context.Context, log *logp.Logger, publisher 
 					return client.AggregatedList(ctx, req, opts...)
 				},
 			}
-			err = collectSubnetAssets(ctx, s.config, listClient, publisher, log)
+			err = collectSubnetAssets(ctx, s.config, s.SubnetAssetsCache, listClient, publisher, log)
 			if err != nil {
 				log.Errorf("error collecting Subnet assets: %+v", err)
 			}

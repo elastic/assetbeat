@@ -23,6 +23,8 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/elastic/go-freelru"
+
 	"github.com/gogo/protobuf/proto"
 
 	"github.com/elastic/assetbeat/input/testutil"
@@ -54,17 +56,18 @@ func (s *ClustersClientStub) ListClusters(ctx context.Context, req *containerpb.
 var findGKEProjectRe = regexp.MustCompile("projects/([a-z_-]+)/locations/([0-9a-z_,-]+)")
 
 func TestCollectGKEAssets(t *testing.T) {
-	vpcAssetsCache := getVpcCache()
+	vpcAssetsCache := getTestVpcCache()
 	var children []string
 	var parents []string
 	for _, tt := range []struct {
 		name string
 
-		ctx            context.Context
-		cfg            config
-		apiResponses   map[string]*containerpb.ListClustersResponse
-		instances      map[string]*StubAggregatedInstanceListIterator
-		expectedEvents []beat.Event
+		ctx                context.Context
+		cfg                config
+		apiResponses       map[string]*containerpb.ListClustersResponse
+		instances          map[string]*StubAggregatedInstanceListIterator
+		computeAssetsCache *freelru.LRU[string, *computeInstance]
+		expectedEvents     []beat.Event
 	}{
 		{
 			name: "with no project specified",
@@ -104,7 +107,7 @@ func TestCollectGKEAssets(t *testing.T) {
 					},
 				},
 			},
-
+			computeAssetsCache: getTestComputeCache(),
 			expectedEvents: []beat.Event{
 				{
 					Fields: mapstr.M{
@@ -177,6 +180,7 @@ func TestCollectGKEAssets(t *testing.T) {
 					},
 				},
 			},
+			computeAssetsCache: getTestComputeCache(),
 			expectedEvents: []beat.Event{
 				{
 					Fields: mapstr.M{
@@ -247,6 +251,7 @@ func TestCollectGKEAssets(t *testing.T) {
 					},
 				},
 			},
+			computeAssetsCache: getTestComputeCache(),
 			expectedEvents: []beat.Event{
 				{
 					Fields: mapstr.M{
@@ -309,7 +314,7 @@ func TestCollectGKEAssets(t *testing.T) {
 					},
 				},
 			},
-
+			computeAssetsCache: getTestComputeCache(),
 			expectedEvents: []beat.Event{
 				{
 					Fields: mapstr.M{
@@ -404,7 +409,7 @@ func TestCollectGKEAssets(t *testing.T) {
 					},
 				},
 			},
-
+			computeAssetsCache: getTestComputeCache(),
 			expectedEvents: []beat.Event{
 				{
 					Fields: mapstr.M{
@@ -415,6 +420,84 @@ func TestCollectGKEAssets(t *testing.T) {
 						"asset.parents":        []string{"network:1"},
 						"asset.metadata.state": "RUNNING",
 						"asset.children":       []string{"host:123"},
+						"cloud.account.id":     "my_project",
+						"cloud.provider":       "gcp",
+						"cloud.region":         "europe-west1",
+					},
+					Meta: mapstr.M{
+						"index": "assets-k8s.cluster-default",
+					},
+				},
+			},
+		},
+		{
+			name: "with one project specified and children with empty computeAssetsCache. Get from Api",
+
+			ctx: context.Background(),
+			cfg: config{
+				Projects: []string{"my_project"},
+			},
+
+			apiResponses: map[string]*containerpb.ListClustersResponse{
+				"my_project": {
+					Clusters: []*containerpb.Cluster{
+						{
+							Id:       "1",
+							Location: "europe-west1",
+							Network:  "my_network",
+							NetworkConfig: &containerpb.NetworkConfig{
+								Network: "projects/my_project/global/networks/my_network",
+							},
+							Status: containerpb.Cluster_RUNNING,
+							NodePools: []*containerpb.NodePool{
+								{
+									Name: "mynodepool",
+								},
+							},
+						},
+					},
+				},
+			},
+			instances: map[string]*StubAggregatedInstanceListIterator{
+				"my_project": {
+					ReturnScopedInstancesList: []compute.InstancesScopedListPair{{
+						Key: "europe-west-1",
+						Value: &computepb.InstancesScopedList{
+							Instances: []*computepb.Instance{
+								{
+									Id:   proto.Uint64(124),
+									Zone: proto.String("https://www.googleapis.com/compute/v1/projects/my_project/zones/europe-west1-d"),
+									NetworkInterfaces: []*computepb.NetworkInterface{
+										{
+											Network: proto.String("https://www.googleapis.com/compute/v1/projects/my_project/global/networks/my_network"),
+										},
+									},
+									Status: proto.String("RUNNING"),
+									Metadata: &computepb.Metadata{
+										Items: []*computepb.Items{
+											{
+												Key:   proto.String("kube-labels"),
+												Value: proto.String("cloud.google.com/gke-nodepool=mynodepool"),
+											},
+										},
+									}},
+							},
+						},
+					},
+					},
+				},
+			},
+			computeAssetsCache: getComputeCache(),
+			expectedEvents: []beat.Event{
+				{
+					Fields: mapstr.M{
+						"asset.ean":            "cluster:1",
+						"asset.id":             "1",
+						"asset.type":           "k8s.cluster",
+						"asset.kind":           "cluster",
+						"asset.parents":        []string{"network:1"},
+						"asset.metadata.state": "RUNNING",
+						"asset.children":       []string{"host:124"},
 						"cloud.account.id":     "my_project",
 						"cloud.provider":       "gcp",
 						"cloud.region":         "europe-west1",
@@ -437,7 +520,7 @@ func TestCollectGKEAssets(t *testing.T) {
 			}
 			publisher := testutil.NewInMemoryPublisher()
 			log := logp.NewLogger("mylogger")
-			err := collectGKEAssets(tt.ctx, tt.cfg, vpcAssetsCache, log, listInstanceClientCreator, &listClusterClient, publisher)
+			err := collectGKEAssets(tt.ctx, tt.cfg, vpcAssetsCache, tt.computeAssetsCache, log, listInstanceClientCreator, &listClusterClient, publisher)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedEvents, publisher.Events)
 		})

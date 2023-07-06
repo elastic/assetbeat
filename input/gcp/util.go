@@ -19,8 +19,11 @@ package gcp
 
 import (
 	"strings"
+	"time"
 
+	"cloud.google.com/go/compute/apiv1/computepb"
 	"cloud.google.com/go/container/apiv1/containerpb"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/cespare/xxhash"
 
@@ -40,6 +43,14 @@ func getRegionFromZoneURL(zone string) string {
 
 func getVpcIdFromLink(selfLink string, vpcAssetCache *freelru.LRU[string, *vpc]) string {
 	v, ok := vpcAssetCache.Get(selfLink)
+	if ok {
+		return v.ID
+	}
+	return ""
+}
+
+func getSubnetIdFromLink(selfLink string, subnetAssetCache *freelru.LRU[string, *subnet]) string {
+	v, ok := subnetAssetCache.Get(selfLink)
 	if ok {
 		return v.ID
 	}
@@ -88,4 +99,58 @@ func wantZone(zone string, confRegions []string) bool {
 	}
 
 	return false
+}
+
+func getTestVpcCache() *freelru.LRU[string, *vpc] {
+	vpcAssetsCache, _ := freelru.New[string, *vpc](8192, hashStringXXHASH)
+	nv := vpc{
+		ID: "1",
+	}
+	selfLink := "https://www.googleapis.com/compute/v1/projects/my_project/global/networks/my_network"
+	vpcAssetsCache.AddWithExpire(selfLink, &nv, 60*time.Second)
+	return vpcAssetsCache
+}
+
+func getTestSubnetCache() *freelru.LRU[string, *subnet] {
+	subnetAssetsCache, _ := freelru.New[string, *subnet](8192, hashStringXXHASH)
+	sb := subnet{
+		ID: "2",
+	}
+	selfLink := "https://www.googleapis.com/compute/v1/projects/elastic-observability/regions/us-central1/subnetworks/my_subnet"
+	subnetAssetsCache.AddWithExpire(selfLink, &sb, 60*time.Second)
+	return subnetAssetsCache
+}
+
+func getTestComputeCache() *freelru.LRU[string, *computeInstance] {
+	computeAssetsCache, _ := freelru.New[string, *computeInstance](8192, hashStringXXHASH)
+	cI := computeInstance{
+		ID:     "123",
+		Region: "europe-west1",
+		RawMd: &computepb.Metadata{
+			Items: []*computepb.Items{
+				{
+					Key:   proto.String("kube-labels"),
+					Value: proto.String("cloud.google.com/gke-nodepool=mynodepool"),
+				},
+			},
+		},
+	}
+	selfLink := "https://www.googleapis.com/compute/v1/projects/elastic-observability/zones/europe-west1-d/instances/my-instance-1"
+	computeAssetsCache.AddWithExpire(selfLink, &cI, 60*time.Second)
+	return computeAssetsCache
+}
+
+func getComputeCache() *freelru.LRU[string, *computeInstance] {
+	computeAssetsCache, _ := freelru.New[string, *computeInstance](8192, hashStringXXHASH)
+	return computeAssetsCache
+}
+
+func getSubnetCache() *freelru.LRU[string, *subnet] {
+	computeAssetsCache, _ := freelru.New[string, *subnet](8192, hashStringXXHASH)
+	return computeAssetsCache
+}
+
+func getVpcCache() *freelru.LRU[string, *vpc] {
+	computeAssetsCache, _ := freelru.New[string, *vpc](8192, hashStringXXHASH)
+	return computeAssetsCache
 }
