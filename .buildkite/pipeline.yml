@@ -2,13 +2,12 @@ agents:
   provider: "gcp"
 steps:
   - label: ":package: Package Assetbeat - Snapshot"
-    if: build.branch == 'main'
     key: "package-snapshot"
     command: "./.buildkite/scripts/package.sh snapshot"
     artifact_paths: "build/distributions/*"
     plugins:
       - golang#v2.0.0:
-          version: 1.19.10
+          version: 1.20.5
           import: github.com/elastic/assetbeat
   - label: ":rocket: Publishing Snapshot DRA artifacts"
     if: build.branch == 'main'
