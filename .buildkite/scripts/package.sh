@@ -14,8 +14,8 @@ fi
 MY_DIR=$(dirname $(readlink -f "$0"))
 source $MY_DIR/install-prereq.sh
 
-#Download Go dependencies
+# Download Go dependencies
 go mod download
 
-#Packaging the assetbeat binary
+# Packaging the assetbeat binary
 mage package

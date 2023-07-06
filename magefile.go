@@ -65,6 +65,16 @@ func Notice() error {
 	)
 }
 
+// DependencyReport generates a dependencies.csv file for the module.
+func DependencyReport() error {
+	return devtools.GenerateDependencyReport(
+		filepath.Join("internal", "notice", "overrides.json"),
+		filepath.Join("internal", "notice", "rules.json"),
+		filepath.Join("internal", "notice", "dependencies.csv.tmpl"),
+		isSnapshot(),
+	)
+}
+
 // Check runs all the checks including licence, notice, gomod, git changes
 func Check() {
 	// these are not allowed in parallel
@@ -190,8 +200,7 @@ func Package() error {
 			}
 		}
 	}
-
-	return nil
+	return DependencyReport()
 }
 
 func isSnapshot() bool {
