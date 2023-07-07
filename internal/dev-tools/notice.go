@@ -28,20 +28,13 @@ import (
 )
 
 func GenerateNotice(overrides, rules, noticeTemplate string) error {
-	mg.Deps(mage.InstallGoNoticeGen, mage.Deps.CheckModuleTidy)
 
-	gotool.Mod.Tidy()     //nolint:errcheck // No value in handling this error.
-	gotool.Mod.Download() //nolint:errcheck // No value in handling this error.
-
-	out, _ := gotool.ListDepsForNotice()
-	depsFile, _ := os.CreateTemp("", "depsout")
-	defer os.Remove(depsFile.Name())
-	_, _ = depsFile.Write([]byte(out))
-	depsFile.Close()
+	depsFile := generateDepsFile()
+	defer os.Remove(depsFile)
 
 	generator := gotool.NoticeGenerator
 	return generator(
-		generator.Dependencies(depsFile.Name()),
+		generator.Dependencies(depsFile),
 		generator.IncludeIndirect(),
 		generator.Overrides(overrides),
 		generator.Rules(rules),
@@ -51,16 +44,9 @@ func GenerateNotice(overrides, rules, noticeTemplate string) error {
 }
 
 func GenerateDependencyReport(overrides, rules, dependencyReportTemplate string, isSnapshot bool) error {
-	mg.Deps(mage.InstallGoNoticeGen, mage.Deps.CheckModuleTidy)
 
-	gotool.Mod.Tidy()     //nolint:errcheck // No value in handling this error.
-	gotool.Mod.Download() //nolint:errcheck // No value in handling this error.
-
-	out, _ := gotool.ListDepsForNotice()
-	depsFile, _ := os.CreateTemp("", "depsout")
-	defer os.Remove(depsFile.Name())
-	_, _ = depsFile.Write([]byte(out))
-	depsFile.Close()
+	depsFile := generateDepsFile()
+	defer os.Remove(depsFile)
 
 	if err := sh.RunV("mkdir", "-p", defaultPackageFolder); err != nil {
 		return err
@@ -72,11 +58,25 @@ func GenerateDependencyReport(overrides, rules, dependencyReportTemplate string,
 		dependencyReportFilename = dependencyReportFilename + "-SNAPSHOT"
 	}
 	return generator(
-		generator.Dependencies(depsFile.Name()),
+		generator.Dependencies(depsFile),
 		generator.IncludeIndirect(),
 		generator.Overrides(overrides),
 		generator.Rules(rules),
 		generator.NoticeTemplate(dependencyReportTemplate),
 		generator.NoticeOutput(fmt.Sprintf("%s/%s.csv", defaultPackageFolder, dependencyReportFilename)),
 	)
+}
+
+func generateDepsFile() string {
+	mg.Deps(mage.InstallGoNoticeGen, mage.Deps.CheckModuleTidy)
+
+	gotool.Mod.Tidy()     //nolint:errcheck // No value in handling this error.
+	gotool.Mod.Download() //nolint:errcheck // No value in handling this error.
+
+	out, _ := gotool.ListDepsForNotice()
+	depsFile, _ := os.CreateTemp("", "depsout")
+	_, _ = depsFile.Write([]byte(out))
+	depsFile.Close()
+
+	return depsFile.Name()
 }
