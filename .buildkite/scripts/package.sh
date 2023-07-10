@@ -10,18 +10,16 @@ if [ "$WORKFLOW" = "snapshot" ] ; then
     export SNAPSHOT="true"
 fi
 
-git status
 
+# Install prerequirements (go, mage...)
+MY_DIR=$(dirname $(readlink -f "$0"))
+source $MY_DIR/install-prereq.sh
 
-## Install prerequirements (go, mage...)
-#MY_DIR=$(dirname $(readlink -f "$0"))
-#source $MY_DIR/install-prereq.sh
-#
-## Download Go dependencies
-#go mod download
-#
-## Packaging the assetbeat binary
-#mage package
-#
-## Generate the CSV dependency report
-#mage dependencyReport
+# Download Go dependencies
+go mod download
+
+# Packaging the assetbeat binary
+mage package
+
+# Generate the CSV dependency report
+mage dependencyReport
