@@ -200,7 +200,7 @@ func Package() error {
 			}
 		}
 	}
-	return DependencyReport()
+	return nil
 }
 
 func isSnapshot() bool {

@@ -19,3 +19,6 @@ go mod download
 
 # Packaging the assetbeat binary
 mage package
+
+# Generate the CSV dependency report
+mage dependencyReport
