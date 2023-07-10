@@ -20,5 +20,9 @@ go mod download
 # Packaging the assetbeat binary
 # mage package
 
+echo $PWD
+echo $GIT_DIR
+echo $BUILDKITE_BUILD_CHECKOUT_PATH
+
 # Generate the CSV dependency report
 mage dependencyReport
