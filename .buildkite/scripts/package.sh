@@ -22,5 +22,7 @@ go mod download
 
 echo $PWD
 ls -alrt
+
+git --git-dir="$PWD/.git" rev-parse > /dev/null 2>&1
 # Generate the CSV dependency report
 mage dependencyReport
