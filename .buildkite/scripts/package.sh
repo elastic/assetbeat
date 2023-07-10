@@ -18,7 +18,7 @@ source $MY_DIR/install-prereq.sh
 go mod download
 
 # Packaging the assetbeat binary
-mage package
+# mage package
 
 # Generate the CSV dependency report
 mage dependencyReport
