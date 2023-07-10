@@ -21,7 +21,6 @@ go mod download
 # mage package
 
 echo $PWD
-echo $BUILDKITE_BUILD_CHECKOUT_PATH
-
+ls -alrt
 # Generate the CSV dependency report
 mage dependencyReport
