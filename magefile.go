@@ -79,11 +79,11 @@ func DependencyReport() error {
 func Check() {
 	// these are not allowed in parallel
 	mg.SerialDeps(
+		mage.Deps.CheckModuleTidy,
 		Lint,
 		Format,
 		CheckLicenseHeaders,
 		Notice,
-		mage.Deps.CheckModuleTidy,
 		mage.CheckNoChanges,
 	)
 }
