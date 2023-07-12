@@ -18,6 +18,7 @@
 package cmd
 
 import (
+	"github.com/elastic/assetbeat/version"
 	"github.com/spf13/pflag"
 
 	"github.com/elastic/assetbeat/beater"
@@ -28,9 +29,6 @@ import (
 // Name of this beat
 const Name = "assetbeat"
 
-// Version of this beat
-const Version = "8.9.0"
-
 // RootCmd to handle beats cli
 var RootCmd *cmd.BeatsRootCmd
 
@@ -40,7 +38,7 @@ func AssetbeatSettings() instance.Settings {
 	return instance.Settings{
 		RunFlags:      runFlags,
 		Name:          Name,
-		Version:       Version,
+		Version:       version.DefaultVersion,
 		HasDashboards: false,
 	}
 }

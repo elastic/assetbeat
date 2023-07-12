@@ -19,7 +19,7 @@ package dev_tools
 
 import (
 	"fmt"
-	settings "github.com/elastic/assetbeat/cmd"
+	"github.com/elastic/assetbeat/version"
 	"github.com/elastic/elastic-agent-libs/dev-tools/mage"
 	"github.com/elastic/elastic-agent-libs/dev-tools/mage/gotool"
 	"github.com/magefile/mage/mg"
@@ -53,7 +53,7 @@ func GenerateDependencyReport(overrides, rules, dependencyReportTemplate string,
 	}
 
 	generator := gotool.NoticeGenerator
-	dependencyReportFilename := fmt.Sprintf("dependencies-%s", settings.Version)
+	dependencyReportFilename := fmt.Sprintf("dependencies-%s", version.DefaultVersion)
 	if isSnapshot {
 		dependencyReportFilename = dependencyReportFilename + "-SNAPSHOT"
 	}
