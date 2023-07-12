@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euxo pipefail
+set -euo pipefail
 
 WORKFLOW=$1
 # The "branch" here selects which "$BRANCH.gradle" file of release manager is used
@@ -20,7 +20,8 @@ buildkite-agent artifact download "build/distributions/*" "." --step package-"${
 chmod -R 777 build/distributions
 
 ## Shared secret path containing the dra creds for project teams
-#DRA_CREDS=$(vault kv get -field=data -format=json kv/ci-shared/release/dra-role)
+echo "Retrieving DRA crededentials..."
+DRA_CREDS=$(vault kv get -field=data -format=json kv/ci-shared/release/dra-role)
 
 # Run release-manager
 #echo "Running release-manager container..."
