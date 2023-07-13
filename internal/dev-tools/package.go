@@ -91,7 +91,7 @@ func packageTar(spec PackageSpec) error {
 }
 
 func getPackageTarName(spec PackageSpec) string {
-	tarFileNameElements := []string{"assetbeat", version.DefaultVersion}
+	tarFileNameElements := []string{"assetbeat", version.GetVersion()}
 	if spec.IsSnapshot {
 		tarFileNameElements = append(tarFileNameElements, "SNAPSHOT")
 	}

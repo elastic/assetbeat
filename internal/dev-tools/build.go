@@ -18,11 +18,16 @@
 package dev_tools
 
 import (
+	"fmt"
+	"github.com/elastic/assetbeat/version"
 	"github.com/magefile/mage/sh"
 	"path/filepath"
 	"strings"
 )
 
+const assetbeatModulePath = "github.com/elastic/assetbeat"
+
+var qualifierVarPath = assetbeatModulePath + "/version.buildQualifier"
 var defaultCrossBuildFolder = filepath.Join("build", "golang-crossbuild")
 
 type BuildArgs struct {
@@ -30,20 +35,28 @@ type BuildArgs struct {
 	targetFolder string
 	flags        []string
 	env          map[string]string
+	ldflags      []string
 }
 
 // DefaultBuildArgs returns the default BuildArgs for use in builds.
 func DefaultBuildArgs() BuildArgs {
-	return BuildArgs{
+
+	args := BuildArgs{
 		name:         "assetbeat",
 		targetFolder: "",
 		// -trimpath -> remove all file system paths from the resulting executable.
 		// E.g a stack trace for /home/me/stuff/src/github.com/me/something.go:9 would be shown as github.com/me/something.go:9
-		//
+		flags: []string{"-trimpath"},
 		// -ldflags=-s -w -> removes debug symbols from the resulting executable, reducing its size.
-		flags: []string{"-trimpath", "-ldflags=-s -w"},
-		env:   map[string]string{},
+		ldflags: []string{"-s", "-w"},
+		env:     map[string]string{},
 	}
+
+	if version.HasQualifier {
+		args.ldflags = append(args.ldflags, fmt.Sprintf("-X %s=%s", qualifierVarPath, version.Qualifier))
+	}
+
+	return args
 }
 
 // DefaultCrossBuildArgs returns the default BuildArgs for cross-builds of a specific Platform.
@@ -76,6 +89,9 @@ func Build(args BuildArgs) (string, error) {
 	buildArgs := []string{"build"}
 	buildArgs = append(buildArgs, "-o", executablePath)
 	buildArgs = append(buildArgs, args.flags...)
+	ldflags := strings.Join(args.ldflags, " ")
+	buildArgs = append(buildArgs, "-ldflags", ldflags)
+	fmt.Printf("%v+\n", buildArgs)
 	err := sh.RunWithV(args.env, "go", buildArgs...)
 	if err != nil {
 		return "", nil

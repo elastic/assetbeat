@@ -38,7 +38,7 @@ func AssetbeatSettings() instance.Settings {
 	return instance.Settings{
 		RunFlags:      runFlags,
 		Name:          Name,
-		Version:       version.DefaultVersion,
+		Version:       version.GetBuildVersion(),
 		HasDashboards: false,
 	}
 }

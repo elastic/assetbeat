@@ -53,7 +53,7 @@ func GenerateDependencyReport(overrides, rules, dependencyReportTemplate string,
 	}
 
 	generator := gotool.NoticeGenerator
-	dependencyReportFilename := fmt.Sprintf("dependencies-%s", version.DefaultVersion)
+	dependencyReportFilename := fmt.Sprintf("dependencies-%s", version.GetVersion())
 	if isSnapshot {
 		dependencyReportFilename = dependencyReportFilename + "-SNAPSHOT"
 	}
