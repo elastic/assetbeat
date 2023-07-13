@@ -17,7 +17,12 @@ fi
 # Download artifacts from other stages
 echo "Downloading artifacts..."
 buildkite-agent artifact download "build/distributions/*" "." --step package-"${WORKFLOW}"
-chmod -R 777 build/distributions
+# Allow other users access to read the artifacts so they are readable in the
+# container
+chmod a+r build/distributions/*
+
+# Allow other users write access to create checksum files
+chmod a+w build/distributions
 
 ## Shared secret path containing the dra creds for project teams
 echo "Retrieving DRA crededentials..."
