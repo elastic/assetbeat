@@ -1,6 +1,8 @@
 name: ci
 
 on:
+  workflow_dispatch:
+    branches: [ "dependabot/go_modules/**"]
   merge_group:
     branches: [ "main" ]
   pull_request:
