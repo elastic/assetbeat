@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 set -uxo pipefail
 
 export PLATFORMS="linux/amd64 linux/arm64"
@@ -12,8 +12,7 @@ fi
 
 
 # Install prerequirements (go, mage...)
-MY_DIR=$(dirname $(readlink -f "$0"))
-source $MY_DIR/install-prereq.sh
+source .buildkite/scripts/install-prereq.sh
 
 # Download Go dependencies
 go mod download
