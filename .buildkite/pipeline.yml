@@ -1,33 +1,35 @@
+agents:
+  provider: "gcp"
 steps:
   - label: ":buildkite: Check"
     command:
       - ".buildkite/scripts/check.sh"
-    agents:
-      image: golang:1.20.5
-      cpu: "8"
-      memory: "4G"
+    plugins:
+      - golang#v2.0.0:
+          version: 1.20.5
+          import: github.com/elastic/assetbeat
   - label: ":buildkite: Build"
     command:
       - ".buildkite/scripts/build.sh"
-    agents:
-      image: golang:1.20.5
-      cpu: "8"
-      memory: "4G"
+    plugins:
+      - golang#v2.0.0:
+          version: 1.20.5
+          import: github.com/elastic/assetbeat
   - label: ":buildkite: Test"
     command:
       - ".buildkite/scripts/test.sh"
-    agents:
-      image: golang:1.20.5
-      cpu: "8"
-      memory: "4G"
+    plugins:
+      - golang#v2.0.0:
+          version: 1.20.5
+          import: github.com/elastic/assetbeat
   - label: ":package: Package Assetbeat - Snapshot"
     key: "package-snapshot"
     command: "./.buildkite/scripts/package.sh snapshot"
     artifact_paths: "build/distributions/*"
-    agents:
-      image: golang:1.20.5
-      cpu: "8"
-      memory: "4G"
+    plugins:
+      - golang#v2.0.0:
+          version: 1.20.5
+          import: github.com/elastic/assetbeat
   - label: ":rocket: Publishing Snapshot DRA artifacts"
     if: build.branch == 'main'
     depends_on: "package-snapshot"
