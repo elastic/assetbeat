@@ -1,19 +1,19 @@
 steps:
-  - label: ":buildkite: Check"
+  - label: ":white_check_mark: Check"
     command:
       - ".buildkite/scripts/check.sh"
     agents:
       image: golang:1.20.5
       cpu: "8"
       memory: "8G"
-  - label: ":buildkite: Build"
+  - label: ":building_construction: Build"
     command:
       - ".buildkite/scripts/build.sh"
     agents:
       image: golang:1.20.5
       cpu: "8"
       memory: "4G"
-  - label: ":buildkite: Test"
+  - label: ":test_tube: Test"
     command:
       - ".buildkite/scripts/test.sh"
     agents:
