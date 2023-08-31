@@ -5,7 +5,7 @@ steps:
     agents:
       image: golang:1.20.5
       cpu: "8"
-      memory: "4G"
+      memory: "16G"
   - label: ":buildkite: Build"
     command:
       - ".buildkite/scripts/build.sh"
