@@ -5,7 +5,7 @@ steps:
     agents:
       image: golang:1.20.5
       cpu: "8"
-      memory: "16G"
+      memory: "8G"
   - label: ":buildkite: Build"
     command:
       - ".buildkite/scripts/build.sh"
@@ -13,13 +13,13 @@ steps:
       image: golang:1.20.5
       cpu: "8"
       memory: "4G"
-#  - label: ":buildkite: Test"
-#    command:
-#      - ".buildkite/scripts/test.sh"
-#    agents:
-#      image: golang:1.20.5
-#      cpu: "8"
-#      memory: "4G"
+  - label: ":buildkite: Test"
+    command:
+      - ".buildkite/scripts/test.sh"
+    agents:
+      image: golang:1.20.5
+      cpu: "8"
+      memory: "4G"
   - label: ":package: Package Assetbeat - Snapshot"
     key: "package-snapshot"
     command: "./.buildkite/scripts/package.sh snapshot"
