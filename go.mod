@@ -3,7 +3,7 @@ module github.com/elastic/assetbeat
 go 1.20
 
 require (
-	cloud.google.com/go/compute v1.20.0
+	cloud.google.com/go/compute v1.23.0
 	cloud.google.com/go/container v1.22.0
 	github.com/aws/aws-sdk-go-v2 v1.21.0
 	github.com/aws/aws-sdk-go-v2/config v1.18.27
