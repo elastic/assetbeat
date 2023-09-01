@@ -28,20 +28,21 @@ chmod a+w build/distributions
 echo "Retrieving DRA crededentials..."
 DRA_CREDS=$(vault kv get -field=data -format=json kv/ci-shared/release/dra-role)
 
- Run release-manager
-echo "Running release-manager container..."
-IMAGE="docker.elastic.co/infra/release-manager:latest"
-docker run --rm \
-  --name release-manager \
-  -e VAULT_ADDR=$(echo $DRA_CREDS | jq -r '.vault_addr') \
-  -e VAULT_ROLE_ID=$(echo $DRA_CREDS | jq -r '.role_id') \
-  -e VAULT_SECRET_ID=$(echo $DRA_CREDS | jq -r '.secret_id') \
-  --mount type=bind,readonly=false,src="${PWD}",target=/artifacts \
-  "$IMAGE" \
-    cli collect \
-      --project assetbeat \
-      --branch "${BRANCH}" \
-      --commit "${BUILDKITE_COMMIT}" \
-      --workflow "${WORKFLOW}" \
-      --version "${VERSION}" \
-      --artifact-set main \
+# TODO: Enable as soon as everything is in place to publish artifacts to DRA
+# Run release-manager
+#echo "Running release-manager container..."
+#IMAGE="docker.elastic.co/infra/release-manager:latest"
+#docker run --rm \
+#  --name release-manager \
+#  -e VAULT_ADDR=$(echo $DRA_CREDS | jq -r '.vault_addr') \
+#  -e VAULT_ROLE_ID=$(echo $DRA_CREDS | jq -r '.role_id') \
+#  -e VAULT_SECRET_ID=$(echo $DRA_CREDS | jq -r '.secret_id') \
+#  --mount type=bind,readonly=false,src="${PWD}",target=/artifacts \
+#  "$IMAGE" \
+#    cli collect \
+#      --project assetbeat \
+#      --branch "${BRANCH}" \
+#      --commit "${BUILDKITE_COMMIT}" \
+#      --workflow "${WORKFLOW}" \
+#      --version "${VERSION}" \
+#      --artifact-set main
