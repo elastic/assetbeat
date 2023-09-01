@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
+set -euxo pipefail
 
 WORKFLOW=$1
 # The "branch" here selects which "$BRANCH.gradle" file of release manager is used

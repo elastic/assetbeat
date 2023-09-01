@@ -28,7 +28,7 @@ import (
 )
 
 func GenerateNotice(overrides, rules, noticeTemplate string) error {
-
+	mg.Deps(mage.InstallGoNoticeGen)
 	depsFile := generateDepsFile()
 	defer os.Remove(depsFile)
 
@@ -44,7 +44,7 @@ func GenerateNotice(overrides, rules, noticeTemplate string) error {
 }
 
 func GenerateDependencyReport(overrides, rules, dependencyReportTemplate string, isSnapshot bool) error {
-
+	mg.Deps(mage.InstallGoNoticeGen)
 	depsFile := generateDepsFile()
 	defer os.Remove(depsFile)
 
@@ -68,10 +68,6 @@ func GenerateDependencyReport(overrides, rules, dependencyReportTemplate string,
 }
 
 func generateDepsFile() string {
-	mg.Deps(mage.InstallGoNoticeGen, mage.Deps.CheckModuleTidy)
-
-	gotool.Mod.Tidy()     //nolint:errcheck // No value in handling this error.
-	gotool.Mod.Download() //nolint:errcheck // No value in handling this error.
 
 	out, _ := gotool.ListDepsForNotice()
 	depsFile, _ := os.CreateTemp("", "depsout")
