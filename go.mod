@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	cloud.google.com/go/compute v1.23.0
-	cloud.google.com/go/container v1.22.0
+	cloud.google.com/go/container v1.25.0
 	github.com/aws/aws-sdk-go-v2 v1.21.0
 	github.com/aws/aws-sdk-go-v2/config v1.18.27
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.26
@@ -22,7 +22,7 @@ require (
 	github.com/elastic/go-licenser v0.4.0
 	github.com/elastic/go-sysinfo v1.9.0
 	github.com/gogo/protobuf v1.3.2
-	github.com/googleapis/gax-go/v2 v2.11.0
+	github.com/googleapis/gax-go/v2 v2.12.0
 	github.com/magefile/mage v1.15.0
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/pkg/errors v0.9.1
