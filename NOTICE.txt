@@ -3852,11 +3852,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 Dependency : go.elastic.co/go-licence-detector
-Version: v0.5.0
+Version: v0.6.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/go.elastic.co/go-licence-detector@v0.5.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/go.elastic.co/go-licence-detector@v0.6.0/LICENSE:
 
 
                                  Apache License
