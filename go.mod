@@ -19,7 +19,7 @@ require (
 	github.com/elastic/elastic-agent-system-metrics v0.4.5-0.20220927192933-25a985b07d51
 	github.com/elastic/go-concert v0.2.0
 	github.com/elastic/go-freelru v0.6.0
-	github.com/elastic/go-licenser v0.4.0
+	github.com/elastic/go-licenser v0.4.1
 	github.com/elastic/go-sysinfo v1.11.1
 	github.com/gogo/protobuf v1.3.2
 	github.com/googleapis/gax-go/v2 v2.12.0
