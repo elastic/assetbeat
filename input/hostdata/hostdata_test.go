@@ -19,6 +19,7 @@ package hostdata
 
 import (
 	"context"
+	"github.com/elastic/assetbeat/input/internal"
 	"testing"
 
 	"github.com/elastic/go-sysinfo"
@@ -79,7 +80,7 @@ func TestHostdata_reportHostDataAssets(t *testing.T) {
 	assert.Equal(t, hostID, assetID)
 	assert.Equal(t, "host", assetType)
 	assert.Equal(t, "host", assetKind)
-	assert.Equal(t, "assets-raw-default", destinationDatastream)
+	assert.Equal(t, internal.GetDefaultIndexName(), destinationDatastream)
 
 	// check that the networking fields are populated
 	// (and that the stored host data has not been modified)
@@ -118,7 +119,7 @@ func TestHostdata_reportHostDataAssetsWithCloudMeta(t *testing.T) {
 	assert.Equal(t, hostID, assetID)
 	assert.Equal(t, "host", assetType)
 	assert.Equal(t, "host", assetKind)
-	assert.Equal(t, "assets-raw-default", destinationDatastream)
+	assert.Equal(t, internal.GetDefaultIndexName(), destinationDatastream)
 
 	// check that the networking fields are populated
 	// (and that the stored host data has not been modified)

@@ -38,7 +38,7 @@ func TestECS_WithCloudInstanceId(t *testing.T) {
 			assetOp: WithCloudInstanceId("i-0699b78f46f0fa248"),
 			expected: beat.Event{
 				Fields: mapstr.M{"cloud.instance.id": "i-0699b78f46f0fa248"},
-				Meta:   mapstr.M{"index": "assets-raw-default"},
+				Meta:   mapstr.M{"index": GetDefaultIndexName()},
 			},
 		},
 	} {

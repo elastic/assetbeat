@@ -19,6 +19,7 @@ package aws
 
 import (
 	"context"
+	"github.com/elastic/assetbeat/input/internal"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
@@ -101,7 +102,7 @@ func TestAssetsAWS_collectEC2Assets(t *testing.T) {
 					"cloud.region":                   "eu-west-1",
 				},
 				Meta: mapstr.M{
-					"index": "assets-raw-default",
+					"index": internal.GetDefaultIndexName(),
 				},
 			},
 			{
@@ -119,7 +120,7 @@ func TestAssetsAWS_collectEC2Assets(t *testing.T) {
 					"cloud.region":     "eu-west-1",
 				},
 				Meta: mapstr.M{
-					"index": "assets-raw-default",
+					"index": internal.GetDefaultIndexName(),
 				},
 			},
 		},

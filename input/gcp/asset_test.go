@@ -45,7 +45,7 @@ func TestWithAssetLabels(t *testing.T) {
 				"cloud.provider":               "gcp",
 				"asset.metadata.labels.label1": "a",
 				"asset.metadata.labels.label2": "b",
-			}, Meta: mapstr.M{"index": "assets-raw-default"}},
+			}, Meta: mapstr.M{"index": internal.GetDefaultIndexName()}},
 		},
 		{
 			name: "with valid labels and metadata",
@@ -59,14 +59,13 @@ func TestWithAssetLabels(t *testing.T) {
 				"asset.metadata.foo":           "bar",
 				"asset.metadata.labels.label1": "a",
 				"asset.metadata.labels.label2": "b",
-			}, Meta: mapstr.M{"index": "assets-raw-default"}},
+			}, Meta: mapstr.M{"index": internal.GetDefaultIndexName()}},
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			publisher := testutil.NewInMemoryPublisher()
 
 			internal.Publish(publisher, nil, tt.opts...)
-
 			assert.Equal(t, 1, len(publisher.Events))
 			assert.Equal(t, tt.expectedEvent, publisher.Events[0])
 		})

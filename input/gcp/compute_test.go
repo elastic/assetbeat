@@ -19,6 +19,7 @@ package gcp
 
 import (
 	"context"
+	"github.com/elastic/assetbeat/input/internal"
 	"testing"
 
 	compute "cloud.google.com/go/compute/apiv1"
@@ -129,7 +130,7 @@ func TestGetAllComputeInstances(t *testing.T) {
 						"cloud.region":         "europe-west1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-raw-default",
+						"index": internal.GetDefaultIndexName(),
 					},
 				},
 			},
@@ -188,7 +189,7 @@ func TestGetAllComputeInstances(t *testing.T) {
 						"cloud.region":         "europe-west1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-raw-default",
+						"index": internal.GetDefaultIndexName(),
 					},
 				},
 				{
@@ -204,7 +205,7 @@ func TestGetAllComputeInstances(t *testing.T) {
 						"cloud.region":         "europe-west1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-raw-default",
+						"index": internal.GetDefaultIndexName(),
 					},
 				},
 			},
@@ -268,7 +269,7 @@ func TestGetAllComputeInstances(t *testing.T) {
 						"cloud.region":         "us-west1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-raw-default",
+						"index": internal.GetDefaultIndexName(),
 					},
 				},
 			},

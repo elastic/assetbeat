@@ -33,11 +33,15 @@ const indexType = "assets"
 const indexDefaultNamespace = "default"
 const indexDefaultDataset = "raw"
 
+func GetDefaultIndexName() string {
+	return fmt.Sprintf("%s-%s-%s", indexType, indexDefaultDataset, indexDefaultNamespace)
+}
+
 func NewEvent() *beat.Event {
 	return &beat.Event{
 		Fields: mapstr.M{},
 		Meta: mapstr.M{
-			"index": fmt.Sprintf("%s-%s-%s", indexType, indexDefaultDataset, indexDefaultNamespace),
+			"index": GetDefaultIndexName(),
 		}}
 }
 

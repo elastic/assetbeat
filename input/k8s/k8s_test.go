@@ -63,7 +63,7 @@ func TestPublishK8sPodAsset(t *testing.T) {
 					"kubernetes.namespace":      "default",
 				},
 				Meta: mapstr.M{
-					"index": "assets-raw-default",
+					"index": internal.GetDefaultIndexName(),
 				},
 			},
 
@@ -116,7 +116,7 @@ func TestPublishK8sNodeAsset(t *testing.T) {
 					"cloud.instance.id":          "i-0699b78f46f0fa248",
 				},
 				Meta: mapstr.M{
-					"index": "assets-raw-default",
+					"index": internal.GetDefaultIndexName(),
 				},
 			},
 

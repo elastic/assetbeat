@@ -20,6 +20,7 @@ package gcp
 import (
 	"context"
 	"fmt"
+	"github.com/elastic/assetbeat/input/internal"
 	"regexp"
 	"testing"
 
@@ -123,7 +124,7 @@ func TestCollectGKEAssets(t *testing.T) {
 						"cloud.region":         "europe-west1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-raw-default",
+						"index": internal.GetDefaultIndexName(),
 					},
 				},
 			},
@@ -196,7 +197,7 @@ func TestCollectGKEAssets(t *testing.T) {
 						"cloud.region":         "europe-west1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-raw-default",
+						"index": internal.GetDefaultIndexName(),
 					},
 				},
 				{
@@ -213,7 +214,7 @@ func TestCollectGKEAssets(t *testing.T) {
 						"cloud.region":         "us-central",
 					},
 					Meta: mapstr.M{
-						"index": "assets-raw-default",
+						"index": internal.GetDefaultIndexName(),
 					},
 				},
 			},
@@ -267,7 +268,7 @@ func TestCollectGKEAssets(t *testing.T) {
 						"cloud.region":         "us-west1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-raw-default",
+						"index": internal.GetDefaultIndexName(),
 					},
 				},
 			},
@@ -330,7 +331,7 @@ func TestCollectGKEAssets(t *testing.T) {
 						"cloud.region":         "us-west1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-raw-default",
+						"index": internal.GetDefaultIndexName(),
 					},
 				},
 				{
@@ -347,7 +348,7 @@ func TestCollectGKEAssets(t *testing.T) {
 						"cloud.region":         "europe-west1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-raw-default",
+						"index": internal.GetDefaultIndexName(),
 					},
 				},
 			},
@@ -425,7 +426,7 @@ func TestCollectGKEAssets(t *testing.T) {
 						"cloud.region":         "europe-west1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-raw-default",
+						"index": internal.GetDefaultIndexName(),
 					},
 				},
 			},
@@ -503,7 +504,7 @@ func TestCollectGKEAssets(t *testing.T) {
 						"cloud.region":         "europe-west1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-raw-default",
+						"index": internal.GetDefaultIndexName(),
 					},
 				},
 			},
