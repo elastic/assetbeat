@@ -28,7 +28,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.4
-	go.elastic.co/go-licence-detector v0.5.0
+	go.elastic.co/go-licence-detector v0.6.0
 	golang.org/x/exp v0.0.0-20230510235704-dd950f8aeaea
 	google.golang.org/api v0.129.0
 	google.golang.org/protobuf v1.31.0
