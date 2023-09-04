@@ -164,14 +164,13 @@ func getKubernetesClient(kubeconfigPath string, log *logp.Logger) (kuberntescli.
 
 // collectK8sAssets collects kubernetes resources from watchers cache and publishes them
 func collectK8sAssets(ctx context.Context, log *logp.Logger, cfg config, publisher stateless.Publisher, watchersMap *watchersMap) {
-	indexNamespace := cfg.IndexNamespace
 	if internal.IsTypeEnabled(cfg.AssetTypes, "k8s.node") {
 		log.Info("Node type enabled. Starting collecting")
 		go func() {
 			if nodeWatcher, ok := watchersMap.watchers.Load("node"); ok {
 				nw, ok := nodeWatcher.(kube.Watcher)
 				if ok {
-					publishK8sNodes(ctx, log, indexNamespace, publisher, nw, kube.IsInCluster(cfg.KubeConfig))
+					publishK8sNodes(ctx, log, publisher, nw, kube.IsInCluster(cfg.KubeConfig))
 				} else {
 					log.Error("Node watcher type assertion failed")
 				}
@@ -196,7 +195,7 @@ func collectK8sAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 				}
 				pw, ok := podWatcher.(kube.Watcher)
 				if ok {
-					publishK8sPods(ctx, log, indexNamespace, publisher, pw, nw)
+					publishK8sPods(ctx, log, publisher, pw, nw)
 				} else {
 					log.Error("Pod watcher type assertion failed")
 				}
@@ -214,7 +213,7 @@ func collectK8sAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 			if podWatcher, ok := watchersMap.watchers.Load("pod"); ok {
 				pw, ok := podWatcher.(kube.Watcher)
 				if ok {
-					publishK8sContainers(ctx, log, indexNamespace, publisher, pw)
+					publishK8sContainers(ctx, log, publisher, pw)
 				} else {
 					log.Error("Pod watcher type assertion failed")
 				}

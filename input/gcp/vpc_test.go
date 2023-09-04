@@ -138,7 +138,7 @@ func TestCollectVpcAssets(t *testing.T) {
 						"cloud.provider":   "gcp",
 					},
 					Meta: mapstr.M{
-						"index": "assets-gcp.vpc-default",
+						"index": "assets-raw-default",
 					},
 				},
 				{
@@ -152,7 +152,7 @@ func TestCollectVpcAssets(t *testing.T) {
 						"cloud.provider":   "gcp",
 					},
 					Meta: mapstr.M{
-						"index": "assets-gcp.vpc-default",
+						"index": "assets-raw-default",
 					},
 				},
 			},
@@ -204,7 +204,7 @@ func TestCollectVpcAssets(t *testing.T) {
 						"cloud.provider":   "gcp",
 					},
 					Meta: mapstr.M{
-						"index": "assets-gcp.vpc-default",
+						"index": "assets-raw-default",
 					},
 				},
 				{
@@ -218,7 +218,7 @@ func TestCollectVpcAssets(t *testing.T) {
 						"cloud.provider":   "gcp",
 					},
 					Meta: mapstr.M{
-						"index": "assets-gcp.vpc-default",
+						"index": "assets-raw-default",
 					},
 				},
 				{
@@ -232,7 +232,7 @@ func TestCollectVpcAssets(t *testing.T) {
 						"cloud.provider":   "gcp",
 					},
 					Meta: mapstr.M{
-						"index": "assets-gcp.vpc-default",
+						"index": "assets-raw-default",
 					},
 				},
 				{
@@ -246,7 +246,7 @@ func TestCollectVpcAssets(t *testing.T) {
 						"cloud.provider":   "gcp",
 					},
 					Meta: mapstr.M{
-						"index": "assets-gcp.vpc-default",
+						"index": "assets-raw-default",
 					},
 				},
 			},
@@ -326,7 +326,7 @@ func TestCollectSubnetAssets(t *testing.T) {
 						"cloud.region":     "europe-west-1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-gcp.subnet-default",
+						"index": "assets-raw-default",
 					},
 				},
 				{
@@ -341,7 +341,7 @@ func TestCollectSubnetAssets(t *testing.T) {
 						"cloud.region":     "europe-west-1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-gcp.subnet-default",
+						"index": "assets-raw-default",
 					},
 				},
 			},
@@ -453,7 +453,7 @@ func TestCollectSubnetAssets(t *testing.T) {
 						"cloud.region":     "europe-west-1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-gcp.subnet-default",
+						"index": "assets-raw-default",
 					},
 				},
 				{
@@ -468,7 +468,7 @@ func TestCollectSubnetAssets(t *testing.T) {
 						"cloud.region":     "europe-west-1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-gcp.subnet-default",
+						"index": "assets-raw-default",
 					},
 				},
 				{
@@ -483,7 +483,7 @@ func TestCollectSubnetAssets(t *testing.T) {
 						"cloud.region":     "europe-west-1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-gcp.subnet-default",
+						"index": "assets-raw-default",
 					},
 				},
 				{
@@ -498,7 +498,7 @@ func TestCollectSubnetAssets(t *testing.T) {
 						"cloud.region":     "europe-west-1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-gcp.subnet-default",
+						"index": "assets-raw-default",
 					},
 				},
 				{
@@ -513,7 +513,7 @@ func TestCollectSubnetAssets(t *testing.T) {
 						"cloud.region":     "us-central1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-gcp.subnet-default",
+						"index": "assets-raw-default",
 					},
 				},
 			},

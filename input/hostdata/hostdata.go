@@ -20,6 +20,7 @@ package hostdata
 import (
 	"context"
 	"fmt"
+	"github.com/elastic/go-sysinfo"
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/processors/add_cloud_metadata"
@@ -37,7 +38,6 @@ import (
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/elastic-agent-system-metrics/metric/system/host"
 	"github.com/elastic/go-concert/ctxtool"
-	"github.com/elastic/go-sysinfo"
 )
 
 const defaultCollectionPeriod = time.Minute
@@ -141,7 +141,8 @@ func (h *hostdata) reportHostDataAssets(_ context.Context, logger *logp.Logger, 
 		_, _ = hostData.Put("host.mac", hwList)
 	}
 
-	event := &beat.Event{Fields: hostData, Meta: mapstr.M{}}
+	event := internal.NewEvent()
+	event.Fields = hostData
 	// add cloud metadata
 	event, err = h.addCloudMetadataProcessor.Run(event)
 	if err != nil {
@@ -164,6 +165,5 @@ func (h *hostdata) reportHostDataAssets(_ context.Context, logger *logp.Logger, 
 	internal.Publish(publisher, event,
 		internal.WithAssetKindAndID(assetKind, hostID.(string)),
 		internal.WithAssetType(assetType),
-		internal.WithIndex(assetType, h.config.IndexNamespace),
 	)
 }

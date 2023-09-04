@@ -11,16 +11,15 @@ assetbeat supports the following asset input types at the moment:
 - [assets_k8s](k8s/README.md)
 
 
-## Index pattern
+## Index name
 
-Each Asset input publishes documents to an index with pattern `assets-{asset.type}-{namespace}`. The default `namespace` value is `default`. For example, asset documents for an AWS EC2 instance would be published to `assets-aws.ec2.instance-default`
+Each Asset input publishes documents to the same index, `assets-raw-default`
 
 ##  Common configuration options
 
 The following configuration options are supported by all Asset inputs.
 
 * `period`: How often data should be collected.
-* `index_namespace`: This option can be set to replace the default value for `namespace` with a custom string.
 * `asset_types`: The list of specific asset types to collect data about.
 
 ### Type specific options

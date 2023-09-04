@@ -22,9 +22,8 @@ import (
 )
 
 type BaseConfig struct {
-	Period         time.Duration `config:"period"`
-	AssetTypes     []string      `config:"asset_types"`
-	IndexNamespace string        `config:"index_namespace"`
+	Period     time.Duration `config:"period"`
+	AssetTypes []string      `config:"asset_types"`
 }
 
 func IsTypeEnabled(configuredTypes []string, currentType string) bool {

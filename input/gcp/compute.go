@@ -19,11 +19,11 @@ package gcp
 
 import (
 	"context"
+	"github.com/googleapis/gax-go/v2"
 	"strconv"
 
 	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"
-	"github.com/googleapis/gax-go/v2"
 	"google.golang.org/api/iterator"
 
 	"github.com/elastic/assetbeat/input/internal"
@@ -60,7 +60,6 @@ func collectComputeAssets(ctx context.Context, cfg config, subnetAssetCache *fre
 
 	assetType := "gcp.compute.instance"
 	assetKind := "host"
-	indexNamespace := cfg.IndexNamespace
 	log.Debug("Publishing GCP compute instances")
 
 	for _, instance := range instances {
@@ -78,7 +77,6 @@ func collectComputeAssets(ctx context.Context, cfg config, subnetAssetCache *fre
 			internal.WithAssetType(assetType),
 			internal.WithAssetParents(parents),
 			WithAssetLabels(internal.ToMapstr(instance.Labels)),
-			internal.WithIndex(assetType, indexNamespace),
 			internal.WithAssetMetadata(instance.Metadata),
 		)
 	}

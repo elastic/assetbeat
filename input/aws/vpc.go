@@ -31,7 +31,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 )
 
-func collectVPCAssets(ctx context.Context, client ec2.DescribeVpcsAPIClient, region string, indexNamespace string, log *logp.Logger, publisher stateless.Publisher) error {
+func collectVPCAssets(ctx context.Context, client ec2.DescribeVpcsAPIClient, region string, log *logp.Logger, publisher stateless.Publisher) error {
 	vpcs, err := describeVPCs(ctx, client)
 	if err != nil {
 		return err
@@ -47,7 +47,6 @@ func collectVPCAssets(ctx context.Context, client ec2.DescribeVpcsAPIClient, reg
 			internal.WithAssetKindAndID(assetKind, *vpc.VpcId),
 			internal.WithAssetType(assetType),
 			WithAssetTags(flattenEC2Tags(vpc.Tags)),
-			internal.WithIndex(assetType, indexNamespace),
 			internal.WithAssetMetadata(mapstr.M{
 				"isDefault": vpc.IsDefault,
 			}),
@@ -57,7 +56,7 @@ func collectVPCAssets(ctx context.Context, client ec2.DescribeVpcsAPIClient, reg
 	return nil
 }
 
-func collectSubnetAssets(ctx context.Context, client ec2.DescribeSubnetsAPIClient, region string, indexNamespace string, log *logp.Logger, publisher stateless.Publisher) error {
+func collectSubnetAssets(ctx context.Context, client ec2.DescribeSubnetsAPIClient, region string, log *logp.Logger, publisher stateless.Publisher) error {
 	subnets, err := describeSubnets(ctx, client)
 	if err != nil {
 		return err
@@ -79,7 +78,6 @@ func collectSubnetAssets(ctx context.Context, client ec2.DescribeSubnetsAPIClien
 			internal.WithAssetType(assetType),
 			internal.WithAssetParents(parents),
 			WithAssetTags(flattenEC2Tags(subnet.Tags)),
-			internal.WithIndex(assetType, indexNamespace),
 			internal.WithAssetMetadata(mapstr.M{
 				"state": string(subnet.State),
 			}),

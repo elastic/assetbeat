@@ -45,7 +45,7 @@ func TestWithAssetLabels(t *testing.T) {
 				"cloud.provider":               "gcp",
 				"asset.metadata.labels.label1": "a",
 				"asset.metadata.labels.label2": "b",
-			}, Meta: mapstr.M{}},
+			}, Meta: mapstr.M{"index": "assets-raw-default"}},
 		},
 		{
 			name: "with valid labels and metadata",
@@ -59,7 +59,7 @@ func TestWithAssetLabels(t *testing.T) {
 				"asset.metadata.foo":           "bar",
 				"asset.metadata.labels.label1": "a",
 				"asset.metadata.labels.label2": "b",
-			}, Meta: mapstr.M{}},
+			}, Meta: mapstr.M{"index": "assets-raw-default"}},
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {

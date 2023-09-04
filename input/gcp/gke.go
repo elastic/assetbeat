@@ -20,6 +20,7 @@ package gcp
 import (
 	"context"
 	"fmt"
+	"github.com/googleapis/gax-go/v2"
 	"strconv"
 	"strings"
 
@@ -27,8 +28,6 @@ import (
 
 	"cloud.google.com/go/compute/apiv1/computepb"
 	"cloud.google.com/go/container/apiv1/containerpb"
-	"github.com/googleapis/gax-go/v2"
-
 	"github.com/elastic/assetbeat/input/internal"
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/elastic-agent-libs/logp"
@@ -57,7 +56,6 @@ func collectGKEAssets(ctx context.Context, cfg config, vpcAssetCache *freelru.LR
 		return err
 	}
 
-	indexNamespace := cfg.IndexNamespace
 	assetType := "k8s.cluster"
 	assetKind := "cluster"
 	log.Debug("Publishing kubernetes clusters")
@@ -88,7 +86,6 @@ func collectGKEAssets(ctx context.Context, cfg config, vpcAssetCache *freelru.LR
 			internal.WithAssetParents(parents),
 			internal.WithAssetChildren(children),
 			WithAssetLabels(internal.ToMapstr(cluster.Labels)),
-			internal.WithIndex(assetType, indexNamespace),
 			internal.WithAssetMetadata(cluster.Metadata),
 		)
 	}

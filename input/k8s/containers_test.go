@@ -90,7 +90,7 @@ func TestPublishK8sContainers(t *testing.T) {
 	}
 	_ = podWatcher.Store().Add(input)
 	publisher := testutil.NewInMemoryPublisher()
-	publishK8sContainers(context.Background(), log, "", publisher, podWatcher)
+	publishK8sContainers(context.Background(), log, publisher, podWatcher)
 
 	assert.Equal(t, 1, len(publisher.Events))
 }

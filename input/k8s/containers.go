@@ -30,7 +30,7 @@ import (
 )
 
 // publishK8sPods publishes the pod assets stored in pod watcher cache
-func publishK8sContainers(ctx context.Context, log *logp.Logger, indexNamespace string, publisher stateless.Publisher, podWatcher kube.Watcher) {
+func publishK8sContainers(ctx context.Context, log *logp.Logger, publisher stateless.Publisher, podWatcher kube.Watcher) {
 	log.Info("Publishing container assets\n")
 	assetType := "k8s.container"
 	assetKind := "container"
@@ -70,7 +70,6 @@ func publishK8sContainers(ctx context.Context, log *logp.Logger, indexNamespace 
 					internal.WithAssetType(assetType),
 					internal.WithAssetParents(assetParents),
 					internal.WithContainerData(assetName, assetId, namespace, state, &assetStartTime),
-					internal.WithIndex(assetType, indexNamespace),
 				)
 			}
 		} else {

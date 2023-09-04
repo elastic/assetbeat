@@ -123,7 +123,7 @@ func TestCollectGKEAssets(t *testing.T) {
 						"cloud.region":         "europe-west1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-k8s.cluster-default",
+						"index": "assets-raw-default",
 					},
 				},
 			},
@@ -196,7 +196,7 @@ func TestCollectGKEAssets(t *testing.T) {
 						"cloud.region":         "europe-west1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-k8s.cluster-default",
+						"index": "assets-raw-default",
 					},
 				},
 				{
@@ -213,7 +213,7 @@ func TestCollectGKEAssets(t *testing.T) {
 						"cloud.region":         "us-central",
 					},
 					Meta: mapstr.M{
-						"index": "assets-k8s.cluster-default",
+						"index": "assets-raw-default",
 					},
 				},
 			},
@@ -267,7 +267,7 @@ func TestCollectGKEAssets(t *testing.T) {
 						"cloud.region":         "us-west1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-k8s.cluster-default",
+						"index": "assets-raw-default",
 					},
 				},
 			},
@@ -330,7 +330,7 @@ func TestCollectGKEAssets(t *testing.T) {
 						"cloud.region":         "us-west1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-k8s.cluster-default",
+						"index": "assets-raw-default",
 					},
 				},
 				{
@@ -347,7 +347,7 @@ func TestCollectGKEAssets(t *testing.T) {
 						"cloud.region":         "europe-west1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-k8s.cluster-default",
+						"index": "assets-raw-default",
 					},
 				},
 			},
@@ -425,7 +425,7 @@ func TestCollectGKEAssets(t *testing.T) {
 						"cloud.region":         "europe-west1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-k8s.cluster-default",
+						"index": "assets-raw-default",
 					},
 				},
 			},
@@ -503,7 +503,7 @@ func TestCollectGKEAssets(t *testing.T) {
 						"cloud.region":         "europe-west1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-k8s.cluster-default",
+						"index": "assets-raw-default",
 					},
 				},
 			},

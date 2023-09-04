@@ -79,7 +79,7 @@ func TestHostdata_reportHostDataAssets(t *testing.T) {
 	assert.Equal(t, hostID, assetID)
 	assert.Equal(t, "host", assetType)
 	assert.Equal(t, "host", assetKind)
-	assert.Equal(t, "assets-host-default", destinationDatastream)
+	assert.Equal(t, "assets-raw-default", destinationDatastream)
 
 	// check that the networking fields are populated
 	// (and that the stored host data has not been modified)
@@ -118,7 +118,7 @@ func TestHostdata_reportHostDataAssetsWithCloudMeta(t *testing.T) {
 	assert.Equal(t, hostID, assetID)
 	assert.Equal(t, "host", assetType)
 	assert.Equal(t, "host", assetKind)
-	assert.Equal(t, "assets-host-default", destinationDatastream)
+	assert.Equal(t, "assets-raw-default", destinationDatastream)
 
 	// check that the networking fields are populated
 	// (and that the stored host data has not been modified)

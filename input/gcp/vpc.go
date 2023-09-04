@@ -19,11 +19,11 @@ package gcp
 
 import (
 	"context"
+	"github.com/googleapis/gax-go/v2"
 	"strconv"
 
 	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"
-	"github.com/googleapis/gax-go/v2"
 	"google.golang.org/api/iterator"
 
 	"github.com/elastic/assetbeat/input/internal"
@@ -71,7 +71,6 @@ func collectVpcAssets(ctx context.Context, cfg config, vpcAssetCache *freelru.LR
 	}
 	assetType := "gcp.vpc"
 	assetKind := "network"
-	indexNamespace := cfg.IndexNamespace
 
 	log.Debug("Publishing VPCs")
 	for _, vpc := range vpcs {
@@ -82,7 +81,6 @@ func collectVpcAssets(ctx context.Context, cfg config, vpcAssetCache *freelru.LR
 			internal.WithAssetKindAndID(assetKind, vpc.ID),
 			internal.WithAssetName(vpc.Name),
 			internal.WithAssetType(assetType),
-			internal.WithIndex(assetType, indexNamespace),
 		)
 	}
 	return nil
@@ -127,7 +125,6 @@ func collectSubnetAssets(ctx context.Context, cfg config, subnetAssetCache *free
 
 	assetType := "gcp.subnet"
 	assetKind := "network"
-	indexNamespace := cfg.IndexNamespace
 	log.Debug("Publishing Subnets")
 	for _, subnet := range subnets {
 
@@ -138,7 +135,6 @@ func collectSubnetAssets(ctx context.Context, cfg config, subnetAssetCache *free
 			internal.WithAssetName(subnet.Name),
 			internal.WithAssetType(assetType),
 			internal.WithAssetRegion(subnet.Region),
-			internal.WithIndex(assetType, indexNamespace),
 		)
 	}
 	return nil

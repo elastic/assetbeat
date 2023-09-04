@@ -27,8 +27,18 @@ import (
 	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
+// Assets data is published to indexes following the same name pattern used in Agent
+// type-dataset-namespace, and has its own index type.
+const indexType = "assets"
+const indexDefaultNamespace = "default"
+const indexDefaultDataset = "raw"
+
 func NewEvent() *beat.Event {
-	return &beat.Event{Fields: mapstr.M{}, Meta: mapstr.M{}}
+	return &beat.Event{
+		Fields: mapstr.M{},
+		Meta: mapstr.M{
+			"index": fmt.Sprintf("%s-%s-%s", indexType, indexDefaultDataset, indexDefaultNamespace),
+		}}
 }
 
 type AssetOption func(beat.Event) beat.Event

@@ -45,7 +45,7 @@ func TestWithAssetTags(t *testing.T) {
 				"cloud.provider":           "aws",
 				"asset.metadata.tags.tag1": "a",
 				"asset.metadata.tags.tag2": "b",
-			}, Meta: mapstr.M{}},
+			}, Meta: mapstr.M{"index": "assets-raw-default"}},
 		},
 		{
 			name: "with valid tags and metadata",
@@ -59,7 +59,7 @@ func TestWithAssetTags(t *testing.T) {
 				"asset.metadata.foo":       "bar",
 				"asset.metadata.tags.tag1": "a",
 				"asset.metadata.tags.tag2": "b",
-			}, Meta: mapstr.M{}},
+			}, Meta: mapstr.M{"index": "assets-raw-default"}},
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {

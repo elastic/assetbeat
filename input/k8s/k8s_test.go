@@ -63,7 +63,7 @@ func TestPublishK8sPodAsset(t *testing.T) {
 					"kubernetes.namespace":      "default",
 				},
 				Meta: mapstr.M{
-					"index": "assets-k8s.pod-default",
+					"index": "assets-raw-default",
 				},
 			},
 
@@ -82,7 +82,6 @@ func TestPublishK8sPodAsset(t *testing.T) {
 				internal.WithAssetType(tt.assetType),
 				internal.WithAssetParents(tt.parents),
 				internal.WithPodData(tt.assetName, tt.assetID, "default", &startTime),
-				internal.WithIndex(tt.assetType, ""),
 			)
 			assert.Equal(t, 1, len(publisher.Events))
 			assert.Equal(t, tt.event, publisher.Events[0])
@@ -117,7 +116,7 @@ func TestPublishK8sNodeAsset(t *testing.T) {
 					"cloud.instance.id":          "i-0699b78f46f0fa248",
 				},
 				Meta: mapstr.M{
-					"index": "assets-k8s.node-default",
+					"index": "assets-raw-default",
 				},
 			},
 
@@ -137,7 +136,6 @@ func TestPublishK8sNodeAsset(t *testing.T) {
 				internal.WithAssetType(tt.assetType),
 				internal.WithAssetParents(tt.parents),
 				internal.WithNodeData(tt.assetName, &startTime),
-				internal.WithIndex(tt.assetType, ""),
 				internal.WithCloudInstanceId(tt.instanceID),
 			)
 			assert.Equal(t, 1, len(publisher.Events))

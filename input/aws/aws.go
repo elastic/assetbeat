@@ -136,7 +136,6 @@ func getAWSConfigForRegion(ctx context.Context, cfg config, region string) (aws.
 }
 
 func collectAWSAssets(ctx context.Context, log *logp.Logger, cfg config, publisher stateless.Publisher) {
-	indexNamespace := cfg.IndexNamespace
 	for _, region := range cfg.Regions {
 		awsCfg, err := getAWSConfigForRegion(ctx, cfg, region)
 		if err != nil {
@@ -147,7 +146,7 @@ func collectAWSAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 		// these strings need careful documentation
 		if internal.IsTypeEnabled(cfg.AssetTypes, "k8s.cluster") {
 			go func() {
-				err := collectEKSAssets(ctx, awsCfg, indexNamespace, log, publisher)
+				err := collectEKSAssets(ctx, awsCfg, log, publisher)
 				if err != nil {
 					log.Errorf("error collecting EKS assets: %w", err)
 				}
@@ -157,7 +156,7 @@ func collectAWSAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 			ec2Region := region
 			go func() {
 				client := ec2.NewFromConfig(awsCfg)
-				err := collectEC2Assets(ctx, client, ec2Region, indexNamespace, log, publisher)
+				err := collectEC2Assets(ctx, client, ec2Region, log, publisher)
 				if err != nil {
 					log.Errorf("error collecting EC2 assets: %w", err)
 				}
@@ -167,7 +166,7 @@ func collectAWSAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 			vpcRegion := region
 			go func() {
 				client := ec2.NewFromConfig(awsCfg)
-				err := collectVPCAssets(ctx, client, vpcRegion, indexNamespace, log, publisher)
+				err := collectVPCAssets(ctx, client, vpcRegion, log, publisher)
 				if err != nil {
 					log.Errorf("error collecting VPC assets: %w", err)
 				}
@@ -177,7 +176,7 @@ func collectAWSAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 			subnetRegion := region
 			go func() {
 				client := ec2.NewFromConfig(awsCfg)
-				err := collectSubnetAssets(ctx, client, subnetRegion, indexNamespace, log, publisher)
+				err := collectSubnetAssets(ctx, client, subnetRegion, log, publisher)
 				if err != nil {
 					log.Errorf("error collecting Subnet assets: %w", err)
 				}

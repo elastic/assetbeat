@@ -101,7 +101,7 @@ func TestAssetsAWS_collectEC2Assets(t *testing.T) {
 					"cloud.region":                   "eu-west-1",
 				},
 				Meta: mapstr.M{
-					"index": "assets-aws.ec2.instance-default",
+					"index": "assets-raw-default",
 				},
 			},
 			{
@@ -119,7 +119,7 @@ func TestAssetsAWS_collectEC2Assets(t *testing.T) {
 					"cloud.region":     "eu-west-1",
 				},
 				Meta: mapstr.M{
-					"index": "assets-aws.ec2.instance-default",
+					"index": "assets-raw-default",
 				},
 			},
 		},
@@ -131,7 +131,7 @@ func TestAssetsAWS_collectEC2Assets(t *testing.T) {
 			ctx := context.Background()
 			logger := logp.NewLogger("test")
 
-			err := collectEC2Assets(ctx, tt.client(t), tt.region, "", logger, publisher)
+			err := collectEC2Assets(ctx, tt.client(t), tt.region, logger, publisher)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedEvents, publisher.Events)
 		})

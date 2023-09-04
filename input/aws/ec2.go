@@ -40,7 +40,7 @@ type EC2Instance struct {
 	Metadata   mapstr.M
 }
 
-func collectEC2Assets(ctx context.Context, client ec2.DescribeInstancesAPIClient, region string, indexNamespace string, log *logp.Logger, publisher stateless.Publisher) error {
+func collectEC2Assets(ctx context.Context, client ec2.DescribeInstancesAPIClient, region string, log *logp.Logger, publisher stateless.Publisher) error {
 	instances, err := describeEC2Instances(ctx, client)
 	if err != nil {
 		return err
@@ -60,7 +60,6 @@ func collectEC2Assets(ctx context.Context, client ec2.DescribeInstancesAPIClient
 			internal.WithAssetKindAndID(assetKind, instance.InstanceID),
 			internal.WithAssetType(assetType),
 			WithAssetTags(flattenEC2Tags(instance.Tags)),
-			internal.WithIndex(assetType, indexNamespace),
 			internal.WithAssetMetadata(instance.Metadata),
 		}
 		if parents != nil {

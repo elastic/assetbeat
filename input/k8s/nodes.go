@@ -113,7 +113,7 @@ func getNodeIdFromName(nodeName string, nodeWatcher kube.Watcher) (string, error
 }
 
 // publishK8sNodes publishes the node assets stored in node watcher cache
-func publishK8sNodes(ctx context.Context, log *logp.Logger, indexNamespace string, publisher stateless.Publisher, watcher kube.Watcher, isInCluster bool) {
+func publishK8sNodes(ctx context.Context, log *logp.Logger, publisher stateless.Publisher, watcher kube.Watcher, isInCluster bool) {
 	log.Info("Publishing nodes assets\n")
 	assetType := "k8s.node"
 	assetKind := "host"
@@ -148,7 +148,6 @@ func publishK8sNodes(ctx context.Context, log *logp.Logger, indexNamespace strin
 				internal.WithAssetKindAndID(assetKind, assetId),
 				internal.WithAssetType(assetType),
 				internal.WithNodeData(o.Name, &assetStartTime),
-				internal.WithIndex(assetType, indexNamespace),
 			}
 			if instanceId != "" {
 				options = append(options, internal.WithCloudInstanceId(instanceId))

@@ -96,7 +96,7 @@ func TestAssetsAWS_collectVPCAssets(t *testing.T) {
 						"cloud.region":                   "eu-west-1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-aws.vpc-default",
+						"index": "assets-raw-default",
 					},
 				},
 				{
@@ -111,7 +111,7 @@ func TestAssetsAWS_collectVPCAssets(t *testing.T) {
 						"cloud.region":             "eu-west-1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-aws.vpc-default",
+						"index": "assets-raw-default",
 					},
 				},
 			},
@@ -123,7 +123,7 @@ func TestAssetsAWS_collectVPCAssets(t *testing.T) {
 			ctx := context.Background()
 			logger := logp.NewLogger("test")
 
-			err := collectVPCAssets(ctx, tt.client(t), tt.region, "", logger, publisher)
+			err := collectVPCAssets(ctx, tt.client(t), tt.region, logger, publisher)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedEvents, publisher.Events)
 		})
@@ -190,7 +190,7 @@ func TestAssetsAWS_collectSubnetAssets(t *testing.T) {
 						"cloud.region":                   "eu-west-1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-aws.subnet-default",
+						"index": "assets-raw-default",
 					},
 				},
 				{
@@ -208,7 +208,7 @@ func TestAssetsAWS_collectSubnetAssets(t *testing.T) {
 						"cloud.region":         "eu-west-1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-aws.subnet-default",
+						"index": "assets-raw-default",
 					},
 				},
 			},
@@ -220,7 +220,7 @@ func TestAssetsAWS_collectSubnetAssets(t *testing.T) {
 			ctx := context.Background()
 			logger := logp.NewLogger("test")
 
-			err := collectSubnetAssets(ctx, tt.client(t), tt.region, "", logger, publisher)
+			err := collectSubnetAssets(ctx, tt.client(t), tt.region, logger, publisher)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedEvents, publisher.Events)
 		})

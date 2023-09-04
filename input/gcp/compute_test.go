@@ -129,7 +129,7 @@ func TestGetAllComputeInstances(t *testing.T) {
 						"cloud.region":         "europe-west1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-gcp.compute.instance-default",
+						"index": "assets-raw-default",
 					},
 				},
 			},
@@ -188,7 +188,7 @@ func TestGetAllComputeInstances(t *testing.T) {
 						"cloud.region":         "europe-west1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-gcp.compute.instance-default",
+						"index": "assets-raw-default",
 					},
 				},
 				{
@@ -204,7 +204,7 @@ func TestGetAllComputeInstances(t *testing.T) {
 						"cloud.region":         "europe-west1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-gcp.compute.instance-default",
+						"index": "assets-raw-default",
 					},
 				},
 			},
@@ -268,7 +268,7 @@ func TestGetAllComputeInstances(t *testing.T) {
 						"cloud.region":         "us-west1",
 					},
 					Meta: mapstr.M{
-						"index": "assets-gcp.compute.instance-default",
+						"index": "assets-raw-default",
 					},
 				},
 			},
