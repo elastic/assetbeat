@@ -20,7 +20,6 @@ package azure
 import (
 	"context"
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5"
 	"github.com/elastic/assetbeat/input/internal"
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
@@ -35,13 +34,9 @@ type AzureVMInstance struct {
 	Tags           map[string]*string
 }
 
-func collectAzureVMAssets(ctx context.Context, cfg config, cred *azidentity.DefaultAzureCredential, log *logp.Logger, publisher stateless.Publisher) error {
-	clientFactory, err := armcompute.NewClientFactory(cfg.SubscriptionID, cred, nil)
-	if err != nil {
-		return err
-	}
-	client := clientFactory.NewVirtualMachinesClient()
-	instances, err := getAllAzureVMInstances(ctx, client, cfg.SubscriptionID, log)
+func collectAzureVMAssets(ctx context.Context, client *armcompute.VirtualMachinesClient, subscriptionId string, log *logp.Logger, publisher stateless.Publisher) error {
+
+	instances, err := getAllAzureVMInstances(ctx, client, subscriptionId)
 	if err != nil {
 		return err
 	}
@@ -51,21 +46,19 @@ func collectAzureVMAssets(ctx context.Context, cfg config, cred *azidentity.Defa
 	log.Debug("Publishing Azure VM instances")
 
 	for _, instance := range instances {
-		var parents []string
 		internal.Publish(publisher, nil,
 			internal.WithAssetCloudProvider("azure"),
 			internal.WithAssetRegion(instance.Region),
 			internal.WithAssetAccountID(instance.SubscriptionID),
 			internal.WithAssetKindAndID(assetKind, instance.ID),
 			internal.WithAssetType(assetType),
-			internal.WithAssetParents(parents),
 		)
 	}
 
 	return nil
 }
 
-func getAllAzureVMInstances(ctx context.Context, client *armcompute.VirtualMachinesClient, subscriptionId string, log *logp.Logger) ([]AzureVMInstance, error) {
+func getAllAzureVMInstances(ctx context.Context, client *armcompute.VirtualMachinesClient, subscriptionId string) ([]AzureVMInstance, error) {
 	var vmInstances []AzureVMInstance
 	pager := client.NewListAllPager(&armcompute.VirtualMachinesClientListAllOptions{StatusOnly: nil,
 		Filter: nil,

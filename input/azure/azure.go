@@ -19,7 +19,10 @@ package azure
 
 import (
 	"context"
+	"fmt"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5"
+	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/subscription/armsubscription"
 	"github.com/elastic/assetbeat/input/internal"
 	input "github.com/elastic/beats/v7/filebeat/input/v2"
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
@@ -129,11 +132,48 @@ func collectAzureAssets(ctx context.Context, log *logp.Logger, cfg config, publi
 	cred, err := azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {
 		log.Errorf("Error retrieving Azure creds: %v", err)
+		return
+	}
+	subscriptions, err := getAzureSubscriptions(ctx, cfg, cred)
+
+	for _, sub := range subscriptions {
+		if internal.IsTypeEnabled(cfg.AssetTypes, "k8s.cluster") {
+			clientFactory, err := armcompute.NewClientFactory(sub, cred, nil)
+			if err != nil {
+				log.Errorf("Error creating Azure Compute Client Factory: %v", err)
+				return
+			}
+			client := clientFactory.NewVirtualMachinesClient()
+			go func() {
+				err = collectAzureVMAssets(ctx, client, sub, log, publisher)
+				if err != nil {
+					log.Errorf("Error while collecting Azure VM assets: %v", err)
+				}
+			}()
+		}
+	}
+}
+
+func getAzureSubscriptions(ctx context.Context, cfg config, cred *azidentity.DefaultAzureCredential) ([]string, error) {
+	var subscriptions []string
+	if cfg.SubscriptionID != "" {
+		subscriptions = append(subscriptions, cfg.SubscriptionID)
+	} else {
+		subscriptionClientFactory, _ := armsubscription.NewClientFactory(cred, nil)
+		client := subscriptionClientFactory.NewSubscriptionsClient()
+
+		pager := client.NewListPager(nil)
+
+		for pager.More() {
+			page, err := pager.NextPage(ctx)
+			if err != nil {
+				return nil, fmt.Errorf("failed to advance page: %v", err)
+			}
+			for _, v := range page.Value {
+				subscriptions = append(subscriptions, *v.SubscriptionID)
+			}
+		}
 	}
 
-	err = collectAzureVMAssets(ctx, cfg, cred, log, publisher)
-	if err != nil {
-		log.Errorf("Error while collecting Azure VM assets: %v", err)
-	}
-
+	return subscriptions, nil
 }
