@@ -20,6 +20,7 @@ package inputs
 import (
 	"github.com/elastic/assetbeat/beater"
 	"github.com/elastic/assetbeat/input/aws"
+	"github.com/elastic/assetbeat/input/azure"
 	"github.com/elastic/assetbeat/input/gcp"
 	"github.com/elastic/assetbeat/input/hostdata"
 	"github.com/elastic/assetbeat/input/k8s"
@@ -36,6 +37,7 @@ func genericInputs(log *logp.Logger, components beater.StateStore) []v2.Plugin {
 	return []v2.Plugin{
 		aws.Plugin(),
 		gcp.Plugin(),
+		azure.Plugin(),
 		hostdata.Plugin(),
 		k8s.Plugin(),
 	}
