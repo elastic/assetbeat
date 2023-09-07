@@ -20,6 +20,7 @@ package azure
 import (
 	"context"
 	"fmt"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/subscription/armsubscription"
@@ -128,13 +129,25 @@ func (s *assetsAzure) Run(inputCtx input.Context, publisher stateless.Publisher)
 	}
 }
 
+func getAzureCredentials(cfg config, log *logp.Logger) (azcore.TokenCredential, error) {
+	if cfg.TenantID != "" && cfg.ClientID != "" && cfg.ClientSecret != "" {
+		log.Debug("Retrieving Azure credentials from assetbeat configuration...")
+		return azidentity.NewClientSecretCredential(cfg.TenantID, cfg.ClientID, cfg.ClientSecret, nil)
+	} else {
+		log.Debug("No Client or Tenant configuration provided. Retrieving default Azure credentials...")
+		return azidentity.NewDefaultAzureCredential(nil)
+	}
+}
+
 func collectAzureAssets(ctx context.Context, log *logp.Logger, cfg config, publisher stateless.Publisher) {
-	cred, err := azidentity.NewDefaultAzureCredential(nil)
+	cred, err := getAzureCredentials(cfg, log)
 	if err != nil {
-		log.Errorf("Error retrieving Azure creds: %v", err)
-		return
+		log.Errorf("Error while retrieving Azure credentials: %v")
 	}
 	subscriptions, err := getAzureSubscriptions(ctx, cfg, cred)
+	if err != nil {
+		log.Errorf("Error while retrieving Azure subscriptions list: %v")
+	}
 
 	for _, sub := range subscriptions {
 		if internal.IsTypeEnabled(cfg.AssetTypes, "k8s.cluster") {
@@ -154,7 +167,7 @@ func collectAzureAssets(ctx context.Context, log *logp.Logger, cfg config, publi
 	}
 }
 
-func getAzureSubscriptions(ctx context.Context, cfg config, cred *azidentity.DefaultAzureCredential) ([]string, error) {
+func getAzureSubscriptions(ctx context.Context, cfg config, cred azcore.TokenCredential) ([]string, error) {
 	var subscriptions []string
 	if cfg.SubscriptionID != "" {
 		subscriptions = append(subscriptions, cfg.SubscriptionID)

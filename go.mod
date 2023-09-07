@@ -5,6 +5,7 @@ go 1.20
 require (
 	cloud.google.com/go/compute v1.23.0
 	cloud.google.com/go/container v1.25.0
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.7.1
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.3.1
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5 v5.1.0
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/subscription/armsubscription v1.1.0
@@ -42,7 +43,6 @@ require (
 
 require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.7.1 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.3.0 // indirect
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.1.1 // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect

@@ -34,7 +34,7 @@ func TestPlugin(t *testing.T) {
 	assert.NotNil(t, p.Manager)
 }
 
-func TestAssetsAWS_Run(t *testing.T) {
+func TestAssetsAzure_Run(t *testing.T) {
 	publisher := testutil.NewInMemoryPublisher()
 
 	ctx, cancel := context.WithCancel(context.Background())
