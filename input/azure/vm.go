@@ -1,3 +1,20 @@
+// Licensed to Elasticsearch B.V. under one or more contributor
+// license agreements. See the NOTICE file distributed with
+// this work for additional information regarding copyright
+// ownership. Elasticsearch B.V. licenses this file to you under
+// the Apache License, Version 2.0 (the "License"); you may
+// not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 package azure
 
 import (
@@ -11,11 +28,11 @@ import (
 )
 
 type AzureVMInstance struct {
-	ID      string
-	Name    string
-	OwnerID string
-	Region  string
-	Tags    map[string]*string
+	ID             string
+	Name           string
+	SubscriptionID string
+	Region         string
+	Tags           map[string]*string
 }
 
 func collectAzureVMAssets(ctx context.Context, cfg config, cred *azidentity.DefaultAzureCredential, log *logp.Logger, publisher stateless.Publisher) error {
@@ -38,7 +55,7 @@ func collectAzureVMAssets(ctx context.Context, cfg config, cred *azidentity.Defa
 		internal.Publish(publisher, nil,
 			internal.WithAssetCloudProvider("azure"),
 			internal.WithAssetRegion(instance.Region),
-			internal.WithAssetAccountID(instance.OwnerID),
+			internal.WithAssetAccountID(instance.SubscriptionID),
 			internal.WithAssetKindAndID(assetKind, instance.ID),
 			internal.WithAssetType(assetType),
 			internal.WithAssetParents(parents),
@@ -61,11 +78,11 @@ func getAllAzureVMInstances(ctx context.Context, client *armcompute.VirtualMachi
 		}
 		for _, v := range page.Value {
 			vmInstance := AzureVMInstance{
-				ID:      *v.ID,
-				Name:    *v.Name,
-				OwnerID: subscriptionId,
-				Region:  *v.Location,
-				Tags:    v.Tags,
+				ID:             *v.ID,
+				Name:           *v.Name,
+				SubscriptionID: subscriptionId,
+				Region:         *v.Location,
+				Tags:           v.Tags,
 			}
 			vmInstances = append(vmInstances, vmInstance)
 		}
