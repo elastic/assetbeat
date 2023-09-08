@@ -22,11 +22,20 @@ assetbeat.inputs:
 
 The Azure Assets Input supports the following configuration options plus the [Common options](../README.md#Common options).
 
-* `regions`: The list of Azure regions to collect data from.
+* `regions`: The list of Azure regions to collect data from. 
+* `subscription_id`: The unique identifier for the azure subscription
+* `client_id`: The unique identifier for the application (also known as Application Id) 
+* `client_secret`: The client/application secret/key
+* `tenant_id`: The unique identifier of the Azure Active Directory instance
 
 **_Note_:** `client_id`, `client_secret` and `tenant_id` can be omitted if:
 * The environment variables `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET` and `AZURE_TENANT_ID` are set.
 * `az login` was ran on the host where `assetbeat` is running.
+
+**_Note_:** if `subscription_id` is omitted, the input will collect data from all the subscriptions you have access to.
+
+**_Note_:** if no region is provided under `regions` is omitted, the input will collect data from all the regions.
+
 
 ## Asset schema
 

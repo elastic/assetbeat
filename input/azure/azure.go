@@ -57,18 +57,6 @@ func newAssetsAzure(cfg config) (*assetsAzure, error) {
 	return &assetsAzure{cfg}, nil
 }
 
-// Required credentials for the azure module:
-//
-// client_id
-// The unique identifier for the application (also known as Application Id)
-// client_secret
-// The client/application secret/key
-// subscription_id
-// The unique identifier for the azure subscription
-// tenant_id
-// The unique identifier of the Azure Active Directory instance
-//
-// The azure credentials keys can be used if configured AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID
 type config struct {
 	internal.BaseConfig `config:",inline"`
 	Regions             []string `config:"regions"`
