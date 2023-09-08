@@ -134,7 +134,7 @@ func getAzureCredentials(cfg config, log *logp.Logger) (azcore.TokenCredential, 
 		log.Debug("Retrieving Azure credentials from assetbeat configuration...")
 		return azidentity.NewClientSecretCredential(cfg.TenantID, cfg.ClientID, cfg.ClientSecret, nil)
 	} else {
-		log.Debug("No Client or Tenant configuration provided. Retrieving default Azure credentials...")
+		log.Debug("No Client or Tenant configuration provided. Retrieving default Azure credentials")
 		return azidentity.NewDefaultAzureCredential(nil)
 	}
 }
@@ -157,12 +157,12 @@ func collectAzureAssets(ctx context.Context, log *logp.Logger, cfg config, publi
 				return
 			}
 			client := clientFactory.NewVirtualMachinesClient()
-			go func() {
-				err = collectAzureVMAssets(ctx, client, sub, log, publisher)
+			go func(currentSub string) {
+				err = collectAzureVMAssets(ctx, client, currentSub, log, publisher)
 				if err != nil {
 					log.Errorf("Error while collecting Azure VM assets: %v", err)
 				}
-			}()
+			}(sub)
 		}
 	}
 }
