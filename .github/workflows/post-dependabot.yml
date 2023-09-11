@@ -27,7 +27,7 @@ jobs:
           cache: true
 
       - name: update notice
-        uses: magefile/mage-action@v2
+        uses: magefile/mage-action@v3
         with:
           version: latest
           args: update

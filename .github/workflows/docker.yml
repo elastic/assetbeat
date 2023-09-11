@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Package assetbeat in a Dockerfile
-        uses: magefile/mage-action@v2
+        uses: magefile/mage-action@v3
         with:
           version: latest
           args: package
@@ -46,7 +46,7 @@ jobs:
           echo "DOCKER_PASSWORD=" >> $GITHUB_ENV
       - name: Set Version
         id: set-version
-        uses: magefile/mage-action@v2
+        uses: magefile/mage-action@v3
         env:
           GITHUB_OUTPUT: $GITHUB_OUTPUT
         with:
