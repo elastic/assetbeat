@@ -64,6 +64,7 @@ type config struct {
 	ClientSecret        string   `config:"client_secret"`
 	SubscriptionID      string   `config:"subscription_id"`
 	TenantID            string   `config:"tenant_id"`
+	ResourceGroup       string   `config:"resource_group"`
 }
 
 func defaultConfig() config {
@@ -77,6 +78,7 @@ func defaultConfig() config {
 		ClientSecret:   "",
 		SubscriptionID: "",
 		TenantID:       "",
+		ResourceGroup:  "",
 	}
 }
 
@@ -146,7 +148,7 @@ func collectAzureAssets(ctx context.Context, log *logp.Logger, cfg config, publi
 			}
 			client := clientFactory.NewVirtualMachinesClient()
 			go func(currentSub string) {
-				err = collectAzureVMAssets(ctx, client, currentSub, log, publisher)
+				err = collectAzureVMAssets(ctx, client, currentSub, cfg.Regions, cfg.ResourceGroup, log, publisher)
 				if err != nil {
 					log.Errorf("Error while collecting Azure VM assets: %v", err)
 				}
