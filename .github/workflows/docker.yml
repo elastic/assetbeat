@@ -34,7 +34,7 @@ jobs:
             secret/observability-team/ci/docker-registry/prod username | DOCKER_USERNAME ;
             secret/observability-team/ci/docker-registry/prod password | DOCKER_PASSWORD
       - name: Log in to the Container registry
-        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
         with:
           registry: ${{ env.DOCKER_REGISTRY }}
           username: ${{ env.DOCKER_USERNAME }}
