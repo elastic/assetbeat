@@ -43,40 +43,44 @@ The Azure Assets Input supports the following configuration options plus the [Co
 
 #### Exported fields
 
-| Field      | Description                       | Example                                                                                                                        |
-|------------|-----------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
-| asset.type | The type of asset                 | `"azure.vm.instance"`                                                                                                          |
-| asset.kind | The kind of asset                 | `"host`                                                                                                                        |
-| asset.id   | The id of the Azure instance      | `"/subscriptions/12cabcb4-86e8-404f-111111111111/resourceGroups/TESTVM/providers/Microsoft.Compute/virtualMachines/test"`      |
-| asset.ean  | The EAN of this specific resource | `"host:/subscriptions/12cabcb4-86e8-404f-111111111111/resourceGroups/TESTVM/providers/Microsoft.Compute/virtualMachines/test"` |
+| Field                         | Description                       | Example                                                                                                                        |
+|-------------------------------|-----------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
+| asset.type                    | The type of asset                 | `"azure.vm.instance"`                                                                                                          |
+| asset.kind                    | The kind of asset                 | `"host`                                                                                                                        |
+| asset.id                      | The id of the Azure instance      | `"/subscriptions/12cabcb4-86e8-404f-111111111111/resourceGroups/TESTVM/providers/Microsoft.Compute/virtualMachines/test"`      |
+| asset.ean                     | The EAN of this specific resource | `"host:/subscriptions/12cabcb4-86e8-404f-111111111111/resourceGroups/TESTVM/providers/Microsoft.Compute/virtualMachines/test"` |
+| asset.metadata.resource_group | The Azure resource group          | `TESTVM`                                                                                                                       |
+| asset.metadata.state          | The status of the VM instance     | `"VM running"`                                                                                                                 |
 
 #### Example
 
 ```json
 {
-  "@timestamp": "2023-09-07T15:57:59.121Z",
-  "asset.ean": "host:/subscriptions/12cabcb4-86e8-404f-111111111111/resourceGroups/TESTVM/providers/Microsoft.Compute/virtualMachines/test",
-  "asset.type": "azure.vm.instance",
+  "@timestamp": "2023-09-13T14:42:51.494Z",
+  "asset.metadata.resource_group": "GIZASVM",
+  "host": {
+    "name": "host"
+  },
+  "cloud.region": "westeurope",
+  "cloud.provider": "azure",
+  "agent": {
+    "ephemeral_id": "a80c69df-22dd-4f97-bfd2-14572af2b9d4",
+    "id": "9a7ef1a9-0cce-4857-90f9-699bc14d8df3",
+    "name": "host",
+    "type": "assetbeat",
+    "version": "8.9.0"
+  },
   "input": {
     "type": "assets_azure"
   },
-  "agent": {
-    "id": "9a7ef1a9-0cce-4857-90f9-699bc14d8df3",
-    "name": "testhost",
-    "type": "assetbeat",
-    "version": "8.9.0",
-    "ephemeral_id": "54bf2e30-2978-4c33-a465-26682acdd596"
-  },
-  "cloud.account.id": "70bd6e77-4b1e-4835-8896-111111111111",
-  "cloud.region": "westeurope",
+  "cloud.account.id": "12cabcb4-86e8-404f-a3d2-111111111111",
   "asset.kind": "host",
-  "asset.id": "/subscriptions/12cabcb4-86e8-404f-111111111111/resourceGroups/TESTVM/providers/Microsoft.Compute/virtualMachines/test",
+  "asset.id": "/subscriptions/12cabcb4-86e8-404f-a3d2-111111111111/resourceGroups/GIZASVM/providers/Microsoft.Compute/virtualMachines/gizasvmWindowsenterprise",
+  "asset.ean": "host:/subscriptions/12cabcb4-86e8-404f-a3d2-111111111111/resourceGroups/GIZASVM/providers/Microsoft.Compute/virtualMachines/gizasvmWindowsenterprise",
+  "asset.metadata.state": "VM running",
+  "asset.type": "azure.vm.instance",
   "ecs": {
     "version": "8.0.0"
-  },
-  "host": {
-    "name": "testhost"
-  },
-  "cloud.provider": "azure"
+  }
 }
 ```
