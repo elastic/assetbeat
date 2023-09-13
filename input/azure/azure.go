@@ -140,7 +140,7 @@ func collectAzureAssets(ctx context.Context, log *logp.Logger, cfg config, publi
 	}
 
 	for _, sub := range subscriptions {
-		if internal.IsTypeEnabled(cfg.AssetTypes, "k8s.cluster") {
+		if internal.IsTypeEnabled(cfg.AssetTypes, "azure.vm.instance") {
 			clientFactory, err := armcompute.NewClientFactory(sub, cred, nil)
 			if err != nil {
 				log.Errorf("Error creating Azure Compute Client Factory: %v", err)
