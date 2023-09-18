@@ -43,21 +43,21 @@ The Azure Assets Input supports the following configuration options plus the [Co
 
 #### Exported fields
 
-| Field                         | Description                       | Example                                                                                                                        |
-|-------------------------------|-----------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
-| asset.type                    | The type of asset                 | `"azure.vm.instance"`                                                                                                          |
-| asset.kind                    | The kind of asset                 | `"host`                                                                                                                        |
-| asset.id                      | The id of the Azure instance      | `"/subscriptions/12cabcb4-86e8-404f-111111111111/resourceGroups/TESTVM/providers/Microsoft.Compute/virtualMachines/test"`      |
-| asset.ean                     | The EAN of this specific resource | `"host:/subscriptions/12cabcb4-86e8-404f-111111111111/resourceGroups/TESTVM/providers/Microsoft.Compute/virtualMachines/test"` |
-| asset.metadata.resource_group | The Azure resource group          | `TESTVM`                                                                                                                       |
-| asset.metadata.state          | The status of the VM instance     | `"VM running"`                                                                                                                 |
+| Field                         | Description                       | Example                                       |
+|-------------------------------|-----------------------------------|-----------------------------------------------|
+| asset.type                    | The type of asset                 | `"azure.vm.instance"`                         |
+| asset.kind                    | The kind of asset                 | `"host`                                       |
+| asset.id                      | The VM id of the Azure instance   | `"00830b08-f63d-495b-9b04-989f83c50111"`      |
+| asset.ean                     | The EAN of this specific resource | `"host:00830b08-f63d-495b-9b04-989f83c50111"` |
+| asset.metadata.resource_group | The Azure resource group          | `TESTVM`                                      |
+| asset.metadata.state          | The status of the VM instance     | `"VM running"`                                |
 
 #### Example
 
 ```json
 {
   "@timestamp": "2023-09-13T14:42:51.494Z",
-  "asset.metadata.resource_group": "GIZASVM",
+  "asset.metadata.resource_group": "TESTVM",
   "host": {
     "name": "host"
   },
@@ -75,8 +75,8 @@ The Azure Assets Input supports the following configuration options plus the [Co
   },
   "cloud.account.id": "12cabcb4-86e8-404f-a3d2-111111111111",
   "asset.kind": "host",
-  "asset.id": "/subscriptions/12cabcb4-86e8-404f-a3d2-111111111111/resourceGroups/GIZASVM/providers/Microsoft.Compute/virtualMachines/gizasvmWindowsenterprise",
-  "asset.ean": "host:/subscriptions/12cabcb4-86e8-404f-a3d2-111111111111/resourceGroups/GIZASVM/providers/Microsoft.Compute/virtualMachines/gizasvmWindowsenterprise",
+  "asset.id": "00830b08-f63d-495b-9b04-989f83c50111",
+  "asset.ean": "host:00830b08-f63d-495b-9b04-989f83c50111",
   "asset.metadata.state": "VM running",
   "asset.type": "azure.vm.instance",
   "ecs": {

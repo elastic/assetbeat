@@ -54,7 +54,7 @@ func TestAssetsAzure_Run(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
-	time.Sleep(time.Millisecond)
+	time.Sleep(time.Second)
 	cancel()
 	timeout := time.After(time.Second)
 	closeCh := make(chan struct{})

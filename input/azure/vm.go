@@ -78,7 +78,7 @@ func getAllAzureVMInstances(ctx context.Context, client *armcompute.VirtualMachi
 					status = *v.Properties.InstanceView.Statuses[1].DisplayStatus
 				}
 				vmInstance := AzureVMInstance{
-					ID:             *v.ID,
+					ID:             *v.Properties.VMID,
 					Name:           *v.Name,
 					SubscriptionID: subscriptionId,
 					Region:         *v.Location,

@@ -41,42 +41,51 @@ const resourceGroup2 = "WRONGVM"
 const subscriptionId = "12cabcb4-86e8-404f-111111111111"
 const instance1Name = "instance1"
 
+const instanceVMId1 = "1"
+
 var instanceid1 = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s", subscriptionId, resourceGroup1, instance1Name)
 
 const instance2Name = "instance2"
+const instanceVMId2 = "2"
 
 var instanceid2 = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s", subscriptionId, resourceGroup1, instance2Name)
 
 const instance3Name = "instance3"
+const instanceVMId3 = "3"
 
 var instanceid3 = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s", subscriptionId, resourceGroup1, instance3Name)
 
-const instanceDiffResourceGroupName = "instanceDiffResourceGroup"
+const instance4Name = "instance4"
+const instanceVMId4 = "4"
 
-var instanceIdDiffResourceGroup = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s", subscriptionId, resourceGroup2, instanceDiffResourceGroupName)
+var instanceIdDiffResourceGroup = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s", subscriptionId, resourceGroup2, instance4Name)
 
 var instance1 = armcompute.VirtualMachine{
-	Location: to.Ptr("westeurope"),
-	ID:       to.Ptr(instanceid1),
-	Name:     to.Ptr(instance1Name),
+	Location:   to.Ptr("westeurope"),
+	ID:         to.Ptr(instanceid1),
+	Name:       to.Ptr(instance1Name),
+	Properties: &armcompute.VirtualMachineProperties{VMID: to.Ptr(instanceVMId1)},
 }
 
 var instance2 = armcompute.VirtualMachine{
-	Location: to.Ptr("northeurope"),
-	ID:       to.Ptr(instanceid2),
-	Name:     to.Ptr(instance2Name),
+	Location:   to.Ptr("northeurope"),
+	ID:         to.Ptr(instanceid2),
+	Name:       to.Ptr(instance2Name),
+	Properties: &armcompute.VirtualMachineProperties{VMID: to.Ptr(instanceVMId2)},
 }
 
 var instance3 = armcompute.VirtualMachine{
-	Location: to.Ptr("eastus"),
-	ID:       to.Ptr(instanceid3),
-	Name:     to.Ptr(instance3Name),
+	Location:   to.Ptr("eastus"),
+	ID:         to.Ptr(instanceid3),
+	Name:       to.Ptr(instance3Name),
+	Properties: &armcompute.VirtualMachineProperties{VMID: to.Ptr(instanceVMId3)},
 }
 
 var instanceDiffResourceGroup = armcompute.VirtualMachine{
-	Location: to.Ptr("northeurope"),
-	ID:       to.Ptr(instanceIdDiffResourceGroup),
-	Name:     to.Ptr(instanceDiffResourceGroupName),
+	Location:   to.Ptr("northeurope"),
+	ID:         to.Ptr(instanceIdDiffResourceGroup),
+	Name:       to.Ptr(instance4Name),
+	Properties: &armcompute.VirtualMachineProperties{VMID: to.Ptr(instanceVMId4)},
 }
 
 func TestAssetsAzure_collectAzureAssets(t *testing.T) {
@@ -110,8 +119,8 @@ func TestAssetsAzure_collectAzureAssets(t *testing.T) {
 			expectedEvents: []beat.Event{
 				{
 					Fields: mapstr.M{
-						"asset.ean":                     "host:" + instanceid1,
-						"asset.id":                      instanceid1,
+						"asset.ean":                     "host:" + instanceVMId1,
+						"asset.id":                      instanceVMId1,
 						"asset.type":                    "azure.vm.instance",
 						"asset.kind":                    "host",
 						"asset.metadata.state":          "",
@@ -126,8 +135,8 @@ func TestAssetsAzure_collectAzureAssets(t *testing.T) {
 				},
 				{
 					Fields: mapstr.M{
-						"asset.ean":                     "host:" + instanceid2,
-						"asset.id":                      instanceid2,
+						"asset.ean":                     "host:" + instanceVMId2,
+						"asset.id":                      instanceVMId2,
 						"asset.type":                    "azure.vm.instance",
 						"asset.kind":                    "host",
 						"asset.metadata.state":          "",
@@ -142,8 +151,8 @@ func TestAssetsAzure_collectAzureAssets(t *testing.T) {
 				},
 				{
 					Fields: mapstr.M{
-						"asset.ean":                     "host:" + instanceid3,
-						"asset.id":                      instanceid3,
+						"asset.ean":                     "host:" + instanceVMId3,
+						"asset.id":                      instanceVMId3,
 						"asset.type":                    "azure.vm.instance",
 						"asset.kind":                    "host",
 						"asset.metadata.state":          "",
@@ -181,8 +190,8 @@ func TestAssetsAzure_collectAzureAssets(t *testing.T) {
 			expectedEvents: []beat.Event{
 				{
 					Fields: mapstr.M{
-						"asset.ean":                     "host:" + instanceid1,
-						"asset.id":                      instanceid1,
+						"asset.ean":                     "host:" + instanceVMId1,
+						"asset.id":                      instanceVMId1,
 						"asset.type":                    "azure.vm.instance",
 						"asset.kind":                    "host",
 						"asset.metadata.state":          "",
@@ -197,8 +206,8 @@ func TestAssetsAzure_collectAzureAssets(t *testing.T) {
 				},
 				{
 					Fields: mapstr.M{
-						"asset.ean":                     "host:" + instanceid2,
-						"asset.id":                      instanceid2,
+						"asset.ean":                     "host:" + instanceVMId2,
+						"asset.id":                      instanceVMId2,
 						"asset.type":                    "azure.vm.instance",
 						"asset.kind":                    "host",
 						"asset.metadata.state":          "",
@@ -238,8 +247,8 @@ func TestAssetsAzure_collectAzureAssets(t *testing.T) {
 			expectedEvents: []beat.Event{
 				{
 					Fields: mapstr.M{
-						"asset.ean":                     "host:" + instanceid1,
-						"asset.id":                      instanceid1,
+						"asset.ean":                     "host:" + instanceVMId1,
+						"asset.id":                      instanceVMId1,
 						"asset.type":                    "azure.vm.instance",
 						"asset.kind":                    "host",
 						"asset.metadata.state":          "",
@@ -254,8 +263,8 @@ func TestAssetsAzure_collectAzureAssets(t *testing.T) {
 				},
 				{
 					Fields: mapstr.M{
-						"asset.ean":                     "host:" + instanceid2,
-						"asset.id":                      instanceid2,
+						"asset.ean":                     "host:" + instanceVMId2,
+						"asset.id":                      instanceVMId2,
 						"asset.type":                    "azure.vm.instance",
 						"asset.kind":                    "host",
 						"asset.metadata.state":          "",

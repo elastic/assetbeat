@@ -73,7 +73,7 @@ func defaultConfig() config {
 			Period:     time.Second * 600,
 			AssetTypes: nil,
 		},
-		Regions:        []string{"westeurope"},
+		Regions:        []string{},
 		ClientID:       "",
 		ClientSecret:   "",
 		SubscriptionID: "",
