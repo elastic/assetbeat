@@ -55,13 +55,13 @@ jobs:
       - name: Build and push image with version
         uses: docker/build-push-action@v4
         with:
-          context: ./build/package/assetbeat/assetbeat-linux-amd64.docker/docker-build
+          context: ./build/package/assetbeat/assetbeat-linux-x86_64.docker/docker-build
           push: true
           tags: ${{ env.DOCKER_IMG }}:${{ steps.set-version.outputs.VERSION }}-SNAPSHOT
       - name: Build and push with latest tag
         if: ${{ success() }}
         uses: docker/build-push-action@v4
         with:
-          context: ./build/package/assetbeat/assetbeat-linux-amd64.docker/docker-build
+          context: ./build/package/assetbeat/assetbeat-linux-x86_64.docker/docker-build
           push: true
           tags: ${{ env.DOCKER_IMG_TAG_LATEST }}
