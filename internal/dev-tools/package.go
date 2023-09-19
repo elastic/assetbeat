@@ -36,6 +36,18 @@ type PackageSpec struct {
 	ExtraFilesList []string
 }
 
+var packageArchOverrides = map[string]string{
+	"amd64": "x86_64",
+}
+
+func GetPackageArch(goarch string) string {
+	arch, overrideExists := packageArchOverrides[goarch]
+	if overrideExists {
+		return arch
+	}
+	return goarch
+}
+
 // GetDefaultExtraFiles returns the default list of files to include in an assetbeat package,
 // in addition to assetbeat's executable
 func GetDefaultExtraFiles() []string {

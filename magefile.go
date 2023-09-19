@@ -188,7 +188,7 @@ func Package() error {
 			fmt.Printf(">>>>> Packaging assetbeat for platform: %+v packageType:%s\n", platform, packageType)
 			packageSpec := devtools.PackageSpec{
 				Os:             platform.GOOS,
-				Arch:           platform.GOARCH,
+				Arch:           devtools.GetPackageArch(platform.GOARCH),
 				PackageType:    packageType,
 				ExecutablePath: executablePath,
 				IsSnapshot:     isSnapshot(),
