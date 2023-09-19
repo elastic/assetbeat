@@ -223,11 +223,11 @@ Contents of probable licence file $GOMODCACHE/cloud.google.com/go/compute@v1.23.
 
 --------------------------------------------------------------------------------
 Dependency : cloud.google.com/go/container
-Version: v1.25.0
+Version: v1.26.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/cloud.google.com/go/container@v1.25.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/cloud.google.com/go/container@v1.26.0/LICENSE:
 
 
                                  Apache License
