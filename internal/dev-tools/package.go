@@ -51,7 +51,7 @@ func GetPackageArch(goarch string) string {
 // GetDefaultExtraFiles returns the default list of files to include in an assetbeat package,
 // in addition to assetbeat's executable
 func GetDefaultExtraFiles() []string {
-	return []string{"LICENSE.txt", "README.md", "assetbeat.yml"}
+	return []string{"LICENSE.txt", "README.md", "assetbeat.yml", "assetbeat.spec.yml"}
 }
 
 // CreatePackage assetbeat for distribution. It generates packages based on the provided PackageSpec/
