@@ -140,6 +140,13 @@ func publishK8sNodes(ctx context.Context, log *logp.Logger, publisher stateless.
 		o, ok := obj.(*kube.Node)
 		if ok {
 			log.Debugf("Publish Node: %+v", o.Name)
+			conditions := o.Status.Conditions
+			statusReady := "false"
+			for _, condition := range conditions {
+				if condition.Type == "Ready" {
+					statusReady = "true"
+				}
+			}
 			instanceId := getInstanceId(o)
 			log.Debug("Node instance id: ", instanceId)
 			assetId := string(o.ObjectMeta.UID)
@@ -147,7 +154,7 @@ func publishK8sNodes(ctx context.Context, log *logp.Logger, publisher stateless.
 			options := []internal.AssetOption{
 				internal.WithAssetKindAndID(assetKind, assetId),
 				internal.WithAssetType(assetType),
-				internal.WithNodeData(o.Name, &assetStartTime),
+				internal.WithNodeData(o.Name, statusReady, &assetStartTime),
 			}
 			if instanceId != "" {
 				options = append(options, internal.WithCloudInstanceId(instanceId))
