@@ -65,7 +65,7 @@ func addFileToTarWriter(filePath string, tarWriter *tar.Writer) error {
 	}
 
 	headerName := filepath.Base(filePath)
-	if strings.Contains(headerName, "assetbeat") {
+	if strings.Contains(headerName, "assetbeat-") {
 		//This makes sure that platform details are removed from the packaged assetbeat binary filename
 		headerName = "assetbeat"
 	}
