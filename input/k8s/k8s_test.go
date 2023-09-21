@@ -94,41 +94,41 @@ func TestPublishK8sNodeAsset(t *testing.T) {
 		name  string
 		event beat.Event
 
-		assetName        string
-		assetStatusReady string
-		assetType        string
-		assetKind        string
-		assetID          string
-		instanceID       string
-		parents          []string
-		children         []string
+		assetName  string
+		assetState string
+		assetType  string
+		assetKind  string
+		assetID    string
+		instanceID string
+		parents    []string
+		children   []string
 	}{
 		{
 			name: "publish node",
 			event: beat.Event{
 				Fields: mapstr.M{
-					"asset.type":                   "k8s.node",
-					"asset.kind":                   "host",
-					"asset.id":                     "60988eed-1885-4b63-9fa4-780206969deb",
-					"asset.ean":                    "host:60988eed-1885-4b63-9fa4-780206969deb",
-					"asset.parents":                []string{},
-					"kubernetes.node.name":         "ip-172-31-29-242.us-east-2.compute.internal",
-					"kubernetes.node.status.ready": "true",
-					"kubernetes.node.start_time":   &startTime,
-					"cloud.instance.id":            "i-0699b78f46f0fa248",
+					"asset.type":                 "k8s.node",
+					"asset.kind":                 "host",
+					"asset.id":                   "60988eed-1885-4b63-9fa4-780206969deb",
+					"asset.ean":                  "host:60988eed-1885-4b63-9fa4-780206969deb",
+					"asset.metadata.state":       "Ready",
+					"asset.parents":              []string{},
+					"kubernetes.node.name":       "ip-172-31-29-242.us-east-2.compute.internal",
+					"kubernetes.node.start_time": &startTime,
+					"cloud.instance.id":          "i-0699b78f46f0fa248",
 				},
 				Meta: mapstr.M{
 					"index": internal.GetDefaultIndexName(),
 				},
 			},
 
-			assetName:        "ip-172-31-29-242.us-east-2.compute.internal",
-			assetStatusReady: "true",
-			assetType:        "k8s.node",
-			assetKind:        "host",
-			assetID:          "60988eed-1885-4b63-9fa4-780206969deb",
-			instanceID:       "i-0699b78f46f0fa248",
-			parents:          []string{},
+			assetName:  "ip-172-31-29-242.us-east-2.compute.internal",
+			assetState: "Ready",
+			assetType:  "k8s.node",
+			assetKind:  "host",
+			assetID:    "60988eed-1885-4b63-9fa4-780206969deb",
+			instanceID: "i-0699b78f46f0fa248",
+			parents:    []string{},
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -138,7 +138,8 @@ func TestPublishK8sNodeAsset(t *testing.T) {
 				internal.WithAssetKindAndID(tt.assetKind, tt.assetID),
 				internal.WithAssetType(tt.assetType),
 				internal.WithAssetParents(tt.parents),
-				internal.WithNodeData(tt.assetName, tt.assetStatusReady, &startTime),
+				internal.WithAssetMetadata(mapstr.M{"state": tt.assetState}),
+				internal.WithNodeData(tt.assetName, &startTime),
 				internal.WithCloudInstanceId(tt.instanceID),
 			)
 			assert.Equal(t, 1, len(publisher.Events))

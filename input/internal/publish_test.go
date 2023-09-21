@@ -131,12 +131,11 @@ func TestPublish(t *testing.T) {
 		{
 			name: "with valid node data",
 			opts: []AssetOption{
-				WithNodeData("ip-172-31-29-242.us-east-2.compute.internal", "true", &startTime),
+				WithNodeData("ip-172-31-29-242.us-east-2.compute.internal", &startTime),
 			},
 			expectedEvent: beat.Event{Fields: mapstr.M{
-				"kubernetes.node.name":         "ip-172-31-29-242.us-east-2.compute.internal",
-				"kubernetes.node.status.ready": "true",
-				"kubernetes.node.start_time":   &startTime,
+				"kubernetes.node.name":       "ip-172-31-29-242.us-east-2.compute.internal",
+				"kubernetes.node.start_time": &startTime,
 			}, Meta: mapstr.M{"index": GetDefaultIndexName()}},
 		},
 		{

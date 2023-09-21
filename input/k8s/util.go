@@ -82,6 +82,20 @@ func getInstanceId(node *kubernetes.Node) string {
 	return ""
 }
 
+// getNodeState returns the state of kubernets node
+// the state can be Ready, MemoryPressure, DiskPressure, PIDPressure,
+// NetworkUnavailable or Unknown
+func getNodeState(node *kubernetes.Node) string {
+	conditions := node.Status.Conditions
+	status := "Unknown"
+	for _, condition := range conditions {
+		if condition.Status == "True" {
+			status = string(condition.Type)
+		}
+	}
+	return status
+}
+
 // getCspFromProviderId return the cps for a given providerId string.
 // In case of aws providerId is in the form of aws:///region/instanceId
 // In case of gcp providerId is in the form of  gce://project/region/nodeName
