@@ -1,23 +1,25 @@
+env:
+  GO_VERSION: $(cat .go-version)
 steps:
   - label: ":white_check_mark: Check"
     command:
       - ".buildkite/scripts/check.sh"
     agents:
-      image: golang:1.20.5
+      image: golang:$GO_VERSION
       cpu: "8"
       memory: "8G"
   - label: ":building_construction: Build"
     command:
       - ".buildkite/scripts/build.sh"
     agents:
-      image: golang:1.20.5
+      image: golang:$GO_VERSION
       cpu: "8"
       memory: "4G"
   - label: ":test_tube: Test"
     command:
       - ".buildkite/scripts/test.sh"
     agents:
-      image: golang:1.20.5
+      image: golang:$GO_VERSION
       cpu: "8"
       memory: "4G"
   - label: ":package: Package Assetbeat - Snapshot"
@@ -25,7 +27,7 @@ steps:
     command: "./.buildkite/scripts/package.sh snapshot"
     artifact_paths: "build/distributions/*"
     agents:
-      image: golang:1.20.5
+      image: golang:$GO_VERSION
       cpu: "8"
       memory: "4G"
   - label: ":rocket: Publishing Snapshot DRA artifacts"
@@ -41,7 +43,7 @@ steps:
     command: "./.buildkite/scripts/package.sh staging"
     artifact_paths: "build/distributions/*"
     agents:
-      image: golang:1.20.5
+      image: golang:$GO_VERSION
       cpu: "8"
       memory: "4G"
 

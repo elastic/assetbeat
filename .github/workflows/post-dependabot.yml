@@ -23,8 +23,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: ${{ env.DEFAULT_GO_VERSION }}
-          cache: true
+          go-version-file: .go-version
 
       - name: update notice
         uses: magefile/mage-action@v3
