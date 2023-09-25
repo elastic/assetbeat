@@ -1,5 +1,5 @@
 env:
-  GO_VERSION: $(cat .go-version)
+  GO_VERSION: $$(cat .go-version)
 steps:
   - label: ":white_check_mark: Check"
     command:
