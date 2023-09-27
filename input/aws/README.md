@@ -71,6 +71,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
 |--------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------|
 | asset.type                     | The type of asset                                                                                                                               | `"aws.ec2.instance"`                     |
 | asset.kind                     | The kind of asset                                                                                                                               | `"host`                                  |
+| asset.name                     | The name of EC2 instance                                                                                                                        | `"my_instance"`                          |
 | asset.id                       | The id of the EC2 instance                                                                                                                      | `"i-065d58c9c67df73ed"`                  |
 | asset.ean                      | The EAN of this specific resource                                                                                                               | `"aws.ec2.instance:i-065d58c9c67df73ed"` |
 | asset.parents                  | The EANs of the hierarchical parents for this specific asset resource. For an EC2 instance, this corresponds to the VPC subnet it is related to | `[ "aws.subnet:subnet-b98e46df" ]`       |
@@ -109,6 +110,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
     "asset.parents": [
       "aws.subnet:subnet-a355daf9"
     ],
+    "asset.name" : "my_instance",
     "asset.metadata.tags.Name": "elastic-agent"
   }
 ```
@@ -117,16 +119,17 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
 
 #### Exported fields
 
-| Field                            | Description                                                                                                                                                                                                                     | Example                                                         |
-|----------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------|
-| asset.type                       | The type of asset                                                                                                                                                                                                               | `"k8s.cluster"`                                                 |
-| asset.kind                       | The kind of asset                                                                                                                                                                                                               | `"cluster`                                                      |
-| asset.id                         | The ARN of the EKS cluster                                                                                                                                                                                                      | `"arn:aws:eks:us-west-1:564797534556:cluster/demo"`             |
+| Field                            | Description                                                                                                                                                                                                                     | Example                                                     |
+|----------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
+| asset.type                       | The type of asset                                                                                                                                                                                                               | `"k8s.cluster"`                                             |
+| asset.kind                       | The kind of asset                                                                                                                                                                                                               | `"cluster`                                                  |
+| asset.id                         | The ARN of the EKS cluster                                                                                                                                                                                                      | `"arn:aws:eks:us-west-1:564797534556:cluster/demo"`         |
 | asset.ean                        | The EAN of this specific resource                                                                                                                                                                                               | `"cluster:arn:aws:eks:us-west-1:564797534556:cluster/demo"` |
-| asset.parents                    | The EANs of the hierarchical parents for this specific asset resource. For an EKS cluster, this corresponds to the VPC it is related to                                                                                         | `[ "network:test-vpc" ]`                                        |
-| asset.children                   | The EANs of the hierarchical children for this specific asset resource. For a EKS cluster, this corresponds to the EC2 instances it is composed of. **_Note_:** this field is currently not populated for EKS Fargate clusters. | `["host:i-1111111"]`                                |
-| asset.metadata.status            | The state of the cluster                                                                                                                                                                                                        | `"ACTIVE"`                                                      |
-| asset.metadata.tags.<label_name> | Any label specified for this cluster                                                                                                                                                                                            | `"my label value"`                                              |
+| asset.name                       | The name of the EKS cluster                                                                                                                                                                                                     | `"my_eks_cluster"`                                          |
+| asset.parents                    | The EANs of the hierarchical parents for this specific asset resource. For an EKS cluster, this corresponds to the VPC it is related to                                                                                         | `[ "network:test-vpc" ]`                                    |
+| asset.children                   | The EANs of the hierarchical children for this specific asset resource. For a EKS cluster, this corresponds to the EC2 instances it is composed of. **_Note_:** this field is currently not populated for EKS Fargate clusters. | `["host:i-1111111"]`                                        |
+| asset.metadata.status            | The state of the cluster                                                                                                                                                                                                        | `"ACTIVE"`                                                  |
+| asset.metadata.tags.<label_name> | Any label specified for this cluster                                                                                                                                                                                            | `"my label value"`                                          |
 
 #### Example
 
@@ -161,6 +164,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
     "host": {
       "name": "test"
     },
+    "asset.name": "my_cluster",
     "asset.ean": "cluster:arn:aws:eks:eu-west-1:1111111111:cluster/test-cluster"
   }
 ```
@@ -174,6 +178,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
 | asset.type                     | The type of asset                                                                   | `"aws.vpc"`                       |
 | asset.kind                     | The kind of asset                                                                   | `"network`                        |
 | asset.id                       | The id of the VPC                                                                   | `"vpc-0f754418ce7f991f9"`         |
+| asset.name                     | The name of the VPC                                                                 | `"my_vpc"`                        |
 | asset.ean                      | The EAN of this specific resource                                                   | `"network:vpc-0f754418ce7f991f9"` |
 | asset.metadata.isDefault       | true/false value that indicates if the VPC is the default VPC for the region or not | `"true"`                          |
 | asset.metadata.tags.<tag_name> | Any label specified for this VPC                                                    | `"my label value"`                |
@@ -186,6 +191,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
     "@timestamp": "2023-05-25T13:48:47.315Z",
     "asset.type": "aws.vpc",
     "asset.kind": "network",
+    "asset.name": "my_vpc",
     "input": {
       "type": "assets_aws"
     },
@@ -215,14 +221,15 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
 
 #### Exported fields
 
-| Field                          | Description                                                                                                                           | Example                           |
-|--------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------|
-| asset.type                     | The type of asset                                                                                                                     | `"aws.vpc"`                       |
-| asset.kind                     | The kind of asset                                                                                                                     | `"network`                        |
-| asset.id                       | The id of the VPC subnet                                                                                                              | `"vpc-0f754418ce7f991f9"`         |
-| asset.ean                      | The EAN of this specific resource                                                                                                     | `"network:vpc-0f754418ce7f991f9"` |
-| asset.parents                  | The EANs of the hierarchical parents for this specific asset resource. For a VPC subnet, this corresponds to the VPC it is related to | `[ "network:test-vpc" ]`          |
-| asset.metadata.tags.<tag_name> | Any label specified for this VPC                                                                                                      | `"my label value"`                |
+| Field                          | Description                                                                                                                           | Example                              |
+|--------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------|
+| asset.type                     | The type of asset                                                                                                                     | `"aws.subnet"`                       |
+| asset.kind                     | The kind of asset                                                                                                                     | `"network`                           |
+| asset.id                       | The id of the VPC subnet                                                                                                              | `"subnet-0f754418ce7f991f9"`         |
+| asset.name                     | The name of the VPC subnet                                                                                                            | `"my_subnet"`                        |
+| asset.ean                      | The EAN of this specific resource                                                                                                     | `"network:subnet-0f754418ce7f991f9"` |
+| asset.parents                  | The EANs of the hierarchical parents for this specific asset resource. For a VPC subnet, this corresponds to the VPC it is related to | `[ "network:test-vpc" ]`             |
+| asset.metadata.tags.<tag_name> | Any label specified for this VPC                                                                                                      | `"my label value"`                   |
 
 #### Example
 
@@ -238,6 +245,7 @@ The following AWS IAM permissions are required for the AWS Assets Input to funct
     "cloud.region": "eu-west-1",
     "asset.type": "aws.subnet",
     "asset.kind": "network",
+    "asset.name": "my_subnet",
     "host": {
       "name": "test"
     },
