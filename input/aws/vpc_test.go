@@ -19,6 +19,7 @@ package aws
 
 import (
 	"context"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/elastic/assetbeat/input/internal"
 	"testing"
 
@@ -34,11 +35,16 @@ import (
 )
 
 var vpcId1 = "vpc-id-1"
+var vpcName1 = "vpc-name-1"
 var vpcId2 = "vpc-id-2"
+var vpcName2 = "vpc-name-2"
 var isDefaultVPC = true
 var isNotDefaultVPC = false
 
-var subnetID2 = "subnet-2"
+var subnetID_1 = "subnet-id-1"
+var subnetName_1 = "subnet-name-1"
+var subnetID_2 = "subnet-id-2"
+var subnetName_2 = "subnet-name-2"
 
 type mockDescribeVpcsAPI func(ctx context.Context, params *ec2.DescribeVpcsInput, optFns ...func(*ec2.Options)) (*ec2.DescribeVpcsOutput, error)
 
@@ -70,6 +76,10 @@ func TestAssetsAWS_collectVPCAssets(t *testing.T) {
 										Key:   &tag_1_k,
 										Value: &tag_1_v,
 									},
+									{
+										Key:   to.Ptr("Name"),
+										Value: &vpcName1,
+									},
 								},
 								IsDefault: &isDefaultVPC,
 							},
@@ -77,6 +87,12 @@ func TestAssetsAWS_collectVPCAssets(t *testing.T) {
 								OwnerId:   &ownerID_1,
 								VpcId:     &vpcId2,
 								IsDefault: &isNotDefaultVPC,
+								Tags: []types.Tag{
+									{
+										Key:   to.Ptr("Name"),
+										Value: &vpcName2,
+									},
+								},
 							},
 						},
 						ResultMetadata: middleware.Metadata{},
@@ -88,6 +104,7 @@ func TestAssetsAWS_collectVPCAssets(t *testing.T) {
 					Fields: mapstr.M{
 						"asset.ean":                      "network:" + vpcId1,
 						"asset.id":                       vpcId1,
+						"asset.name":                     vpcName1,
 						"asset.type":                     "aws.vpc",
 						"asset.kind":                     "network",
 						"asset.metadata.isDefault":       &isDefaultVPC,
@@ -104,6 +121,7 @@ func TestAssetsAWS_collectVPCAssets(t *testing.T) {
 					Fields: mapstr.M{
 						"asset.ean":                "network:" + vpcId2,
 						"asset.id":                 vpcId2,
+						"asset.name":               vpcName2,
 						"asset.type":               "aws.vpc",
 						"asset.kind":               "network",
 						"asset.metadata.isDefault": &isNotDefaultVPC,
@@ -154,11 +172,15 @@ func TestAssetsAWS_collectSubnetAssets(t *testing.T) {
 						Subnets: []types.Subnet{
 							{
 								OwnerId:  &ownerID_1,
-								SubnetId: &subnetID1,
+								SubnetId: &subnetID_1,
 								Tags: []types.Tag{
 									{
 										Key:   &tag_1_k,
 										Value: &tag_1_v,
+									},
+									{
+										Key:   to.Ptr("Name"),
+										Value: &subnetName_1,
 									},
 								},
 								VpcId: &vpcId1,
@@ -166,9 +188,15 @@ func TestAssetsAWS_collectSubnetAssets(t *testing.T) {
 							},
 							{
 								OwnerId:  &ownerID_1,
-								SubnetId: &subnetID2,
+								SubnetId: &subnetID_2,
 								VpcId:    &vpcId1,
-								State:    "pending",
+								Tags: []types.Tag{
+									{
+										Key:   to.Ptr("Name"),
+										Value: &subnetName_2,
+									},
+								},
+								State: "pending",
 							},
 						},
 					}, nil
@@ -177,8 +205,9 @@ func TestAssetsAWS_collectSubnetAssets(t *testing.T) {
 			expectedEvents: []beat.Event{
 				{
 					Fields: mapstr.M{
-						"asset.ean":  "network:" + subnetID1,
-						"asset.id":   subnetID1,
+						"asset.ean":  "network:" + subnetID_1,
+						"asset.id":   subnetID_1,
+						"asset.name": subnetName_1,
 						"asset.type": "aws.subnet",
 						"asset.kind": "network",
 						"asset.parents": []string{
@@ -196,8 +225,9 @@ func TestAssetsAWS_collectSubnetAssets(t *testing.T) {
 				},
 				{
 					Fields: mapstr.M{
-						"asset.ean":  "network:" + subnetID2,
-						"asset.id":   subnetID2,
+						"asset.ean":  "network:" + subnetID_2,
+						"asset.id":   subnetID_2,
+						"asset.name": subnetName_2,
 						"asset.type": "aws.subnet",
 						"asset.kind": "network",
 						"asset.parents": []string{

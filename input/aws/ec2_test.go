@@ -19,6 +19,7 @@ package aws
 
 import (
 	"context"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/elastic/assetbeat/input/internal"
 	"testing"
 
@@ -33,11 +34,13 @@ import (
 )
 
 var instanceID_1 = "i-1111111"
+var instanceName_1 = "test-instance-1"
 var ownerID_1 = "11111111111111"
 var tag_1_k = "mykey"
 var tag_1_v = "myvalue"
 var subnetID1 = "mysubnetid1"
 var instanceID_2 = "i-2222222"
+var instanceName_2 = "test-instance-2"
 
 type mockDescribeInstancesAPI func(ctx context.Context, params *ec2.DescribeInstancesInput, optFns ...func(*ec2.Options)) (*ec2.DescribeInstancesOutput, error)
 
@@ -71,6 +74,10 @@ func TestAssetsAWS_collectEC2Assets(t *testing.T) {
 											Key:   &tag_1_k,
 											Value: &tag_1_v,
 										},
+										{
+											Key:   to.Ptr("Name"),
+											Value: &instanceName_1,
+										},
 									},
 									SubnetId: &subnetID1,
 								},
@@ -78,6 +85,12 @@ func TestAssetsAWS_collectEC2Assets(t *testing.T) {
 									InstanceId: &instanceID_2,
 									State:      &types.InstanceState{Name: "stopped"},
 									SubnetId:   &subnetID1,
+									Tags: []types.Tag{
+										{
+											Key:   to.Ptr("Name"),
+											Value: &instanceName_2,
+										},
+									},
 								},
 							},
 						},
@@ -93,6 +106,7 @@ func TestAssetsAWS_collectEC2Assets(t *testing.T) {
 					"asset.metadata.state": "running",
 					"asset.type":           "aws.ec2.instance",
 					"asset.kind":           "host",
+					"asset.name":           instanceName_1,
 					"asset.parents": []string{
 						"network:" + subnetID1,
 					},
@@ -112,6 +126,7 @@ func TestAssetsAWS_collectEC2Assets(t *testing.T) {
 					"asset.metadata.state": "stopped",
 					"asset.type":           "aws.ec2.instance",
 					"asset.kind":           "host",
+					"asset.name":           instanceName_2,
 					"asset.parents": []string{
 						"network:" + subnetID1,
 					},

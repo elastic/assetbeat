@@ -65,6 +65,7 @@ func collectEKSAssets(ctx context.Context, cfg aws.Config, log *logp.Logger, pub
 				internal.WithAssetCloudProvider("aws"),
 				internal.WithAssetRegion(cfg.Region),
 				internal.WithAssetAccountID(clusterARN.AccountID),
+				internal.WithAssetName(*clusterDetail.Name),
 				internal.WithAssetKindAndID(assetKind, *clusterDetail.Arn),
 				internal.WithAssetType(assetType),
 				internal.WithAssetParents(parents),
