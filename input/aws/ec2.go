@@ -58,7 +58,6 @@ func collectEC2Assets(ctx context.Context, client ec2.DescribeInstancesAPIClient
 			internal.WithAssetCloudProvider("aws"),
 			internal.WithAssetRegion(region),
 			internal.WithAssetAccountID(instance.OwnerID),
-			internal.WithAssetName(instance.InstanceName),
 			internal.WithAssetKindAndID(assetKind, instance.InstanceID),
 			internal.WithAssetType(assetType),
 			WithAssetTags(flattenEC2Tags(instance.Tags)),
@@ -66,6 +65,9 @@ func collectEC2Assets(ctx context.Context, client ec2.DescribeInstancesAPIClient
 		}
 		if parents != nil {
 			options = append(options, internal.WithAssetParents(parents))
+		}
+		if instance.InstanceName != "" {
+			options = append(options, internal.WithAssetName(instance.InstanceName))
 		}
 		internal.Publish(publisher, nil,
 			options...,

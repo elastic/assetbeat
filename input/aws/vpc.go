@@ -40,7 +40,7 @@ func collectVPCAssets(ctx context.Context, client ec2.DescribeVpcsAPIClient, reg
 	assetType := "aws.vpc"
 	assetKind := "network"
 	for _, vpc := range vpcs {
-		internal.Publish(publisher, nil,
+		options := []internal.AssetOption{
 			internal.WithAssetCloudProvider("aws"),
 			internal.WithAssetRegion(region),
 			internal.WithAssetAccountID(*vpc.OwnerId),
@@ -51,6 +51,13 @@ func collectVPCAssets(ctx context.Context, client ec2.DescribeVpcsAPIClient, reg
 			internal.WithAssetMetadata(mapstr.M{
 				"isDefault": vpc.IsDefault,
 			}),
+		}
+		vpcName := getEC2AssetNameFromTags(vpc.Tags)
+		if vpcName != "" {
+			options = append(options, internal.WithAssetName(vpcName))
+		}
+		internal.Publish(publisher, nil,
+			options...,
 		)
 	}
 
@@ -71,18 +78,24 @@ func collectSubnetAssets(ctx context.Context, client ec2.DescribeSubnetsAPIClien
 			parents = []string{"network:" + *subnet.VpcId}
 		}
 
-		internal.Publish(publisher, nil,
+		options := []internal.AssetOption{
 			internal.WithAssetCloudProvider("aws"),
 			internal.WithAssetRegion(region),
 			internal.WithAssetAccountID(*subnet.OwnerId),
 			internal.WithAssetKindAndID(assetKind, *subnet.SubnetId),
-			internal.WithAssetName(getEC2AssetNameFromTags(subnet.Tags)),
 			internal.WithAssetType(assetType),
 			internal.WithAssetParents(parents),
 			WithAssetTags(flattenEC2Tags(subnet.Tags)),
 			internal.WithAssetMetadata(mapstr.M{
 				"state": string(subnet.State),
 			}),
+		}
+		subnetName := getEC2AssetNameFromTags(subnet.Tags)
+		if subnetName != "" {
+			options = append(options, internal.WithAssetName(subnetName))
+		}
+		internal.Publish(publisher, nil,
+			options...,
 		)
 	}
 
