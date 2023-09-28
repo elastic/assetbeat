@@ -169,7 +169,7 @@ The following GCP API permissions are required for the GCP Assets Input to funct
 | asset.kind                         | The kind of asset                                                                                                                                  | `"network"`                     |
 | asset.id                           | The id of the Compute Engine instance                                                                                                                               | `"5252379740648465638"`         |
 | asset.ean                          | the EAN of this specific resource                                                                                                                               | `"gcp.vpc:5252379740648465638"` |
-| asset.name                         | the name of this specific resource                                                                                                                               | `"test-k8s-vpc"`                |
+| asset.name                         | the name of this specific resource                                                                                                                               | `"test-gcp-vpc"`                |
 
 
 #### Example
