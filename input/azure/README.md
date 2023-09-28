@@ -47,6 +47,7 @@ The Azure Assets Input supports the following configuration options plus the [Co
 |-------------------------------|-----------------------------------|-----------------------------------------------|
 | asset.type                    | The type of asset                 | `"azure.vm.instance"`                         |
 | asset.kind                    | The kind of asset                 | `"host`                                       |
+| asset.name                    | The name of the Azure instance    | `"my_instance"`                               |
 | asset.id                      | The VM id of the Azure instance   | `"00830b08-f63d-495b-9b04-989f83c50111"`      |
 | asset.ean                     | The EAN of this specific resource | `"host:00830b08-f63d-495b-9b04-989f83c50111"` |
 | asset.metadata.resource_group | The Azure resource group          | `TESTVM`                                      |
@@ -79,6 +80,7 @@ The Azure Assets Input supports the following configuration options plus the [Co
   "asset.ean": "host:00830b08-f63d-495b-9b04-989f83c50111",
   "asset.metadata.state": "VM running",
   "asset.type": "azure.vm.instance",
+  "asset.name": "my_instance",
   "ecs": {
     "version": "8.0.0"
   }
