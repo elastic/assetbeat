@@ -151,6 +151,7 @@ func publishK8sNodes(ctx context.Context, log *logp.Logger, publisher stateless.
 			options := []internal.AssetOption{
 				internal.WithAssetKindAndID(assetKind, assetId),
 				internal.WithAssetType(assetType),
+				internal.WithAssetName(o.Name),
 				internal.WithAssetMetadata(metadata),
 				internal.WithNodeData(o.Name, &assetStartTime),
 			}

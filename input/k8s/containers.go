@@ -68,6 +68,7 @@ func publishK8sContainers(ctx context.Context, log *logp.Logger, publisher state
 				internal.Publish(publisher, nil,
 					internal.WithAssetKindAndID(assetKind, assetId),
 					internal.WithAssetType(assetType),
+					internal.WithAssetName(assetName),
 					internal.WithAssetParents(assetParents),
 					internal.WithContainerData(assetName, assetId, namespace, state, &assetStartTime),
 				)

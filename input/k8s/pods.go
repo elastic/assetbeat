@@ -122,6 +122,7 @@ func publishK8sPods(ctx context.Context, log *logp.Logger, publisher stateless.P
 				internal.WithAssetKindAndID(assetKind, assetId),
 				internal.WithAssetType(assetType),
 				internal.WithAssetParents(assetParents),
+				internal.WithAssetName(assetName),
 				internal.WithPodData(assetName, assetId, namespace, assetStartTime),
 			)
 		} else {

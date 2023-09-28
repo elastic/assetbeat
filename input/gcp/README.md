@@ -56,6 +56,7 @@ The following GCP API permissions are required for the GCP Assets Input to funct
 | asset.kind                         | The kind of asset                                                                                                                                                                | `"cluster`                                                                       |
 | asset.id                           | The id of the GKE cluster                                                                                                                                                        | `"4d0dde3178fb4977b5f38a773e520b7b4aeb0155a0a34f37a84217f19962c222"`             |
 | asset.ean                          | the EAN of this specific resource                                                                                                                                                | `"cluster:4d0dde3178fb4977b5f38a773e520b7b4aeb0155a0a34f37a84217f19962c222"` |
+| asset.name                         | the Nmae of this specific resource                                                                                                                                                | `"test-cluster"` |
 | asset.parents                      | The EANs of the hierarchical parents for this specific asset resource. For a GKE cluster, this corresponds to the VPC it is related to                                           | `[ "network:test-vpc" ]`                                                         |
 | asset.children                     | The EANs of the hierarchical children for this specific asset resource. For a GKE cluster (in Standard Mode), this corresponds to the Compute Engine instances it is composed of | `["host:3307406948865894335"]`                                   |
 | asset.metadata.state               | The state of the GKE cluster                                                                                                                                                     | `"RUNNING"`                                                                      |
@@ -96,6 +97,7 @@ The following GCP API permissions are required for the GCP Assets Input to funct
     "asset.parents": [
       "network:test-vpc"
     ],
+    "asset.name": "test-cluster",
     "cloud.provider": "gcp",
     "cloud.region": "europe-west1",
     "asset.type": "k8s.cluster",
@@ -113,6 +115,7 @@ The following GCP API permissions are required for the GCP Assets Input to funct
 | asset.kind                         | The kind of asset                                                                                                                                  | `"host`                                      |
 | asset.id                           | The id of the Compute Engine instance                                                                                                              | `"5252379740648465638"`                      |
 | asset.ean                          | the EAN of this specific resource                                                                                                                  | `"host:5252379740648465638"` |
+| asset.name                         | the name of this specific resource                                                                                                                  | `"vm-72c474bb-3469-41c4-70c5-74722bb815f8"` |
 | asset.parents                      | The EANs of the hierarchical parents for this specific asset resource. For a Compute Engine instance, this corresponds to the VPC it is related to | `[ "network:test-vpc" ]`                     |
 | asset.metadata.state               | The state of the Compute Engine instance                                                                                                           | `"RUNNING"`                                  |
 | asset.metadata.labels.<label_name> | Any label specified for this Compute Engine instance                                                                                               | `"my label value"`                           |
@@ -129,6 +132,7 @@ The following GCP API permissions are required for the GCP Assets Input to funct
     "asset.type": "gcp.compute.instance",
     "asset.kind": "host",
     "asset.ean": "host:5252379740648465638",
+    "asset.name": "vm-72c474bb-3469-41c4-70c5-74722bb815f8",
     "asset.parents": [
       "network:test-vpc"
     ],
@@ -163,9 +167,9 @@ The following GCP API permissions are required for the GCP Assets Input to funct
 |------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------|
 | asset.type                         | The type of asset                                                                                                                                  | `"gcp.vpc"`                     |
 | asset.kind                         | The kind of asset                                                                                                                                  | `"network"`                     |
-| asset.id                           | The id of the Compute Engine instance                                                                                                              | `"5252379740648465638"`         |
-| asset.ean                          | the EAN of this specific resource                                                                                                                  | `"gcp.vpc:5252379740648465638"` |
-
+| asset.id                           | The id of the Compute Engine instance                                                                                                                               | `"5252379740648465638"`         |
+| asset.ean                          | the EAN of this specific resource                                                                                                                               | `"gcp.vpc:5252379740648465638"` |
+| asset.name                         | the name of this specific resource                                                                                                                               | `"test-k8s-vpc"`                |
 
 
 #### Example
@@ -207,9 +211,9 @@ The following GCP API permissions are required for the GCP Assets Input to funct
 |------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
 | asset.type                         | The type of asset                                                                                                                                  | `"gcp.subnet"`                     |
 | asset.kind                         | The kind of asset                                                                                                                                  | `"network"`                        |
-| asset.id                           | The id of the Compute Engine instance                                                                                                              | `"5252379740648465638"`            |
-| asset.ean                          | the EAN of this specific resource                                                                                                                  | `"gcp.subnet:5252379740648465638"` |
-
+| asset.id                           | The id of the Compute Engine instance                                                                                                                               | `"5252379740648465638"`            |
+| asset.ean                          | the EAN of this specific resource                                                                                                                               | `"gcp.subnet:5252379740648465638"` |
+| asset.name                         | the name of this specific resource                                                                                                                               | `"test-subnet"`                    |
 
 
 #### Example
