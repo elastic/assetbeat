@@ -1,55 +1,63 @@
 env:
-  GO_AGENT_IMAGE: "golang:${GO_VERSION}"
+  GO_AGENT_IMAGE: golang:${GO_VERSION}
 steps:
   - label: ":white_check_mark: Check"
+    key: check
     command:
-      - ".buildkite/scripts/check.sh"
+      - .buildkite/scripts/check.sh
     agents:
-      image: "${GO_AGENT_IMAGE}"
+      image: ${GO_AGENT_IMAGE}
       cpu: "8"
-      memory: "8G"
+      memory: 8G
   - label: ":building_construction: Build"
+    key: build
     command:
-      - ".buildkite/scripts/build.sh"
+      - .buildkite/scripts/build.sh
     agents:
-      image: "${GO_AGENT_IMAGE}"
+      image: ${GO_AGENT_IMAGE}
       cpu: "8"
-      memory: "4G"
+      memory: 4G
   - label: ":test_tube: Test"
+    key: test
     command:
-      - ".buildkite/scripts/test.sh"
+      - .buildkite/scripts/test.sh
     agents:
-      image: "${GO_AGENT_IMAGE}"
+      image: ${GO_AGENT_IMAGE}
       cpu: "8"
-      memory: "4G"
+      memory: 4G
   - label: ":package: Package Assetbeat - Snapshot"
-    key: "package-snapshot"
-    command: "./.buildkite/scripts/package.sh snapshot"
-    artifact_paths: "build/distributions/*"
+    key: package-snapshot
+    depends_on:
+      - check
+      - build
+      - test
+    command: ./.buildkite/scripts/package.sh snapshot
+    artifact_paths: build/distributions/*
     agents:
-      image: "${GO_AGENT_IMAGE}"
+      image: ${GO_AGENT_IMAGE}
       cpu: "8"
-      memory: "4G"
+      memory: 4G
   - label: ":rocket: Publishing Snapshot DRA artifacts"
     if: build.branch == 'main' || build.branch =~ /^[0-9]+\.[0-9]+\$/
-    depends_on: "package-snapshot"
-    command: "./.buildkite/scripts/publish.sh snapshot"
+    depends_on: package-snapshot
+    command: ./.buildkite/scripts/publish.sh snapshot
     agents:
-      provider: "gcp"
-
-
+      provider: gcp
   - label: ":package: Package Assetbeat - Staging"
-    key: "package-staging"
-    command: "./.buildkite/scripts/package.sh staging"
-    artifact_paths: "build/distributions/*"
+    key: package-staging
+    depends_on:
+      - check
+      - build
+      - test
+    command: ./.buildkite/scripts/package.sh staging
+    artifact_paths: build/distributions/*
     agents:
-      image: "${GO_AGENT_IMAGE}"
+      image: ${GO_AGENT_IMAGE}
       cpu: "8"
-      memory: "4G"
-
+      memory: 4G
   - label: ":rocket: Publishing Staging DRA artifacts"
     if: build.branch =~ /^[0-9]+\.[0-9]+\$/
-    depends_on: "package-staging"
-    command: "./.buildkite/scripts/publish.sh staging"
+    depends_on: package-staging
+    command: ./.buildkite/scripts/publish.sh staging
     agents:
-      provider: "gcp"
+      provider: gcp
