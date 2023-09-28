@@ -19,8 +19,9 @@ package gcp
 
 import (
 	"context"
-	"github.com/googleapis/gax-go/v2"
 	"strconv"
+
+	"github.com/googleapis/gax-go/v2"
 
 	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"
@@ -75,13 +76,17 @@ func collectVpcAssets(ctx context.Context, cfg config, vpcAssetCache *freelru.LR
 	log.Debug("Publishing VPCs")
 	for _, vpc := range vpcs {
 
-		internal.Publish(publisher, nil,
+		options := []internal.AssetOption{
 			internal.WithAssetCloudProvider("gcp"),
 			internal.WithAssetAccountID(vpc.Account),
 			internal.WithAssetKindAndID(assetKind, vpc.ID),
-			internal.WithAssetName(vpc.Name),
 			internal.WithAssetType(assetType),
-		)
+		}
+
+		if vpc.Name != "" {
+			options = append(options, internal.WithAssetName(vpc.Name))
+		}
+		internal.Publish(publisher, nil, options...)
 	}
 	return nil
 }
@@ -128,14 +133,18 @@ func collectSubnetAssets(ctx context.Context, cfg config, subnetAssetCache *free
 	log.Debug("Publishing Subnets")
 	for _, subnet := range subnets {
 
-		internal.Publish(publisher, nil,
+		options := []internal.AssetOption{
 			internal.WithAssetCloudProvider("gcp"),
 			internal.WithAssetAccountID(subnet.Account),
 			internal.WithAssetKindAndID(assetKind, subnet.ID),
-			internal.WithAssetName(subnet.Name),
 			internal.WithAssetType(assetType),
 			internal.WithAssetRegion(subnet.Region),
-		)
+		}
+
+		if subnet.Name != "" {
+			options = append(options, internal.WithAssetName(subnet.Name))
+		}
+		internal.Publish(publisher, nil, options...)
 	}
 	return nil
 }

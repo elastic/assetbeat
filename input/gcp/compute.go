@@ -71,17 +71,21 @@ func collectComputeAssets(ctx context.Context, cfg config, subnetAssetCache *fre
 				parents = append(parents, "network:"+vpc)
 			}
 		}
-		internal.Publish(publisher, nil,
+		options := []internal.AssetOption{
 			internal.WithAssetCloudProvider("gcp"),
 			internal.WithAssetRegion(instance.Region),
 			internal.WithAssetAccountID(instance.Account),
 			internal.WithAssetKindAndID(assetKind, instance.ID),
 			internal.WithAssetType(assetType),
-			internal.WithAssetName(instance.Name),
 			internal.WithAssetParents(parents),
 			WithAssetLabels(internal.ToMapstr(instance.Labels)),
 			internal.WithAssetMetadata(instance.Metadata),
-		)
+		}
+
+		if instance.Name != "" {
+			options = append(options, internal.WithAssetName(instance.Name))
+		}
+		internal.Publish(publisher, nil, options...)
 	}
 
 	return nil

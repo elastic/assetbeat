@@ -80,7 +80,7 @@ func collectGKEAssets(ctx context.Context, cfg config, vpcAssetCache *freelru.LR
 			children = append(children, "host:"+instance)
 		}
 
-		internal.Publish(publisher, nil,
+		options := []internal.AssetOption{
 			internal.WithAssetCloudProvider("gcp"),
 			internal.WithAssetRegion(cluster.Region),
 			internal.WithAssetAccountID(cluster.Account),
@@ -88,10 +88,14 @@ func collectGKEAssets(ctx context.Context, cfg config, vpcAssetCache *freelru.LR
 			internal.WithAssetType(assetType),
 			internal.WithAssetParents(parents),
 			internal.WithAssetChildren(children),
-			internal.WithAssetName(cluster.Name),
 			WithAssetLabels(internal.ToMapstr(cluster.Labels)),
 			internal.WithAssetMetadata(cluster.Metadata),
-		)
+		}
+
+		if cluster.Name != "" {
+			options = append(options, internal.WithAssetName(cluster.Name))
+		}
+		internal.Publish(publisher, nil, options...)
 	}
 
 	return nil
