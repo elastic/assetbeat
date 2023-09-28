@@ -121,6 +121,7 @@ func TestAssetsAzure_collectAzureAssets(t *testing.T) {
 					Fields: mapstr.M{
 						"asset.ean":                     "host:" + instanceVMId1,
 						"asset.id":                      instanceVMId1,
+						"asset.name":                    instance1Name,
 						"asset.type":                    "azure.vm.instance",
 						"asset.kind":                    "host",
 						"asset.metadata.state":          "",
@@ -137,6 +138,7 @@ func TestAssetsAzure_collectAzureAssets(t *testing.T) {
 					Fields: mapstr.M{
 						"asset.ean":                     "host:" + instanceVMId2,
 						"asset.id":                      instanceVMId2,
+						"asset.name":                    instance2Name,
 						"asset.type":                    "azure.vm.instance",
 						"asset.kind":                    "host",
 						"asset.metadata.state":          "",
@@ -153,6 +155,7 @@ func TestAssetsAzure_collectAzureAssets(t *testing.T) {
 					Fields: mapstr.M{
 						"asset.ean":                     "host:" + instanceVMId3,
 						"asset.id":                      instanceVMId3,
+						"asset.name":                    instance3Name,
 						"asset.type":                    "azure.vm.instance",
 						"asset.kind":                    "host",
 						"asset.metadata.state":          "",
@@ -192,6 +195,7 @@ func TestAssetsAzure_collectAzureAssets(t *testing.T) {
 					Fields: mapstr.M{
 						"asset.ean":                     "host:" + instanceVMId1,
 						"asset.id":                      instanceVMId1,
+						"asset.name":                    instance1Name,
 						"asset.type":                    "azure.vm.instance",
 						"asset.kind":                    "host",
 						"asset.metadata.state":          "",
@@ -208,6 +212,7 @@ func TestAssetsAzure_collectAzureAssets(t *testing.T) {
 					Fields: mapstr.M{
 						"asset.ean":                     "host:" + instanceVMId2,
 						"asset.id":                      instanceVMId2,
+						"asset.name":                    instance2Name,
 						"asset.type":                    "azure.vm.instance",
 						"asset.kind":                    "host",
 						"asset.metadata.state":          "",
@@ -249,6 +254,7 @@ func TestAssetsAzure_collectAzureAssets(t *testing.T) {
 					Fields: mapstr.M{
 						"asset.ean":                     "host:" + instanceVMId1,
 						"asset.id":                      instanceVMId1,
+						"asset.name":                    instance1Name,
 						"asset.type":                    "azure.vm.instance",
 						"asset.kind":                    "host",
 						"asset.metadata.state":          "",
@@ -265,6 +271,7 @@ func TestAssetsAzure_collectAzureAssets(t *testing.T) {
 					Fields: mapstr.M{
 						"asset.ean":                     "host:" + instanceVMId2,
 						"asset.id":                      instanceVMId2,
+						"asset.name":                    instance2Name,
 						"asset.type":                    "azure.vm.instance",
 						"asset.kind":                    "host",
 						"asset.metadata.state":          "",

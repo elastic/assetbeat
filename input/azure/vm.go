@@ -50,14 +50,18 @@ func collectAzureVMAssets(ctx context.Context, client *armcompute.VirtualMachine
 	log.Debug("Publishing Azure VM instances")
 
 	for _, instance := range instances {
-		internal.Publish(publisher, nil,
+		options := []internal.AssetOption{
 			internal.WithAssetCloudProvider("azure"),
 			internal.WithAssetRegion(instance.Region),
 			internal.WithAssetAccountID(instance.SubscriptionID),
 			internal.WithAssetKindAndID(assetKind, instance.ID),
 			internal.WithAssetType(assetType),
 			internal.WithAssetMetadata(instance.Metadata),
-		)
+		}
+		if instance.Name != "" {
+			options = append(options, internal.WithAssetName(instance.Name))
+		}
+		internal.Publish(publisher, nil, options...)
 	}
 
 	return nil
