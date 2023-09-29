@@ -153,6 +153,14 @@ func collectAzureAssets(ctx context.Context, log *logp.Logger, cfg config, publi
 					log.Errorf("Error while collecting Azure VM assets: %v", err)
 				}
 			}(sub)
+			vmClient := clientFactory.NewVirtualMachineScaleSetVMsClient()
+			scaleSetsClient := clientFactory.NewVirtualMachineScaleSetsClient()
+			go func(currentSub string) {
+				err = collectAzureScaleSetsVMAssets(ctx, vmClient, scaleSetsClient, currentSub, cfg.Regions, cfg.ResourceGroup, log, publisher)
+				if err != nil {
+					log.Errorf("Error while collecting Azure Scale Sets VM assets: %v", err)
+				}
+			}(sub)
 		}
 	}
 }

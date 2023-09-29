@@ -67,6 +67,25 @@ func collectAzureVMAssets(ctx context.Context, client *armcompute.VirtualMachine
 	return nil
 }
 
+func collectAzureScaleSetsVMAssets(ctx context.Context, vmClient *armcompute.VirtualMachineScaleSetVMsClient, scaleSetClient *armcompute.VirtualMachineScaleSetsClient, subscriptionId string, regions []string, resourceGroup string, log *logp.Logger, publisher stateless.Publisher) error {
+	//TODO: move this to separate method
+	var vmScaleSets []string
+	scaleSetPager := scaleSetClient.NewListAllPager(&armcompute.VirtualMachineScaleSetsClientListAllOptions{})
+	for scaleSetPager.More() {
+		page, err := scaleSetPager.NextPage(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to advance page: %v", err)
+		}
+		for _, v := range page.Value {
+			vmScaleSets = append(vmScaleSets, *v.Name)
+		}
+	}
+	//TODO:
+	//list resource groups
+	//iterate over all the VM instances per resource group and scale set name
+	return nil
+}
+
 func getAllAzureVMInstances(ctx context.Context, client *armcompute.VirtualMachinesClient, subscriptionId string, regions []string, resourceGroup string) ([]AzureVMInstance, error) {
 	var vmInstances []AzureVMInstance
 	pager := client.NewListAllPager(&armcompute.VirtualMachinesClientListAllOptions{StatusOnly: to.Ptr("true")})
