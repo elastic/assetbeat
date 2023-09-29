@@ -76,6 +76,8 @@ func getInstanceId(node *kubernetes.Node) string {
 	case "gcp":
 		annotations := node.GetAnnotations()
 		return annotations["container.googleapis.com/instance_id"]
+	case "azure":
+		return node.Status.NodeInfo.SystemUUID
 	default:
 		return ""
 	}
@@ -99,12 +101,16 @@ func getNodeState(node *kubernetes.Node) string {
 // getCspFromProviderId return the cps for a given providerId string.
 // In case of aws providerId is in the form of aws:///region/instanceId
 // In case of gcp providerId is in the form of  gce://project/region/nodeName
+// In case of azure providerId is in the form of  azure:///subscriptions/subscriptionId
 func getCspFromProviderId(providerId string) string {
 	if strings.HasPrefix(providerId, "aws") {
 		return "aws"
 	}
 	if strings.HasPrefix(providerId, "gce") {
 		return "gcp"
+	}
+	if strings.HasPrefix(providerId, "azure") {
+		return "azure"
 	}
 	return ""
 }

@@ -143,7 +143,7 @@ func publishK8sNodes(ctx context.Context, log *logp.Logger, publisher stateless.
 			metadata := mapstr.M{
 				"state": getNodeState(o),
 			}
-			log.Info("Node status: ", metadata["state"])
+			log.Debug("Node status: ", metadata["state"])
 			instanceId := getInstanceId(o)
 			log.Debug("Node instance id: ", instanceId)
 			assetId := string(o.ObjectMeta.UID)

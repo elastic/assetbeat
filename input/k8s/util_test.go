@@ -130,6 +130,34 @@ func TestGetInstanceId(t *testing.T) {
 			output: "5445971517456914360",
 		},
 		{
+			name: "Azure Node",
+			input: &v1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "node1",
+					UID:  "60988eed-1885-4b63-9fa4-780206969deb",
+					Labels: map[string]string{
+						"foo": "bar",
+					},
+					Annotations: map[string]string{
+						"key1": "value1",
+						"key2": "value2",
+					},
+				},
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "Node",
+					APIVersion: "v1",
+				},
+				Status: v1.NodeStatus{
+					Addresses: []v1.NodeAddress{{Type: v1.NodeHostName, Address: "node1"}},
+					NodeInfo:  v1.NodeSystemInfo{SystemUUID: "ebf2fd19-ee80-4751-91e5-087c4fe39845"},
+				},
+				Spec: v1.NodeSpec{
+					ProviderID: "azure:///subscriptions/11232-12321-sdsads-123/resourceGroups/mc_michaliskatsoulisgroup_katsoulistest2_eastus/providers/Microsoft.Compute/virtualMachineScaleSets/aks-agentpool-56241798-vmss/virtualMachines/0",
+				},
+			},
+			output: "ebf2fd19-ee80-4751-91e5-087c4fe39845",
+		},
+		{
 			name: "No CSP Node (kind)",
 			input: &v1.Node{
 				ObjectMeta: metav1.ObjectMeta{
