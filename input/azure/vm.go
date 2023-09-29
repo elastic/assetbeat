@@ -70,6 +70,7 @@ func collectAzureVMAssets(ctx context.Context, client *armcompute.VirtualMachine
 func collectAzureScaleSetsVMAssets(ctx context.Context, vmClient *armcompute.VirtualMachineScaleSetVMsClient, scaleSetClient *armcompute.VirtualMachineScaleSetsClient, subscriptionId string, regions []string, resourceGroup string, log *logp.Logger, publisher stateless.Publisher) error {
 	//TODO: move this to separate method
 	var vmScaleSets []string
+	var vmInstances []AzureVMInstance
 	scaleSetPager := scaleSetClient.NewListAllPager(&armcompute.VirtualMachineScaleSetsClientListAllOptions{})
 	for scaleSetPager.More() {
 		page, err := scaleSetPager.NextPage(ctx)
@@ -80,9 +81,31 @@ func collectAzureScaleSetsVMAssets(ctx context.Context, vmClient *armcompute.Vir
 			vmScaleSets = append(vmScaleSets, *v.Name)
 		}
 	}
-	//TODO:
-	//list resource groups
-	//iterate over all the VM instances per resource group and scale set name
+	for _, vmScaleSet := range vmScaleSets {
+		pager := vmClient.NewListPager(resourceGroup, vmScaleSet, &armcompute.VirtualMachineScaleSetVMsClientListOptions{})
+		page, err := pager.NextPage(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to advance page: %v", err)
+		}
+		for _, v := range page.Value {
+			var status string
+			if v.Properties != nil && v.Properties.InstanceView != nil && len(v.Properties.InstanceView.Statuses) > 1 {
+				status = *v.Properties.InstanceView.Statuses[1].DisplayStatus
+			}
+			vmInstance := AzureVMInstance{
+				ID:             *v.Properties.VMID,
+				Name:           *v.Name,
+				SubscriptionID: subscriptionId,
+				Region:         *v.Location,
+				Tags:           v.Tags,
+				Metadata: mapstr.M{
+					"state":          status,
+					"resource_group": getResourceGroupFromId(*v.ID),
+				},
+			}
+			vmInstances = append(vmInstances, vmInstance)
+		}
+	}
 	return nil
 }
 
