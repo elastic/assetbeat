@@ -20,6 +20,8 @@ package azure
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5"
@@ -31,7 +33,6 @@ import (
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/go-concert/ctxtool"
-	"time"
 )
 
 func Plugin() input.Plugin {
@@ -64,7 +65,6 @@ type config struct {
 	ClientSecret        string   `config:"client_secret"`
 	SubscriptionID      string   `config:"subscription_id"`
 	TenantID            string   `config:"tenant_id"`
-	ResourceGroup       string   `config:"resource_group"`
 }
 
 func defaultConfig() config {
@@ -78,7 +78,6 @@ func defaultConfig() config {
 		ClientSecret:   "",
 		SubscriptionID: "",
 		TenantID:       "",
-		ResourceGroup:  "",
 	}
 }
 
@@ -148,7 +147,7 @@ func collectAzureAssets(ctx context.Context, log *logp.Logger, cfg config, publi
 			}
 			client := clientFactory.NewVirtualMachinesClient()
 			go func(currentSub string) {
-				err = collectAzureVMAssets(ctx, client, currentSub, cfg.Regions, cfg.ResourceGroup, log, publisher)
+				err = collectAzureVMAssets(ctx, client, currentSub, cfg.Regions, log, publisher)
 				if err != nil {
 					log.Errorf("Error while collecting Azure VM assets: %v", err)
 				}
@@ -156,7 +155,7 @@ func collectAzureAssets(ctx context.Context, log *logp.Logger, cfg config, publi
 			vmClient := clientFactory.NewVirtualMachineScaleSetVMsClient()
 			scaleSetsClient := clientFactory.NewVirtualMachineScaleSetsClient()
 			go func(currentSub string) {
-				err = collectAzureScaleSetsVMAssets(ctx, vmClient, scaleSetsClient, currentSub, cfg.Regions, cfg.ResourceGroup, log, publisher)
+				err = collectAzureScaleSetsVMAssets(ctx, vmClient, scaleSetsClient, currentSub, cfg.Regions, log, publisher)
 				if err != nil {
 					log.Errorf("Error while collecting Azure Scale Sets VM assets: %v", err)
 				}
