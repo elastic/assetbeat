@@ -122,15 +122,12 @@ func getAllAzureScaleSetsVMInstances(ctx context.Context, vmClient *armcompute.V
 			return nil, fmt.Errorf("failed to advance page: %v", err)
 		}
 		for _, v := range page.Value {
-			var status string
 			res, err := vmClient.GetInstanceView(ctx, resourceGroup, vmScaleSet.Name, *v.InstanceID, nil)
 			if err != nil {
 				return nil, fmt.Errorf("failed get the Instance View: %v", err)
 			}
 			instanceView := res.VirtualMachineScaleSetVMInstanceView
-			for _, s := range instanceView.Statuses {
-				status = *s.DisplayStatus
-			}
+			lastStatus := instanceView.Statuses[len(instanceView.Statuses)-1]
 			vmInstance := AzureVMInstance{
 				ID:             *v.Properties.VMID,
 				Name:           *v.Name,
@@ -138,7 +135,7 @@ func getAllAzureScaleSetsVMInstances(ctx context.Context, vmClient *armcompute.V
 				Region:         *v.Location,
 				Tags:           v.Tags,
 				Metadata: mapstr.M{
-					"state":          status,
+					"state":          *lastStatus.DisplayStatus,
 					"resource_group": resourceGroup,
 				},
 			}

@@ -58,6 +58,13 @@ var instanceid3 = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Mic
 const instance4Name = "instance4"
 const instanceVMId4 = "4"
 
+const ss1Name = "vmss1"
+const ss2Name = "vmss2"
+const ssVm1Name = "vmss_0"
+const ssVm2Name = "vmss_1"
+
+var ssID = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachineScaleSets/%s", subscriptionId, resourceGroup1, ss1Name)
+
 var instanceIdDiffResourceGroup = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s", subscriptionId, resourceGroup2, instance4Name)
 
 var instance1 = armcompute.VirtualMachine{
@@ -88,17 +95,43 @@ var instanceDiffResourceGroup = armcompute.VirtualMachine{
 	Properties: &armcompute.VirtualMachineProperties{VMID: to.Ptr(instanceVMId4)},
 }
 
-func TestAssetsAzure_collectAzureAssets(t *testing.T) {
+var scaleSet = armcompute.VirtualMachineScaleSet{
+	Location: to.Ptr("westeurope"),
+	ID:       to.Ptr(ssID),
+	Name:     to.Ptr(ss1Name),
+}
+
+var scaleSetVm1 = armcompute.VirtualMachineScaleSetVM{
+	Location:   to.Ptr("westeurope"),
+	InstanceID: to.Ptr("0"),
+	Name:       to.Ptr(ssVm1Name),
+	Properties: &armcompute.VirtualMachineScaleSetVMProperties{VMID: to.Ptr(instanceVMId1)},
+}
+
+var scaleSetVm2 = armcompute.VirtualMachineScaleSetVM{
+	Location:   to.Ptr("northeurope"),
+	InstanceID: to.Ptr("1"),
+	Name:       to.Ptr(ssVm2Name),
+	Properties: &armcompute.VirtualMachineScaleSetVMProperties{VMID: to.Ptr(instanceVMId2)},
+}
+
+var status1 = armcompute.InstanceViewStatus{
+	DisplayStatus: to.Ptr("Provisioning"),
+}
+var status2 = armcompute.InstanceViewStatus{
+	DisplayStatus: to.Ptr("VM Running"),
+}
+
+func TestAssetsAzure_collectAzureVMAssets(t *testing.T) {
 	for _, tt := range []struct {
 		name           string
 		regions        []string
 		fakeServer     fake.VirtualMachinesServer
 		subscriptionId string
-		resourceGroup  string
 		expectedEvents []beat.Event
 	}{
 		{
-			name:           "Test with no regions specified and no resource group specified",
+			name:           "Test with no regions specified",
 			subscriptionId: "12cabcb4-86e8-404f-111111111111",
 			fakeServer: fake.VirtualMachinesServer{
 				NewListAllPager: func(options *armcompute.VirtualMachinesClientListAllOptions) (resp azfake.PagerResponder[armcompute.VirtualMachinesClientListAllResponse]) {
@@ -171,7 +204,7 @@ func TestAssetsAzure_collectAzureAssets(t *testing.T) {
 			},
 		},
 		{
-			name:           "Test with multiple regions specified but no resource group specified",
+			name:           "Test with multiple regions specified",
 			regions:        []string{"westeurope", "northeurope"},
 			subscriptionId: "12cabcb4-86e8-404f-111111111111",
 			fakeServer: fake.VirtualMachinesServer{
@@ -183,65 +216,6 @@ func TestAssetsAzure_collectAzureAssets(t *testing.T) {
 								&instance1,
 								&instance2,
 								&instance3,
-							},
-						},
-					}
-					resp.AddPage(http.StatusOK, page, nil)
-					return
-				},
-			},
-			expectedEvents: []beat.Event{
-				{
-					Fields: mapstr.M{
-						"asset.ean":                     "host:" + instanceVMId1,
-						"asset.id":                      instanceVMId1,
-						"asset.name":                    instance1Name,
-						"asset.type":                    "azure.vm.instance",
-						"asset.kind":                    "host",
-						"asset.metadata.state":          "",
-						"asset.metadata.resource_group": "TESTVM",
-						"cloud.account.id":              "12cabcb4-86e8-404f-111111111111",
-						"cloud.provider":                "azure",
-						"cloud.region":                  "westeurope",
-					},
-					Meta: mapstr.M{
-						"index": internal.GetDefaultIndexName(),
-					},
-				},
-				{
-					Fields: mapstr.M{
-						"asset.ean":                     "host:" + instanceVMId2,
-						"asset.id":                      instanceVMId2,
-						"asset.name":                    instance2Name,
-						"asset.type":                    "azure.vm.instance",
-						"asset.kind":                    "host",
-						"asset.metadata.state":          "",
-						"asset.metadata.resource_group": "TESTVM",
-						"cloud.account.id":              "12cabcb4-86e8-404f-111111111111",
-						"cloud.provider":                "azure",
-						"cloud.region":                  "northeurope",
-					},
-					Meta: mapstr.M{
-						"index": internal.GetDefaultIndexName(),
-					},
-				},
-			},
-		},
-		{
-			name:           "Test with multiple regions specified and resource group specified",
-			regions:        []string{"westeurope", "northeurope"},
-			resourceGroup:  resourceGroup1,
-			subscriptionId: "12cabcb4-86e8-404f-111111111111",
-			fakeServer: fake.VirtualMachinesServer{
-				NewListAllPager: func(options *armcompute.VirtualMachinesClientListAllOptions) (resp azfake.PagerResponder[armcompute.VirtualMachinesClientListAllResponse]) {
-
-					page := armcompute.VirtualMachinesClientListAllResponse{
-						VirtualMachineListResult: armcompute.VirtualMachineListResult{
-							Value: []*armcompute.VirtualMachine{
-								&instance1,
-								&instance2,
-								&instance3,
-								&instanceDiffResourceGroup,
 							},
 						},
 					}
@@ -300,7 +274,126 @@ func TestAssetsAzure_collectAzureAssets(t *testing.T) {
 			})
 			assert.NoError(t, err)
 
-			err = collectAzureVMAssets(ctx, client, tt.subscriptionId, tt.regions, tt.resourceGroup, logger, publisher)
+			err = collectAzureVMAssets(ctx, client, tt.subscriptionId, tt.regions, logger, publisher)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expectedEvents, publisher.Events)
+		})
+
+	}
+}
+
+func TestAssetsAzure_collectAzureScaleSetsVMAssets(t *testing.T) {
+	for _, tt := range []struct {
+		name           string
+		regions        []string
+		fakeSSServer   fake.VirtualMachineScaleSetsServer
+		fakeVMServer   fake.VirtualMachineScaleSetVMsServer
+		subscriptionId string
+		expectedEvents []beat.Event
+	}{
+		{
+			name:           "Test with one ScaleSet with tow instances",
+			subscriptionId: "12cabcb4-86e8-404f-111111111111",
+			fakeSSServer: fake.VirtualMachineScaleSetsServer{
+				NewListAllPager: func(options *armcompute.VirtualMachineScaleSetsClientListAllOptions) (resp azfake.PagerResponder[armcompute.VirtualMachineScaleSetsClientListAllResponse]) {
+
+					page := armcompute.VirtualMachineScaleSetsClientListAllResponse{
+						VirtualMachineScaleSetListWithLinkResult: armcompute.VirtualMachineScaleSetListWithLinkResult{
+							Value: []*armcompute.VirtualMachineScaleSet{
+								&scaleSet,
+							},
+						},
+					}
+					resp.AddPage(http.StatusOK, page, nil)
+					return
+				},
+			},
+			fakeVMServer: fake.VirtualMachineScaleSetVMsServer{
+				NewListPager: func(resourceGroup string, vmScaleSetName string, options *armcompute.VirtualMachineScaleSetVMsClientListOptions) (resp azfake.PagerResponder[armcompute.VirtualMachineScaleSetVMsClientListResponse]) {
+
+					page := armcompute.VirtualMachineScaleSetVMsClientListResponse{
+						VirtualMachineScaleSetVMListResult: armcompute.VirtualMachineScaleSetVMListResult{
+							Value: []*armcompute.VirtualMachineScaleSetVM{
+								&scaleSetVm1,
+								&scaleSetVm2,
+							},
+						},
+					}
+					resp.AddPage(http.StatusOK, page, nil)
+					return
+				},
+				GetInstanceView: func(ctx context.Context, resourceGroupName, vmScaleSetName, instanceId string, options *armcompute.VirtualMachineScaleSetVMsClientGetInstanceViewOptions) (resp azfake.Responder[armcompute.VirtualMachineScaleSetVMsClientGetInstanceViewResponse], errResp azfake.ErrorResponder) {
+
+					response := armcompute.VirtualMachineScaleSetVMsClientGetInstanceViewResponse{
+						VirtualMachineScaleSetVMInstanceView: armcompute.VirtualMachineScaleSetVMInstanceView{
+							Statuses: []*armcompute.InstanceViewStatus{
+								&status1,
+								&status2,
+							},
+						},
+					}
+					resp.SetResponse(http.StatusOK, response, nil)
+					return
+				},
+			},
+			expectedEvents: []beat.Event{
+				{
+					Fields: mapstr.M{
+						"asset.ean":                     "host:" + instanceVMId1,
+						"asset.id":                      instanceVMId1,
+						"asset.name":                    ssVm1Name,
+						"asset.type":                    "azure.vm.instance",
+						"asset.kind":                    "host",
+						"asset.metadata.state":          "VM Running",
+						"asset.metadata.resource_group": "TESTVM",
+						"cloud.account.id":              "12cabcb4-86e8-404f-111111111111",
+						"cloud.provider":                "azure",
+						"cloud.region":                  "westeurope",
+					},
+					Meta: mapstr.M{
+						"index": internal.GetDefaultIndexName(),
+					},
+				},
+				{
+					Fields: mapstr.M{
+						"asset.ean":                     "host:" + instanceVMId2,
+						"asset.id":                      instanceVMId2,
+						"asset.name":                    ssVm2Name,
+						"asset.type":                    "azure.vm.instance",
+						"asset.kind":                    "host",
+						"asset.metadata.state":          "VM Running",
+						"asset.metadata.resource_group": "TESTVM",
+						"cloud.account.id":              "12cabcb4-86e8-404f-111111111111",
+						"cloud.provider":                "azure",
+						"cloud.region":                  "northeurope",
+					},
+					Meta: mapstr.M{
+						"index": internal.GetDefaultIndexName(),
+					},
+				},
+			},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			publisher := testutil.NewInMemoryPublisher()
+
+			ctx := context.Background()
+			logger := logp.NewLogger("test")
+
+			vmclient, err := armcompute.NewVirtualMachineScaleSetVMsClient("subscriptionID", azfake.NewTokenCredential(), &arm.ClientOptions{
+				ClientOptions: azcore.ClientOptions{
+					Transport: fake.NewVirtualMachineScaleSetVMsServerTransport(&tt.fakeVMServer),
+				},
+			})
+
+			ssclient, err := armcompute.NewVirtualMachineScaleSetsClient("subscriptionID", azfake.NewTokenCredential(), &arm.ClientOptions{
+				ClientOptions: azcore.ClientOptions{
+					Transport: fake.NewVirtualMachineScaleSetsServerTransport(&tt.fakeSSServer),
+				},
+			})
+			assert.NoError(t, err)
+
+			err = collectAzureScaleSetsVMAssets(ctx, vmclient, ssclient, tt.subscriptionId, tt.regions, logger, publisher)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedEvents, publisher.Events)
 		})
