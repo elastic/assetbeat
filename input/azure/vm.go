@@ -127,7 +127,10 @@ func getAllAzureScaleSetsVMInstances(ctx context.Context, vmClient *armcompute.V
 				return nil, fmt.Errorf("failed get the Instance View: %v", err)
 			}
 			instanceView := res.VirtualMachineScaleSetVMInstanceView
-			lastStatus := instanceView.Statuses[len(instanceView.Statuses)-1]
+			var status string
+			if len(instanceView.Statuses) > 1 {
+				status = *instanceView.Statuses[len(instanceView.Statuses)-1].DisplayStatus
+			}
 			vmInstance := AzureVMInstance{
 				ID:             *v.Properties.VMID,
 				Name:           *v.Name,
@@ -135,7 +138,7 @@ func getAllAzureScaleSetsVMInstances(ctx context.Context, vmClient *armcompute.V
 				Region:         *v.Location,
 				Tags:           v.Tags,
 				Metadata: mapstr.M{
-					"state":          *lastStatus.DisplayStatus,
+					"state":          status,
 					"resource_group": resourceGroup,
 				},
 			}
@@ -157,7 +160,7 @@ func getAllAzureVMInstances(ctx context.Context, client *armcompute.VirtualMachi
 			if wantRegion(v, regions) {
 				var status string
 				if v.Properties != nil && v.Properties.InstanceView != nil && len(v.Properties.InstanceView.Statuses) > 1 {
-					status = *v.Properties.InstanceView.Statuses[1].DisplayStatus
+					status = *v.Properties.InstanceView.Statuses[len(v.Properties.InstanceView.Statuses)-1].DisplayStatus
 				}
 				vmInstance := AzureVMInstance{
 					ID:             *v.Properties.VMID,
