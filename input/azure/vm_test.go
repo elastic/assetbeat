@@ -37,7 +37,6 @@ import (
 )
 
 const resourceGroup1 = "TESTVM"
-const resourceGroup2 = "WRONGVM"
 const subscriptionId = "12cabcb4-86e8-404f-111111111111"
 const instance1Name = "instance1"
 
@@ -55,17 +54,11 @@ const instanceVMId3 = "3"
 
 var instanceid3 = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s", subscriptionId, resourceGroup1, instance3Name)
 
-const instance4Name = "instance4"
-const instanceVMId4 = "4"
-
 const ss1Name = "vmss1"
-const ss2Name = "vmss2"
 const ssVm1Name = "vmss_0"
 const ssVm2Name = "vmss_1"
 
 var ssID = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachineScaleSets/%s", subscriptionId, resourceGroup1, ss1Name)
-
-var instanceIdDiffResourceGroup = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s", subscriptionId, resourceGroup2, instance4Name)
 
 var instance1 = armcompute.VirtualMachine{
 	Location:   to.Ptr("westeurope"),
@@ -86,13 +79,6 @@ var instance3 = armcompute.VirtualMachine{
 	ID:         to.Ptr(instanceid3),
 	Name:       to.Ptr(instance3Name),
 	Properties: &armcompute.VirtualMachineProperties{VMID: to.Ptr(instanceVMId3)},
-}
-
-var instanceDiffResourceGroup = armcompute.VirtualMachine{
-	Location:   to.Ptr("northeurope"),
-	ID:         to.Ptr(instanceIdDiffResourceGroup),
-	Name:       to.Ptr(instance4Name),
-	Properties: &armcompute.VirtualMachineProperties{VMID: to.Ptr(instanceVMId4)},
 }
 
 var scaleSet = armcompute.VirtualMachineScaleSet{
@@ -380,7 +366,7 @@ func TestAssetsAzure_collectAzureScaleSetsVMAssets(t *testing.T) {
 			ctx := context.Background()
 			logger := logp.NewLogger("test")
 
-			vmclient, err := armcompute.NewVirtualMachineScaleSetVMsClient("subscriptionID", azfake.NewTokenCredential(), &arm.ClientOptions{
+			vmclient, _ := armcompute.NewVirtualMachineScaleSetVMsClient("subscriptionID", azfake.NewTokenCredential(), &arm.ClientOptions{
 				ClientOptions: azcore.ClientOptions{
 					Transport: fake.NewVirtualMachineScaleSetVMsServerTransport(&tt.fakeVMServer),
 				},

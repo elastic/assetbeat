@@ -177,16 +177,6 @@ func getAllAzureVMInstances(ctx context.Context, client *armcompute.VirtualMachi
 	return vmInstances, nil
 }
 
-func wantResourceGroup(v *armcompute.VirtualMachine, resourceGroup string) bool {
-	if resourceGroup == "" {
-		return true
-	}
-	if getResourceGroupFromId(*v.ID) == resourceGroup {
-		return true
-	}
-	return false
-}
-
 func wantRegion(v *armcompute.VirtualMachine, regions []string) bool {
 	if len(regions) == 0 {
 		return true
