@@ -18,4 +18,4 @@
 package version
 
 // defaultVersion is the current release version of assetbeat, this version must match the Elastic Agent version
-const defaultVersion = "8.11.0"
+const defaultVersion = "8.12.0"
