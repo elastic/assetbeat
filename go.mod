@@ -3,7 +3,7 @@ module github.com/elastic/assetbeat
 go 1.20
 
 require (
-	cloud.google.com/go/compute v1.23.0
+	cloud.google.com/go/compute v1.23.1
 	cloud.google.com/go/container v1.26.0
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.9.0-beta.1
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.3.1
