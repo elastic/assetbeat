@@ -28,7 +28,7 @@ import (
 )
 
 // CreateTarball creates a tar.gz compressed archive from a list of files.
-func CreateTarball(outputTarballFilePath string, filePaths []string) error {
+func CreateTarball(baseFolderName string, outputTarballFilePath string, filePaths []string) error {
 	fmt.Printf("Creating tarball... Filepath: %s\n", outputTarballFilePath)
 	file, err := os.Create(outputTarballFilePath)
 	if err != nil {
@@ -43,7 +43,7 @@ func CreateTarball(outputTarballFilePath string, filePaths []string) error {
 	defer tarWriter.Close()
 
 	for _, filePath := range filePaths {
-		err := addFileToTarWriter(filePath, tarWriter)
+		err := addFileToTarWriter(baseFolderName, filePath, tarWriter)
 		if err != nil {
 			return fmt.Errorf("could not add file '%s', to tarball, got error '%s'", filePath, err)
 		}
@@ -52,7 +52,7 @@ func CreateTarball(outputTarballFilePath string, filePaths []string) error {
 	return nil
 }
 
-func addFileToTarWriter(filePath string, tarWriter *tar.Writer) error {
+func addFileToTarWriter(baseFolderName string, filePath string, tarWriter *tar.Writer) error {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return fmt.Errorf("could not open file '%s', got error '%s'", filePath, err)
@@ -70,7 +70,7 @@ func addFileToTarWriter(filePath string, tarWriter *tar.Writer) error {
 		headerName = "assetbeat"
 	}
 	header := &tar.Header{
-		Name:    headerName,
+		Name:    baseFolderName + "/" + headerName,
 		Size:    stat.Size(),
 		Mode:    int64(stat.Mode()),
 		ModTime: stat.ModTime(),

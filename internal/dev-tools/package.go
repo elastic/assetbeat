@@ -51,7 +51,7 @@ func GetPackageArch(goarch string) string {
 // GetDefaultExtraFiles returns the default list of files to include in an assetbeat package,
 // in addition to assetbeat's executable
 func GetDefaultExtraFiles() []string {
-	return []string{"LICENSE.txt", "README.md", "assetbeat.yml", "assetbeat.spec.yml"}
+	return []string{"assetbeat.yml", "assetbeat.spec.yml"}
 }
 
 // CreatePackage assetbeat for distribution. It generates packages based on the provided PackageSpec/
@@ -93,21 +93,21 @@ func packageTar(spec PackageSpec) error {
 		return err
 	}
 
-	tarFileName := getPackageTarName(spec)
-	tarFilePath := filepath.Join(defaultPackageFolder, tarFileName)
-	err := CreateTarball(tarFilePath, filesPathList)
+	basePackageName := getPackageBaseName(spec)
+	tarFilePath := filepath.Join(defaultPackageFolder, basePackageName+".tar.gz")
+	err := CreateTarball(basePackageName, tarFilePath, filesPathList)
 	if err != nil {
 		return err
 	}
 	return CreateSHA512File(tarFilePath)
 }
 
-func getPackageTarName(spec PackageSpec) string {
+func getPackageBaseName(spec PackageSpec) string {
 	tarFileNameElements := []string{"assetbeat", version.GetVersion()}
 	if spec.IsSnapshot {
 		tarFileNameElements = append(tarFileNameElements, "SNAPSHOT")
 	}
 	tarFileNameElements = append(tarFileNameElements, []string{spec.Os, spec.Arch}...)
 
-	return strings.Join(tarFileNameElements, "-") + ".tar.gz"
+	return strings.Join(tarFileNameElements, "-")
 }
