@@ -3,3 +3,15 @@ run:
 
 linters:
   enable-all: true
+  disable:
+    # the following linters are deprecated
+    - exhaustivestruct
+    - scopelint
+    - nosnakecase
+    - interfacer
+    - maligned
+    - ifshort
+    - structcheck
+    - deadcode
+    - golint
+    - varcheck
