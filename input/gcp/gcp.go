@@ -111,7 +111,7 @@ func (s *assetsGCP) Run(inputCtx input.Context, publisher stateless.Publisher) e
 	default:
 		err := s.collectAll(ctx, log, publisher)
 		if err != nil {
-			return fmt.Errorf("error collecting assets: %w", err)
+			log.Errorf("error collecting assets: %w", err)
 		}
 	}
 	for {
@@ -121,7 +121,7 @@ func (s *assetsGCP) Run(inputCtx input.Context, publisher stateless.Publisher) e
 		case <-ticker.C:
 			err := s.collectAll(ctx, log, publisher)
 			if err != nil {
-				return fmt.Errorf("error collecting assets: %w", err)
+				log.Errorf("error collecting assets: %w", err)
 			}
 		}
 	}
