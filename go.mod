@@ -34,6 +34,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	go.elastic.co/go-licence-detector v0.6.0
 	golang.org/x/exp v0.0.0-20230510235704-dd950f8aeaea
+	golang.org/x/sync v0.4.0
 	google.golang.org/api v0.148.0
 	google.golang.org/protobuf v1.31.0
 	k8s.io/api v0.25.5
@@ -173,7 +174,6 @@ require (
 	golang.org/x/mod v0.10.0 // indirect
 	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/oauth2 v0.13.0 // indirect
-	golang.org/x/sync v0.4.0 // indirect
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/term v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect

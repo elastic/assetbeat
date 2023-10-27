@@ -23,14 +23,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/assetbeat/input/testutil"
+	"github.com/elastic/elastic-agent-autodiscover/kubernetes"
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sfake "k8s.io/client-go/kubernetes/fake"
-
-	"github.com/elastic/assetbeat/input/testutil"
-	"github.com/elastic/elastic-agent-autodiscover/kubernetes"
-	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 func TestGetNodeWatcher(t *testing.T) {

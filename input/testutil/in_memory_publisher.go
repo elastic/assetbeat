@@ -24,18 +24,18 @@ import (
 )
 
 // InMemoryPublisher is a publisher which stores events in memory, to be used
-// in unit tests
+// in unit tests.
 type InMemoryPublisher struct {
 	mu     sync.Mutex
 	Events []beat.Event
 }
 
-// NewInMemoryPublisher creates a new instance of InMemoryPublisher
+// NewInMemoryPublisher creates a new instance of InMemoryPublisher.
 func NewInMemoryPublisher() *InMemoryPublisher {
 	return &InMemoryPublisher{}
 }
 
-// Publish stores a new event in memory
+// Publish stores a new event in memory.
 func (p *InMemoryPublisher) Publish(e beat.Event) {
 	p.mu.Lock()
 	defer p.mu.Unlock()

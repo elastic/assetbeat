@@ -21,17 +21,15 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/googleapis/gax-go/v2"
-
 	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"
-	"google.golang.org/api/iterator"
-
 	"github.com/elastic/assetbeat/input/internal"
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/go-freelru"
+	"github.com/googleapis/gax-go/v2"
+	"google.golang.org/api/iterator"
 )
 
 type AggregatedInstanceIterator interface {
@@ -39,7 +37,10 @@ type AggregatedInstanceIterator interface {
 }
 
 type listInstanceAPIClient struct {
-	AggregatedList func(ctx context.Context, req *computepb.AggregatedListInstancesRequest, opts ...gax.CallOption) AggregatedInstanceIterator
+	AggregatedList func(
+		ctx context.Context,
+		req *computepb.AggregatedListInstancesRequest,
+		opts ...gax.CallOption) AggregatedInstanceIterator
 }
 
 type computeInstance struct {
@@ -53,8 +54,15 @@ type computeInstance struct {
 	Name     string
 }
 
-func collectComputeAssets(ctx context.Context, cfg config, subnetAssetCache *freelru.LRU[string, *subnet], computeAssetCache *freelru.LRU[string, *computeInstance], client listInstanceAPIClient, publisher stateless.Publisher, log *logp.Logger) error {
-
+func collectComputeAssets(
+	ctx context.Context,
+	cfg config,
+	subnetAssetCache *freelru.LRU[string, *subnet],
+	computeAssetCache *freelru.LRU[string, *computeInstance],
+	client listInstanceAPIClient,
+	publisher stateless.Publisher,
+	log *logp.Logger,
+) error {
 	instances, err := getAllComputeInstances(ctx, cfg, subnetAssetCache, computeAssetCache, client)
 	if err != nil {
 		return err
@@ -91,7 +99,13 @@ func collectComputeAssets(ctx context.Context, cfg config, subnetAssetCache *fre
 	return nil
 }
 
-func getAllComputeInstances(ctx context.Context, cfg config, subnetAssetCache *freelru.LRU[string, *subnet], computeAssetCache *freelru.LRU[string, *computeInstance], client listInstanceAPIClient) ([]computeInstance, error) {
+func getAllComputeInstances(
+	ctx context.Context,
+	cfg config,
+	subnetAssetCache *freelru.LRU[string, *subnet],
+	computeAssetCache *freelru.LRU[string, *computeInstance],
+	client listInstanceAPIClient,
+) ([]computeInstance, error) {
 	var instances []computeInstance
 
 	for _, p := range cfg.Projects {
@@ -113,7 +127,10 @@ func getAllComputeInstances(ctx context.Context, cfg config, subnetAssetCache *f
 				for _, i := range instanceScopedPair.Value.Instances {
 					var subnets []string
 					for _, ni := range i.NetworkInterfaces {
-						subnets = append(subnets, getSubnetIdFromLink(*ni.Subnetwork, subnetAssetCache))
+						subnets = append(
+							subnets,
+							getSubnetIdFromLink(*ni.Subnetwork, subnetAssetCache),
+						)
 					}
 					cI := computeInstance{
 						ID:      strconv.FormatUint(*i.Id, 10),
@@ -132,7 +149,6 @@ func getAllComputeInstances(ctx context.Context, cfg config, subnetAssetCache *f
 					instances = append(instances, cI)
 				}
 			}
-
 		}
 	}
 

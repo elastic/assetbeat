@@ -18,19 +18,21 @@
 package k8s
 
 import (
-	"context"
 	"fmt"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/elastic/assetbeat/input/internal"
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	kube "github.com/elastic/elastic-agent-autodiscover/kubernetes"
 	"github.com/elastic/elastic-agent-libs/logp"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// publishK8sPods publishes the pod assets stored in pod watcher cache
-func publishK8sContainers(ctx context.Context, log *logp.Logger, publisher stateless.Publisher, podWatcher kube.Watcher) {
+// publishK8sPods publishes the pod assets stored in pod watcher cache.
+func publishK8sContainers(
+	log *logp.Logger,
+	publisher stateless.Publisher,
+	podWatcher kube.Watcher,
+) {
 	log.Info("Publishing container assets\n")
 	assetType := "k8s.container"
 	assetKind := "container"
@@ -55,27 +57,35 @@ func publishK8sContainers(ctx context.Context, log *logp.Logger, publisher state
 				cPhase := c.Status.State
 				state := ""
 				assetStartTime := metav1.Time{}
-				if cPhase.Waiting != nil {
+				switch {
+				case cPhase.Waiting != nil:
 					state = "Waiting"
-				} else if cPhase.Running != nil {
+				case cPhase.Running != nil:
 					state = "Running"
 					assetStartTime = cPhase.Running.StartedAt
-				} else if cPhase.Terminated != nil {
+				case cPhase.Terminated != nil:
 					state = "Terminated"
 					assetStartTime = cPhase.Terminated.StartedAt
 				}
 
-				internal.Publish(publisher, nil,
+				internal.Publish(
+					publisher,
+					nil,
 					internal.WithAssetKindAndID(assetKind, assetId),
 					internal.WithAssetType(assetType),
 					internal.WithAssetName(assetName),
 					internal.WithAssetParents(assetParents),
-					internal.WithContainerData(assetName, assetId, namespace, state, &assetStartTime),
+					internal.WithContainerData(
+						assetName,
+						assetId,
+						namespace,
+						state,
+						&assetStartTime,
+					),
 				)
 			}
 		} else {
 			log.Error("Publishing pod assets failed. Type assertion of pod object failed")
 		}
-
 	}
 }

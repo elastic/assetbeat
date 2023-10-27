@@ -21,16 +21,14 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/googleapis/gax-go/v2"
-
 	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"
-	"google.golang.org/api/iterator"
-
 	"github.com/elastic/assetbeat/input/internal"
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/go-freelru"
+	"github.com/googleapis/gax-go/v2"
+	"google.golang.org/api/iterator"
 )
 
 type NetworkIterator interface {
@@ -49,7 +47,11 @@ type AggregatedSubnetworkIterator interface {
 }
 
 type listSubnetworkAPIClient struct {
-	AggregatedList func(ctx context.Context, req *computepb.AggregatedListSubnetworksRequest, opts ...gax.CallOption) AggregatedSubnetworkIterator
+	AggregatedList func(
+		ctx context.Context,
+		req *computepb.AggregatedListSubnetworksRequest,
+		opts ...gax.CallOption,
+	) AggregatedSubnetworkIterator
 }
 
 type vpc struct {
@@ -65,7 +67,14 @@ type subnet struct {
 	Region  string
 }
 
-func collectVpcAssets(ctx context.Context, cfg config, vpcAssetCache *freelru.LRU[string, *vpc], client listNetworkAPIClient, publisher stateless.Publisher, log *logp.Logger) error {
+func collectVpcAssets(
+	ctx context.Context,
+	cfg config,
+	vpcAssetCache *freelru.LRU[string, *vpc],
+	client listNetworkAPIClient,
+	publisher stateless.Publisher,
+	log *logp.Logger,
+) error {
 	vpcs, err := getAllVPCs(ctx, cfg, vpcAssetCache, client)
 	if err != nil {
 		return err
@@ -75,7 +84,6 @@ func collectVpcAssets(ctx context.Context, cfg config, vpcAssetCache *freelru.LR
 
 	log.Debug("Publishing VPCs")
 	for _, vpc := range vpcs {
-
 		options := []internal.AssetOption{
 			internal.WithAssetCloudProvider("gcp"),
 			internal.WithAssetAccountID(vpc.Account),
@@ -91,7 +99,12 @@ func collectVpcAssets(ctx context.Context, cfg config, vpcAssetCache *freelru.LR
 	return nil
 }
 
-func getAllVPCs(ctx context.Context, cfg config, vpcAssetCache *freelru.LRU[string, *vpc], client listNetworkAPIClient) ([]vpc, error) {
+func getAllVPCs(
+	ctx context.Context,
+	cfg config,
+	vpcAssetCache *freelru.LRU[string, *vpc],
+	client listNetworkAPIClient,
+) ([]vpc, error) {
 	var vpcs []vpc
 	for _, project := range cfg.Projects {
 		req := &computepb.ListNetworksRequest{
@@ -118,12 +131,17 @@ func getAllVPCs(ctx context.Context, cfg config, vpcAssetCache *freelru.LRU[stri
 		}
 	}
 	return vpcs, nil
-
 }
 
-func collectSubnetAssets(ctx context.Context, cfg config, subnetAssetCache *freelru.LRU[string, *subnet], client listSubnetworkAPIClient, publisher stateless.Publisher, log *logp.Logger) error {
+func collectSubnetAssets(
+	ctx context.Context,
+	cfg config,
+	subnetAssetCache *freelru.LRU[string, *subnet],
+	client listSubnetworkAPIClient,
+	publisher stateless.Publisher,
+	log *logp.Logger,
+) error {
 	subnets, err := getAllSubnets(ctx, cfg, subnetAssetCache, client)
-
 	if err != nil {
 		return err
 	}
@@ -132,7 +150,6 @@ func collectSubnetAssets(ctx context.Context, cfg config, subnetAssetCache *free
 	assetKind := "network"
 	log.Debug("Publishing Subnets")
 	for _, subnet := range subnets {
-
 		options := []internal.AssetOption{
 			internal.WithAssetCloudProvider("gcp"),
 			internal.WithAssetAccountID(subnet.Account),
@@ -149,7 +166,12 @@ func collectSubnetAssets(ctx context.Context, cfg config, subnetAssetCache *free
 	return nil
 }
 
-func getAllSubnets(ctx context.Context, cfg config, subnetAssetCache *freelru.LRU[string, *subnet], client listSubnetworkAPIClient) ([]subnet, error) {
+func getAllSubnets(
+	ctx context.Context,
+	cfg config,
+	subnetAssetCache *freelru.LRU[string, *subnet],
+	client listSubnetworkAPIClient,
+) ([]subnet, error) {
 	var subnets []subnet
 	for _, project := range cfg.Projects {
 		req := &computepb.AggregatedListSubnetworksRequest{
@@ -182,5 +204,4 @@ func getAllSubnets(ctx context.Context, cfg config, subnetAssetCache *freelru.LR
 		}
 	}
 	return subnets, nil
-
 }

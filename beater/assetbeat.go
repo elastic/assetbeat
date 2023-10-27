@@ -24,10 +24,10 @@ import (
 	"sync"
 	"time"
 
-	v2 "github.com/elastic/beats/v7/filebeat/input/v2"
-
 	"github.com/elastic/assetbeat/channel"
 	cfg "github.com/elastic/assetbeat/config"
+	v2 "github.com/elastic/beats/v7/filebeat/input/v2"
+	"github.com/elastic/beats/v7/filebeat/input/v2/compat"
 	"github.com/elastic/beats/v7/libbeat/autodiscover"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
@@ -39,13 +39,11 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
 	"github.com/elastic/go-concert/unison"
-
-	"github.com/elastic/beats/v7/filebeat/input/v2/compat"
 )
 
 var once = flag.Bool("once", false, "Run assetbeat only once until all harvesters reach EOF")
 
-// assetbeat is a beater object. Contains all objects needed to run the beat
+// assetbeat is a beater object. Contains all objects needed to run the beat.
 type assetbeat struct {
 	config        *cfg.Config
 	pluginFactory PluginFactory
@@ -94,7 +92,6 @@ func newBeater(b *beat.Beat, plugins PluginFactory, rawConfig *conf.C) (beat.Bea
 		if !b.InSetupCmd {
 			return nil, fmt.Errorf("no inputs enabled and configuration reloading disabled. What inputs do you want me to run?")
 		}
-
 	}
 
 	if config.IsInputEnabled("stdin") && len(enabledInputs) > 1 {
@@ -124,7 +121,7 @@ func (ir *assetbeat) Run(b *beat.Beat) error {
 		added: monitoring.NewUint(nil, "filebeat.events.added"),
 		done:  monitoring.NewUint(nil, "filebeat.events.done"),
 	}
-	//finishedLogger := newFinishedLogger(wgEvents)
+	// finishedLogger := newFinishedLogger(wgEvents)
 
 	// setup event counting for startup and a global common ACKer, such that all events will be
 	// routed to the reigstrar after they've been ACKed.
@@ -134,7 +131,7 @@ func (ir *assetbeat) Run(b *beat.Beat) error {
 	// The finishedLogger decrements the counters in wgEvents after all events have been securely processed
 	// by the registry.
 	ir.pipeline = withPipelineEventCounter(b.Publisher, wgEvents)
-	//ir.pipeline = pipetool.WithACKer(ir.pipeline, eventACKer(finishedLogger, registrarChannel))
+	// ir.pipeline = pipetool.WithACKer(ir.pipeline, eventACKer(finishedLogger, registrarChannel))
 
 	// assetbeat by default required infinite retry. Let's configure this for all
 	// inputs by default.  Inputs (and InputController) can overwrite the sending
@@ -163,11 +160,7 @@ func (ir *assetbeat) Run(b *beat.Beat) error {
 		compat.RunnerFactory(inputsLogger, b.Info, v2InputLoader),
 	)
 
-	crawler, err := newCrawler(inputLoader, nil, config.Inputs, ir.done, *once)
-	if err != nil {
-		logp.Err("Could not init crawler: %v", err)
-		return err
-	}
+	crawler := newCrawler(inputLoader, nil, config.Inputs, ir.done, *once)
 
 	// The order of starting and stopping is important. Stopping is inverted to the starting order.
 	// The current order is: registrar, publisher, spooler, crawler
@@ -177,7 +170,7 @@ func (ir *assetbeat) Run(b *beat.Beat) error {
 	defer func() {
 		// Closes first the registrar logger to make sure not more events arrive at the registrar
 		// registrarChannel must be closed first to potentially unblock (pretty unlikely) the publisher
-		//registrarChannel.Close()
+		// registrarChannel.Close()
 		close(outDone) // finally close all active connections to publisher pipeline
 	}()
 

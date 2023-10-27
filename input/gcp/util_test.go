@@ -21,7 +21,6 @@ import (
 	"testing"
 
 	"cloud.google.com/go/container/apiv1/containerpb"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -105,7 +104,6 @@ func TestGetVpcIdFromLink(t *testing.T) {
 }
 
 func TestGetNetSelfLinkFromNetConfig(t *testing.T) {
-
 	for _, tt := range []struct {
 		name string
 
@@ -136,7 +134,6 @@ func TestGetNetSelfLinkFromNetConfig(t *testing.T) {
 }
 
 func TestWantRegion(t *testing.T) {
-
 	for _, tt := range []struct {
 		name string
 
@@ -171,8 +168,8 @@ func TestWantRegion(t *testing.T) {
 		})
 	}
 }
-func TestWantZone(t *testing.T) {
 
+func TestWantZone(t *testing.T) {
 	for _, tt := range []struct {
 		name string
 

@@ -20,12 +20,11 @@ package aws
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/elastic/assetbeat/input/internal"
 	"github.com/elastic/assetbeat/input/testutil"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/mapstr"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestWithAssetTags(t *testing.T) {

@@ -22,13 +22,12 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"github.com/elastic/elastic-agent-autodiscover/kubernetes"
 	kube "github.com/elastic/elastic-agent-autodiscover/kubernetes"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/stretchr/testify/assert"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type mockHttpResponse struct {
@@ -38,9 +37,15 @@ type mockHttpResponse struct {
 func newMockhttpResponse(response []byte) mockHttpResponse {
 	return mockHttpResponse{response: response}
 }
-func (c mockHttpResponse) FetchResponse(ctx context.Context, url string, headers map[string]string) ([]byte, error) {
+
+func (c mockHttpResponse) FetchResponse(
+	ctx context.Context,
+	url string,
+	headers map[string]string,
+) ([]byte, error) {
 	return c.response, nil
 }
+
 func TestGetInstanceId(t *testing.T) {
 	for _, tt := range []struct {
 		name   string
@@ -152,7 +157,12 @@ func TestGetInstanceId(t *testing.T) {
 					NodeInfo:  v1.NodeSystemInfo{SystemUUID: "ebf2fd19-ee80-4751-91e5-087c4fe39845"},
 				},
 				Spec: v1.NodeSpec{
-					ProviderID: "azure:///subscriptions/11232-12321-sdsads-123/resourceGroups/mc_michaliskatsoulisgroup_katsoulistest2_eastus/providers/Microsoft.Compute/virtualMachineScaleSets/aks-agentpool-56241798-vmss/virtualMachines/0",
+					ProviderID: "azure:///" +
+						"subscriptions/11232-12321-sdsads-123/" +
+						"resourceGroups/mc_michaliskatsoulisgroup_katsoulistest2_eastus/" +
+						"providers/Microsoft.Compute/" +
+						"virtualMachineScaleSets/aks-agentpool-56241798-vmss/" +
+						"virtualMachines/0",
 				},
 			},
 			output: "ebf2fd19-ee80-4751-91e5-087c4fe39845",
@@ -186,7 +196,7 @@ func TestGetInstanceId(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			n := tt.input.(*kube.Node)
+			n, _ := tt.input.(*kube.Node)
 			providerId := getInstanceId(n)
 			assert.Equal(t, providerId, tt.output)
 		})
@@ -259,8 +269,8 @@ func TestGetGKEClusterUid(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			log := logp.NewLogger("mylogger")
 			ctx := context.Background()
-			reponse, _ := json.Marshal(tt.input)
-			hf := newMockhttpResponse(reponse)
+			response, _ := json.Marshal(tt.input)
+			hf := newMockhttpResponse(response)
 			cuid, _ := getGKEClusterUid(ctx, log, hf)
 			assert.Equal(t, cuid, tt.output)
 		})

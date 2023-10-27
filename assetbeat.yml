@@ -1,9 +1,7 @@
 assetbeat.inputs:
   - type: assets_aws
     regions:
-        - us-east-1
-        - us-west-1
-        - eu-west-2
+        - eu-west-1
     access_key_id:
     secret_access_key:
     session_token:
@@ -15,7 +13,7 @@ output.elasticsearch:
   username: "elastic"
   password: "changeme"
   ssl.verification_mode: "none"
-
+output.elasticsearch.allow_older_versions: true
 
 logging.level: info
 logging.to_files: false

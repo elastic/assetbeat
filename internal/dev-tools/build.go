@@ -19,19 +19,22 @@ package dev_tools
 
 import (
 	"fmt"
-	"github.com/elastic/assetbeat/version"
-	"github.com/magefile/mage/sh"
 	"path/filepath"
 	"strings"
+
+	"github.com/elastic/assetbeat/version"
+	"github.com/magefile/mage/sh"
 )
 
 const assetbeatModulePath = "github.com/elastic/assetbeat"
 
-var qualifierVarPath = assetbeatModulePath + "/version.buildQualifier"
-var defaultCrossBuildFolder = filepath.Join("build", "golang-crossbuild")
+var (
+	qualifierVarPath        = assetbeatModulePath + "/version.buildQualifier"
+	defaultCrossBuildFolder = filepath.Join("build", "golang-crossbuild")
+)
 
 type BuildArgs struct {
-	name         string //name of the binary
+	name         string // name of the binary
 	targetFolder string
 	flags        []string
 	env          map[string]string
@@ -40,12 +43,12 @@ type BuildArgs struct {
 
 // DefaultBuildArgs returns the default BuildArgs for use in builds.
 func DefaultBuildArgs() BuildArgs {
-
 	args := BuildArgs{
 		name:         "assetbeat",
 		targetFolder: "",
 		// -trimpath -> remove all file system paths from the resulting executable.
-		// E.g a stack trace for /home/me/stuff/src/github.com/me/something.go:9 would be shown as github.com/me/something.go:9
+		// E.g a stack trace for /home/me/stuff/src/github.com/me/something.go:9
+		// would be shown as github.com/me/something.go:9
 		flags: []string{"-trimpath"},
 		// -ldflags=-s -w -> removes debug symbols from the resulting executable, reducing its size.
 		ldflags: []string{"-s", "-w"},
@@ -74,7 +77,6 @@ func DefaultCrossBuildArgs(platform Platform) BuildArgs {
 
 // Build builds assetbeat using the defined BuildArgs and returns the executable file path.
 func Build(args BuildArgs) (string, error) {
-
 	if err := sh.RunV("go", "mod", "download"); err != nil {
 		return "", err
 	}

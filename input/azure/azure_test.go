@@ -19,13 +19,14 @@ package azure
 
 import (
 	"context"
+	"sync"
+	"testing"
+	"time"
+
 	"github.com/elastic/assetbeat/input/testutil"
 	v2 "github.com/elastic/beats/v7/filebeat/input/v2"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/stretchr/testify/assert"
-	"sync"
-	"testing"
-	"time"
 )
 
 func TestPlugin(t *testing.T) {
@@ -43,14 +44,13 @@ func TestAssetsAzure_Run(t *testing.T) {
 		Cancelation: ctx,
 	}
 
-	input, err := newAssetsAzure(defaultConfig())
-	assert.NoError(t, err)
+	input := newAssetsAzure(defaultConfig())
 
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		err = input.Run(inputCtx, publisher)
+		err := input.Run(inputCtx, publisher)
 		assert.NoError(t, err)
 	}()
 

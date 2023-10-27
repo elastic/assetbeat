@@ -19,10 +19,11 @@ package dev_tools
 
 import (
 	"fmt"
-	"github.com/elastic/assetbeat/version"
-	"github.com/magefile/mage/sh"
 	"path/filepath"
 	"strings"
+
+	"github.com/elastic/assetbeat/version"
+	"github.com/magefile/mage/sh"
 )
 
 var defaultPackageFolder = filepath.Join("build", "distributions")
@@ -49,12 +50,12 @@ func GetPackageArch(goarch string) string {
 }
 
 // GetDefaultExtraFiles returns the default list of files to include in an assetbeat package,
-// in addition to assetbeat's executable
+// in addition to assetbeat's executable.
 func GetDefaultExtraFiles() []string {
 	return []string{"assetbeat.yml", "assetbeat.spec.yml"}
 }
 
-// CreatePackage assetbeat for distribution. It generates packages based on the provided PackageSpec/
+// CreatePackage assetbeat for distribution. It generates packages based on the provided PackageSpec/.
 func CreatePackage(spec PackageSpec) error {
 	switch spec.PackageType {
 	case "docker":

@@ -18,8 +18,9 @@
 package internal
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAssets_IsTypeEnabled(t *testing.T) {

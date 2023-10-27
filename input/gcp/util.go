@@ -23,11 +23,9 @@ import (
 
 	"cloud.google.com/go/compute/apiv1/computepb"
 	"cloud.google.com/go/container/apiv1/containerpb"
-	"google.golang.org/protobuf/proto"
-
 	"github.com/cespare/xxhash"
-
 	"github.com/elastic/go-freelru"
+	"google.golang.org/protobuf/proto"
 )
 
 func getResourceNameFromURL(res string) string {
@@ -70,7 +68,7 @@ func hashStringXXHASH(s string) uint32 {
 	return uint32(xxhash.Sum64String(s))
 }
 
-// region is in the form of regions/us-west2
+// region is in the form of regions/us-west2.
 func wantRegion(region string, confRegions []string) bool {
 	if len(confRegions) == 0 {
 		return true

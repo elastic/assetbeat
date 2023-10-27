@@ -19,9 +19,10 @@ package dev_tools
 
 import (
 	"fmt"
-	"golang.org/x/exp/slices"
 	"os"
 	"strings"
+
+	"golang.org/x/exp/slices"
 )
 
 var supportedPackageTypes = []string{"docker", "tar.gz"}
@@ -43,7 +44,7 @@ func GetPackageTypes() []string {
 }
 
 // getPackageTypesList returns a list of package types from a space-delimited string of package types
-// If the package type is not supported, it is discarded from the returned list
+// If the package type is not supported, it is discarded from the returned list.
 func getPackageTypesList(types string) []string {
 	var typesList []string
 	inputTypesList := strings.Split(types, " ")

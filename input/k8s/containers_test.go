@@ -22,13 +22,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/elastic/assetbeat/input/testutil"
+	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sfake "k8s.io/client-go/kubernetes/fake"
-
-	"github.com/elastic/assetbeat/input/testutil"
-	"github.com/elastic/elastic-agent-libs/logp"
 )
 
 func TestPublishK8sContainers(t *testing.T) {
@@ -90,7 +89,7 @@ func TestPublishK8sContainers(t *testing.T) {
 	}
 	_ = podWatcher.Store().Add(input)
 	publisher := testutil.NewInMemoryPublisher()
-	publishK8sContainers(context.Background(), log, publisher, podWatcher)
+	publishK8sContainers(log, publisher, podWatcher)
 
 	assert.Equal(t, 1, len(publisher.Events))
 }

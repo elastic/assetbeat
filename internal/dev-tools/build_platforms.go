@@ -19,9 +19,10 @@ package dev_tools
 
 import (
 	"fmt"
-	"golang.org/x/exp/slices"
 	"os"
 	"strings"
+
+	"golang.org/x/exp/slices"
 )
 
 type Platform struct {
@@ -50,7 +51,7 @@ func GetPlatforms() []Platform {
 }
 
 // getPlatformsList returns a list of Platform from a space-delimited string of GOOS/GOARCH pairs.
-// If the Platform is not supported, it is discarded from the returned list
+// If the Platform is not supported, it is discarded from the returned list.
 func getPlatformsList(platforms string) []Platform {
 	var platformsList []Platform
 	inputPlatformsList := strings.Split(platforms, " ")
@@ -64,7 +65,7 @@ func getPlatformsList(platforms string) []Platform {
 	return platformsList
 }
 
-// newPlatform returns a new Platform from a GOOS/GOARCH string
+// newPlatform returns a new Platform from a GOOS/GOARCH string.
 func newPlatform(p string) Platform {
 	platformSplit := strings.Split(p, "/")
 	return Platform{

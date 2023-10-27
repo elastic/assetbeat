@@ -20,11 +20,11 @@
 package config
 
 import (
-	"github.com/stretchr/testify/assert"
 	"path/filepath"
 	"testing"
 
 	conf "github.com/elastic/elastic-agent-libs/config"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetConfigFiles_File(t *testing.T) {

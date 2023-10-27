@@ -20,18 +20,19 @@ package internal
 import (
 	"fmt"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/mapstr"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // Assets data is published to indexes following the same name pattern used in Agent
 // type-dataset-namespace, and has its own index type.
-const indexType = "assets"
-const indexDefaultNamespace = "default"
-const indexDefaultDataset = "raw"
+const (
+	indexType             = "assets"
+	indexDefaultNamespace = "default"
+	indexDefaultDataset   = "raw"
+)
 
 func GetDefaultIndexName() string {
 	return fmt.Sprintf("%s-%s-%s", indexType, indexDefaultDataset, indexDefaultNamespace)
@@ -42,12 +43,13 @@ func NewEvent() *beat.Event {
 		Fields: mapstr.M{},
 		Meta: mapstr.M{
 			"index": GetDefaultIndexName(),
-		}}
+		},
+	}
 }
 
 type AssetOption func(beat.Event) beat.Event
 
-// Publish emits a `beat.Event` to the specified publisher, with the provided parameters
+// Publish emits a `beat.Event` to the specified publisher, with the provided parameters.
 func Publish(publisher stateless.Publisher, baseEvent *beat.Event, opts ...AssetOption) {
 	var event beat.Event
 	if baseEvent == nil {
@@ -98,6 +100,7 @@ func WithAssetKindAndID(k, id string) AssetOption {
 		return e
 	}
 }
+
 func WithAssetType(value string) AssetOption {
 	return func(e beat.Event) beat.Event {
 		e.Fields["asset.type"] = value

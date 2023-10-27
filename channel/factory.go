@@ -38,7 +38,7 @@ func NewOutletFactory(done <-chan struct{}) *OutletFactory {
 // Create builds a new Outleter, while applying common input settings.
 // Inputs and all harvesters use the same pipeline client instance.
 // This guarantees ordering between events as required by the registrar for
-// file.State updates
+// file.State updates.
 func (f *OutletFactory) Create(p beat.PipelineConnector) Connector {
 	return &pipelineConnector{parent: f, pipeline: p}
 }

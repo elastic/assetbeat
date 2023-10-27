@@ -23,12 +23,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"google.golang.org/api/option"
-
 	"github.com/elastic/assetbeat/input/testutil"
 	v2 "github.com/elastic/beats/v7/filebeat/input/v2"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/api/option"
 )
 
 func TestPlugin(t *testing.T) {
@@ -46,14 +45,13 @@ func TestAssetsGCP_Run(t *testing.T) {
 		Cancelation: ctx,
 	}
 
-	input, err := newAssetsGCP(defaultConfig())
-	assert.NoError(t, err)
+	input := newAssetsGCP(defaultConfig())
 
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		err = input.Run(inputCtx, publisher)
+		err := input.Run(inputCtx, publisher)
 		assert.NoError(t, err)
 	}()
 
@@ -79,10 +77,9 @@ func TestAssetsGCP_CollectAll(t *testing.T) {
 	ctx := context.Background()
 	logger := logp.NewLogger("test")
 
-	input, err := newAssetsGCP(defaultConfig())
-	assert.NoError(t, err)
+	input := newAssetsGCP(defaultConfig())
 
-	err = input.collectAll(ctx, logger, publisher)
+	err := input.collectAll(ctx, logger, publisher)
 	assert.NoError(t, err)
 }
 

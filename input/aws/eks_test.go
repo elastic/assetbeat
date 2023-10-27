@@ -19,6 +19,8 @@ package aws
 
 import (
 	"context"
+	"testing"
+
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	typesAsg "github.com/aws/aws-sdk-go-v2/service/autoscaling/types"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
@@ -26,35 +28,68 @@ import (
 	"github.com/aws/smithy-go/middleware"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 const clusterArnPrefix = "arn:aws:eks:eu-west-1:12345678:cluster/"
 
-var instanceID1 = "i-1111111"
-var instanceID2 = "i-2222222"
+var (
+	instanceID1 = "i-1111111"
+	instanceID2 = "i-2222222"
+)
 
-type mockDescribeClusterAPI func(ctx context.Context, params *eks.DescribeClusterInput, optFns ...func(*eks.Options)) (*eks.DescribeClusterOutput, error)
+type mockDescribeClusterAPI func(
+	ctx context.Context,
+	params *eks.DescribeClusterInput,
+	optFns ...func(*eks.Options),
+) (*eks.DescribeClusterOutput, error)
 
-func (m mockDescribeClusterAPI) DescribeCluster(ctx context.Context, params *eks.DescribeClusterInput, optFns ...func(*eks.Options)) (*eks.DescribeClusterOutput, error) {
+func (m mockDescribeClusterAPI) DescribeCluster(
+	ctx context.Context,
+	params *eks.DescribeClusterInput,
+	optFns ...func(*eks.Options),
+) (*eks.DescribeClusterOutput, error) {
 	return m(ctx, params, optFns...)
 }
 
-type mockListNodeGroupsAPI func(ctx context.Context, params *eks.ListNodegroupsInput, optFns ...func(*eks.Options)) (*eks.ListNodegroupsOutput, error)
+type mockListNodeGroupsAPI func(
+	ctx context.Context,
+	params *eks.ListNodegroupsInput,
+	optFns ...func(*eks.Options),
+) (*eks.ListNodegroupsOutput, error)
 
-func (m mockListNodeGroupsAPI) ListNodegroups(ctx context.Context, params *eks.ListNodegroupsInput, optFns ...func(*eks.Options)) (*eks.ListNodegroupsOutput, error) {
+func (m mockListNodeGroupsAPI) ListNodegroups(
+	ctx context.Context,
+	params *eks.ListNodegroupsInput,
+	optFns ...func(*eks.Options),
+) (*eks.ListNodegroupsOutput, error) {
 	return m(ctx, params, optFns...)
 }
 
-type mockDescribeNodeGroupsAPI func(ctx context.Context, params *eks.DescribeNodegroupInput, optFns ...func(*eks.Options)) (*eks.DescribeNodegroupOutput, error)
+type mockDescribeNodeGroupsAPI func(
+	ctx context.Context,
+	params *eks.DescribeNodegroupInput,
+	optFns ...func(*eks.Options),
+) (*eks.DescribeNodegroupOutput, error)
 
-func (m mockDescribeNodeGroupsAPI) DescribeNodegroup(ctx context.Context, params *eks.DescribeNodegroupInput, optFns ...func(*eks.Options)) (*eks.DescribeNodegroupOutput, error) {
+func (m mockDescribeNodeGroupsAPI) DescribeNodegroup(
+	ctx context.Context,
+	params *eks.DescribeNodegroupInput,
+	optFns ...func(*eks.Options),
+) (*eks.DescribeNodegroupOutput, error) {
 	return m(ctx, params, optFns...)
 }
 
-type mockDescribeAutoscalingGroupsAPI func(ctx context.Context, params *autoscaling.DescribeAutoScalingGroupsInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DescribeAutoScalingGroupsOutput, error)
+type mockDescribeAutoscalingGroupsAPI func(
+	ctx context.Context,
+	params *autoscaling.DescribeAutoScalingGroupsInput,
+	optFns ...func(*autoscaling.Options),
+) (*autoscaling.DescribeAutoScalingGroupsOutput, error)
 
-func (m mockDescribeAutoscalingGroupsAPI) DescribeAutoScalingGroups(ctx context.Context, params *autoscaling.DescribeAutoScalingGroupsInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DescribeAutoScalingGroupsOutput, error) {
+func (m mockDescribeAutoscalingGroupsAPI) DescribeAutoScalingGroups(
+	ctx context.Context,
+	params *autoscaling.DescribeAutoScalingGroupsInput,
+	optFns ...func(*autoscaling.Options),
+) (*autoscaling.DescribeAutoScalingGroupsOutput, error) {
 	return m(ctx, params, optFns...)
 }
 
@@ -72,17 +107,22 @@ func TestDescribeEKSClusters(t *testing.T) {
 			log:      logp.NewLogger("test"),
 			clusters: []string{"test-cluster1", "test-cluster2"},
 			client: func(t *testing.T) eks.DescribeClusterAPIClient {
-				return mockDescribeClusterAPI(func(ctx context.Context, params *eks.DescribeClusterInput, optFns ...func(*eks.Options)) (*eks.DescribeClusterOutput, error) {
-					t.Helper()
-					arn := clusterArnPrefix + (*params.Name)
-					return &eks.DescribeClusterOutput{
-						Cluster: &types.Cluster{
-							Arn:  &arn,
-							Name: params.Name,
-						},
-						ResultMetadata: middleware.Metadata{},
-					}, nil
-				})
+				return mockDescribeClusterAPI(
+					func(
+						ctx context.Context,
+						params *eks.DescribeClusterInput,
+						optFns ...func(*eks.Options),
+					) (*eks.DescribeClusterOutput, error) {
+						t.Helper()
+						arn := clusterArnPrefix + (*params.Name)
+						return &eks.DescribeClusterOutput{
+							Cluster: &types.Cluster{
+								Arn:  &arn,
+								Name: params.Name,
+							},
+							ResultMetadata: middleware.Metadata{},
+						}, nil
+					})
 			},
 		},
 	} {
@@ -114,14 +154,19 @@ func TestListNodeGroups(t *testing.T) {
 			cluster:            "test-cluster",
 			expectedNodeGroups: []string{"test-nodegroup"},
 			client: func(t *testing.T) eks.ListNodegroupsAPIClient {
-				return mockListNodeGroupsAPI(func(ctx context.Context, params *eks.ListNodegroupsInput, optFns ...func(*eks.Options)) (*eks.ListNodegroupsOutput, error) {
-					t.Helper()
-					return &eks.ListNodegroupsOutput{
-						NextToken:      nil,
-						Nodegroups:     []string{"test-nodegroup"},
-						ResultMetadata: middleware.Metadata{},
-					}, nil
-				})
+				return mockListNodeGroupsAPI(
+					func(
+						ctx context.Context,
+						params *eks.ListNodegroupsInput,
+						optFns ...func(*eks.Options),
+					) (*eks.ListNodegroupsOutput, error) {
+						t.Helper()
+						return &eks.ListNodegroupsOutput{
+							NextToken:      nil,
+							Nodegroups:     []string{"test-nodegroup"},
+							ResultMetadata: middleware.Metadata{},
+						}, nil
+					})
 			},
 		},
 	} {
@@ -155,47 +200,63 @@ func TestGetInstanceIDsFromNodeGroup(t *testing.T) {
 			asgGroup:    "test-asg",
 			instanceIDs: []string{instanceID1, instanceID2},
 			eksClient: func(t *testing.T) eks.DescribeNodegroupAPIClient {
-				return mockDescribeNodeGroupsAPI(func(ctx context.Context, params *eks.DescribeNodegroupInput, optFns ...func(*eks.Options)) (*eks.DescribeNodegroupOutput, error) {
-					t.Helper()
-					asg := "test-asg"
-					return &eks.DescribeNodegroupOutput{
-						Nodegroup: &types.Nodegroup{
-							NodegroupName: params.NodegroupName,
-							Resources: &types.NodegroupResources{
-								AutoScalingGroups: []types.AutoScalingGroup{
-									{Name: &asg},
+				return mockDescribeNodeGroupsAPI(
+					func(
+						ctx context.Context,
+						params *eks.DescribeNodegroupInput,
+						optFns ...func(*eks.Options),
+					) (*eks.DescribeNodegroupOutput, error) {
+						t.Helper()
+						asg := "test-asg"
+						return &eks.DescribeNodegroupOutput{
+							Nodegroup: &types.Nodegroup{
+								NodegroupName: params.NodegroupName,
+								Resources: &types.NodegroupResources{
+									AutoScalingGroups: []types.AutoScalingGroup{
+										{Name: &asg},
+									},
 								},
 							},
-						},
-						ResultMetadata: middleware.Metadata{},
-					}, nil
-				})
+							ResultMetadata: middleware.Metadata{},
+						}, nil
+					})
 			},
 			asgClient: func(t *testing.T) autoscaling.DescribeAutoScalingGroupsAPIClient {
-				return mockDescribeAutoscalingGroupsAPI(func(ctx context.Context, params *autoscaling.DescribeAutoScalingGroupsInput, optFns ...func(*autoscaling.Options)) (*autoscaling.DescribeAutoScalingGroupsOutput, error) {
-					t.Helper()
-					return &autoscaling.DescribeAutoScalingGroupsOutput{
-						AutoScalingGroups: []typesAsg.AutoScalingGroup{
-							{
-								Instances: []typesAsg.Instance{
-									{
-										InstanceId: &instanceID1,
-									},
-									{
-										InstanceId: &instanceID2,
+				return mockDescribeAutoscalingGroupsAPI(
+					func(
+						ctx context.Context,
+						params *autoscaling.DescribeAutoScalingGroupsInput,
+						optFns ...func(*autoscaling.Options),
+					) (*autoscaling.DescribeAutoScalingGroupsOutput, error) {
+						t.Helper()
+						return &autoscaling.DescribeAutoScalingGroupsOutput{
+							AutoScalingGroups: []typesAsg.AutoScalingGroup{
+								{
+									Instances: []typesAsg.Instance{
+										{
+											InstanceId: &instanceID1,
+										},
+										{
+											InstanceId: &instanceID2,
+										},
 									},
 								},
 							},
-						},
-						NextToken:      nil,
-						ResultMetadata: middleware.Metadata{},
-					}, nil
-				})
+							NextToken:      nil,
+							ResultMetadata: middleware.Metadata{},
+						}, nil
+					})
 			},
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			instances, err := getInstanceIDsFromNodeGroup(tt.ctx, tt.cluster, tt.nodeGroups, tt.eksClient(t), tt.asgClient(t))
+			instances, err := getInstanceIDsFromNodeGroup(
+				tt.ctx,
+				tt.cluster,
+				tt.nodeGroups,
+				tt.eksClient(t),
+				tt.asgClient(t),
+			)
 			assert.NoError(t, err)
 			assert.Equal(t, instances, tt.instanceIDs)
 		})
