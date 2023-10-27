@@ -86,11 +86,11 @@ func mergeConfigFiles(configFiles []string, config *Config) error {
 			Assetbeat Config
 		}{}
 
-		load, err := cfgfile.Load(file, nil)
+		loadedConfig, err := cfgfile.Load(file, nil)
 		if err != nil {
 			return fmt.Errorf("failed to read %s: %w", file, err)
 		}
-		err = load.Unpack(&tmpConfig)
+		err = loadedConfig.Unpack(&tmpConfig)
 		if err != nil {
 			return fmt.Errorf("failed to unpack %s: %w", file, err)
 		}
