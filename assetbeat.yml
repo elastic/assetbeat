@@ -13,7 +13,6 @@ output.elasticsearch:
   username: "elastic"
   password: "changeme"
   ssl.verification_mode: "none"
-output.elasticsearch.allow_older_versions: true
 
 logging.level: info
 logging.to_files: false
