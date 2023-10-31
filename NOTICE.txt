@@ -223,11 +223,11 @@ Contents of probable licence file $GOMODCACHE/cloud.google.com/go/compute@v1.23.
 
 --------------------------------------------------------------------------------
 Dependency : cloud.google.com/go/container
-Version: v1.26.0
+Version: v1.27.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/cloud.google.com/go/container@v1.26.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/cloud.google.com/go/container@v1.27.0/LICENSE:
 
 
                                  Apache License
@@ -23667,11 +23667,11 @@ Contents of probable licence file $GOMODCACHE/google.golang.org/genproto/googlea
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/grpc
-Version: v1.58.3
+Version: v1.59.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.58.3/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.59.0/LICENSE:
 
 
                                  Apache License
