@@ -66,8 +66,9 @@ func DefaultCrossBuildArgs(platform Platform) BuildArgs {
 	args.name = strings.Join([]string{"assetbeat", platform.GOOS, platform.GOARCH}, "-")
 
 	args.env = map[string]string{
-		"GOOS":   platform.GOOS,
-		"GOARCH": platform.GOARCH,
+		"GOOS":        platform.GOOS,
+		"GOARCH":      platform.GOARCH,
+		"CGO_ENABLED": "0",
 	}
 	return args
 }
