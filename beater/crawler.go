@@ -47,7 +47,7 @@ func newCrawler(
 	inputConfigs []*conf.C,
 	beatDone chan struct{},
 	once bool,
-) (*crawler, error) {
+) *crawler {
 	return &crawler{
 		log:           logp.NewLogger("crawler"),
 		inputs:        map[uint64]cfgfile.Runner{},
@@ -55,7 +55,7 @@ func newCrawler(
 		inputConfigs:  inputConfigs,
 		once:          once,
 		beatDone:      beatDone,
-	}, nil
+	}
 }
 
 // Start starts the crawler with all inputs

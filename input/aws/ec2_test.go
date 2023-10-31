@@ -19,32 +19,40 @@ package aws
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
-	"github.com/elastic/assetbeat/input/internal"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	"github.com/stretchr/testify/assert"
-
+	"github.com/elastic/assetbeat/input/internal"
 	"github.com/elastic/assetbeat/input/testutil"
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
+	"github.com/stretchr/testify/assert"
 )
 
-var instanceID_1 = "i-1111111"
-var instanceName_1 = "test-instance-1"
-var ownerID_1 = "11111111111111"
-var tag_1_k = "mykey"
-var tag_1_v = "myvalue"
-var subnetID1 = "mysubnetid1"
-var instanceID_2 = "i-2222222"
-var instanceName_2 = "test-instance-2"
+var (
+	instanceID_1   = "i-1111111"
+	instanceName_1 = "test-instance-1"
+	ownerID_1      = "11111111111111"
+	tag_1_k        = "mykey"
+	tag_1_v        = "myvalue"
+	subnetID1      = "mysubnetid1"
+	instanceID_2   = "i-2222222"
+	instanceName_2 = "test-instance-2"
+)
 
-type mockDescribeInstancesAPI func(ctx context.Context, params *ec2.DescribeInstancesInput, optFns ...func(*ec2.Options)) (*ec2.DescribeInstancesOutput, error)
+type mockDescribeInstancesAPI func(
+	ctx context.Context,
+	params *ec2.DescribeInstancesInput,
+	optFns ...func(*ec2.Options),
+) (*ec2.DescribeInstancesOutput, error)
 
-func (m mockDescribeInstancesAPI) DescribeInstances(ctx context.Context, params *ec2.DescribeInstancesInput, optFns ...func(*ec2.Options)) (*ec2.DescribeInstancesOutput, error) {
+func (m mockDescribeInstancesAPI) DescribeInstances(
+	ctx context.Context,
+	params *ec2.DescribeInstancesInput,
+	optFns ...func(*ec2.Options),
+) (*ec2.DescribeInstancesOutput, error) {
 	return m(ctx, params, optFns...)
 }
 
@@ -54,104 +62,108 @@ func TestAssetsAWS_collectEC2Assets(t *testing.T) {
 		region         string
 		client         func(t *testing.T) ec2.DescribeInstancesAPIClient
 		expectedEvents []beat.Event
-	}{{
-		name:   "Test with multiple EC2 instances returned",
-		region: "eu-west-1",
-		client: func(t *testing.T) ec2.DescribeInstancesAPIClient {
-			return mockDescribeInstancesAPI(func(ctx context.Context, params *ec2.DescribeInstancesInput, optFns ...func(*ec2.Options)) (*ec2.DescribeInstancesOutput, error) {
-				t.Helper()
-				return &ec2.DescribeInstancesOutput{
-					NextToken: nil,
-					Reservations: []types.Reservation{
-						{
-							OwnerId: &ownerID_1,
-							Instances: []types.Instance{
+	}{
+		{
+			name:   "Test with multiple EC2 instances returned",
+			region: "eu-west-1",
+			client: func(t *testing.T) ec2.DescribeInstancesAPIClient {
+				return mockDescribeInstancesAPI(
+					func(
+						ctx context.Context,
+						params *ec2.DescribeInstancesInput,
+						optFns ...func(*ec2.Options),
+					) (*ec2.DescribeInstancesOutput, error) {
+						t.Helper()
+						return &ec2.DescribeInstancesOutput{
+							NextToken: nil,
+							Reservations: []types.Reservation{
 								{
-									InstanceId: &instanceID_1,
-									State:      &types.InstanceState{Name: "running"},
-									Tags: []types.Tag{
+									OwnerId: &ownerID_1,
+									Instances: []types.Instance{
 										{
-											Key:   &tag_1_k,
-											Value: &tag_1_v,
+											InstanceId: &instanceID_1,
+											State:      &types.InstanceState{Name: "running"},
+											Tags: []types.Tag{
+												{
+													Key:   &tag_1_k,
+													Value: &tag_1_v,
+												},
+												{
+													Key:   to.Ptr("Name"),
+													Value: &instanceName_1,
+												},
+											},
+											SubnetId: &subnetID1,
 										},
 										{
-											Key:   to.Ptr("Name"),
-											Value: &instanceName_1,
-										},
-									},
-									SubnetId: &subnetID1,
-								},
-								{
-									InstanceId: &instanceID_2,
-									State:      &types.InstanceState{Name: "stopped"},
-									SubnetId:   &subnetID1,
-									Tags: []types.Tag{
-										{
-											Key:   to.Ptr("Name"),
-											Value: &instanceName_2,
+											InstanceId: &instanceID_2,
+											State:      &types.InstanceState{Name: "stopped"},
+											SubnetId:   &subnetID1,
+											Tags: []types.Tag{
+												{
+													Key:   to.Ptr("Name"),
+													Value: &instanceName_2,
+												},
+											},
 										},
 									},
 								},
 							},
+						}, nil
+					})
+			},
+			expectedEvents: []beat.Event{
+				{
+					Fields: mapstr.M{
+						"asset.ean":            "host:" + instanceID_1,
+						"asset.id":             instanceID_1,
+						"asset.metadata.state": "running",
+						"asset.type":           "aws.ec2.instance",
+						"asset.kind":           "host",
+						"asset.name":           instanceName_1,
+						"asset.parents": []string{
+							"network:" + subnetID1,
 						},
+						"asset.metadata.tags." + tag_1_k: tag_1_v,
+						"cloud.account.id":               "11111111111111",
+						"cloud.provider":                 "aws",
+						"cloud.region":                   "eu-west-1",
 					},
-				}, nil
-			})
-		},
-		expectedEvents: []beat.Event{
-			{
-				Fields: mapstr.M{
-					"asset.ean":            "host:" + instanceID_1,
-					"asset.id":             instanceID_1,
-					"asset.metadata.state": "running",
-					"asset.type":           "aws.ec2.instance",
-					"asset.kind":           "host",
-					"asset.name":           instanceName_1,
-					"asset.parents": []string{
-						"network:" + subnetID1,
+					Meta: mapstr.M{
+						"index": internal.GetDefaultIndexName(),
 					},
-					"asset.metadata.tags." + tag_1_k: tag_1_v,
-					"cloud.account.id":               "11111111111111",
-					"cloud.provider":                 "aws",
-					"cloud.region":                   "eu-west-1",
 				},
-				Meta: mapstr.M{
-					"index": internal.GetDefaultIndexName(),
-				},
-			},
-			{
-				Fields: mapstr.M{
-					"asset.ean":            "host:" + instanceID_2,
-					"asset.id":             instanceID_2,
-					"asset.metadata.state": "stopped",
-					"asset.type":           "aws.ec2.instance",
-					"asset.kind":           "host",
-					"asset.name":           instanceName_2,
-					"asset.parents": []string{
-						"network:" + subnetID1,
+				{
+					Fields: mapstr.M{
+						"asset.ean":            "host:" + instanceID_2,
+						"asset.id":             instanceID_2,
+						"asset.metadata.state": "stopped",
+						"asset.type":           "aws.ec2.instance",
+						"asset.kind":           "host",
+						"asset.name":           instanceName_2,
+						"asset.parents": []string{
+							"network:" + subnetID1,
+						},
+						"cloud.account.id": "11111111111111",
+						"cloud.provider":   "aws",
+						"cloud.region":     "eu-west-1",
 					},
-					"cloud.account.id": "11111111111111",
-					"cloud.provider":   "aws",
-					"cloud.region":     "eu-west-1",
-				},
-				Meta: mapstr.M{
-					"index": internal.GetDefaultIndexName(),
+					Meta: mapstr.M{
+						"index": internal.GetDefaultIndexName(),
+					},
 				},
 			},
 		},
-	},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			publisher := testutil.NewInMemoryPublisher()
 
 			ctx := context.Background()
-			logger := logp.NewLogger("test")
 
-			err := collectEC2Assets(ctx, tt.client(t), tt.region, logger, publisher)
+			err := collectEC2Assets(ctx, tt.client(t), tt.region, publisher)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedEvents, publisher.Events)
 		})
-
 	}
 }
 

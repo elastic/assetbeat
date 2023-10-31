@@ -26,7 +26,6 @@ import (
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	kube "github.com/elastic/elastic-agent-autodiscover/kubernetes"
 	"github.com/elastic/elastic-agent-libs/logp"
-
 	kuberntescli "k8s.io/client-go/kubernetes"
 )
 
@@ -37,15 +36,19 @@ type pod struct {
 	ctx     context.Context
 }
 
-// getPodWatcher initiates and returns a watcher of kubernetes pods
-func getPodWatcher(ctx context.Context, log *logp.Logger, client kuberntescli.Interface, timeout time.Duration) (kube.Watcher, error) {
+// getPodWatcher initiates and returns a watcher of kubernetes pods.
+func getPodWatcher(
+	ctx context.Context,
+	log *logp.Logger,
+	client kuberntescli.Interface,
+	timeout time.Duration,
+) (kube.Watcher, error) {
 	watcher, err := kube.NewNamedWatcher("pod", client, &kube.Pod{}, kube.WatchOptions{
 		SyncTimeout:  timeout,
 		Node:         "",
 		Namespace:    "",
 		HonorReSyncs: true,
 	}, nil)
-
 	if err != nil {
 		log.Errorf("could not create kubernetes watcher %v", err)
 		return nil, err
@@ -63,37 +66,40 @@ func getPodWatcher(ctx context.Context, log *logp.Logger, client kuberntescli.In
 	return watcher, nil
 }
 
-// Start starts the eventer
+// Start starts the eventer.
 func (p *pod) Start() error {
 	return p.watcher.Start()
 }
 
-// Stop stops the eventer
+// Stop stops the eventer.
 func (p *pod) Stop() {
 	p.watcher.Stop()
 }
 
 // OnUpdate handles events for pods that have been updated.
 func (p *pod) OnUpdate(obj interface{}) {
-	o := obj.(*kube.Pod)
+	o, _ := obj.(*kube.Pod)
 	p.logger.Debugf("Watcher Pod update: %+v", o.Name)
 }
 
 // OnDelete stops pod objects that are deleted.
 func (p *pod) OnDelete(obj interface{}) {
-	o := obj.(*kube.Pod)
+	o, _ := obj.(*kube.Pod)
 	p.logger.Debugf("Watcher Pod delete: %+v", o.Name)
 }
 
 // OnAdd ensures processing of pod objects that are newly added.
 func (p *pod) OnAdd(obj interface{}) {
-	o := obj.(*kube.Pod)
+	o, _ := obj.(*kube.Pod)
 	p.logger.Debugf("Watcher Pod add: %+v", o.Name)
 }
 
-// publishK8sPods publishes the pod assets stored in pod watcher cache
-func publishK8sPods(ctx context.Context, log *logp.Logger, publisher stateless.Publisher, podWatcher, nodeWatcher kube.Watcher) {
-
+// publishK8sPods publishes the pod assets stored in pod watcher cache.
+func publishK8sPods(
+	log *logp.Logger,
+	publisher stateless.Publisher,
+	podWatcher, nodeWatcher kube.Watcher,
+) {
 	log.Info("Publishing pod assets\n")
 	assetType := "k8s.pod"
 	assetKind := "container_group"
@@ -128,6 +134,5 @@ func publishK8sPods(ctx context.Context, log *logp.Logger, publisher stateless.P
 		} else {
 			log.Error("Publishing pod assets failed. Type assertion of pod object failed")
 		}
-
 	}
 }

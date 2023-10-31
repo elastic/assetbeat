@@ -21,15 +21,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/elastic/assetbeat/input/internal"
 	"github.com/elastic/assetbeat/util"
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
-
-	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
-
-	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 )
 
 type EC2Instance struct {
@@ -41,7 +38,12 @@ type EC2Instance struct {
 	Metadata     mapstr.M
 }
 
-func collectEC2Assets(ctx context.Context, client ec2.DescribeInstancesAPIClient, region string, log *logp.Logger, publisher stateless.Publisher) error {
+func collectEC2Assets(
+	ctx context.Context,
+	client ec2.DescribeInstancesAPIClient,
+	region string,
+	publisher stateless.Publisher,
+) error {
 	instances, err := describeEC2Instances(ctx, client)
 	if err != nil {
 		return err
@@ -77,7 +79,10 @@ func collectEC2Assets(ctx context.Context, client ec2.DescribeInstancesAPIClient
 	return nil
 }
 
-func describeEC2Instances(ctx context.Context, client ec2.DescribeInstancesAPIClient) ([]EC2Instance, error) {
+func describeEC2Instances(
+	ctx context.Context,
+	client ec2.DescribeInstancesAPIClient,
+) ([]EC2Instance, error) {
 	instances := make([]EC2Instance, 0, 100)
 	paginator := ec2.NewDescribeInstancesPaginator(client, &ec2.DescribeInstancesInput{})
 	for paginator.HasMorePages() {
@@ -106,11 +111,11 @@ func describeEC2Instances(ctx context.Context, client ec2.DescribeInstancesAPICl
 	return instances, nil
 }
 
-// flattenEC2Tags converts the EC2 tag format to a simple `map[string]string`
+// flattenEC2Tags converts the EC2 tag format to a simple `map[string]string`.
 func flattenEC2Tags(tags []types.Tag) mapstr.M {
 	out := mapstr.M{}
 	for _, t := range tags {
-		//Name is already published as asset.name
+		// Name is already published as asset.name
 		if *t.Key != "Name" {
 			out[*t.Key] = *t.Value
 		}

@@ -21,7 +21,6 @@ import (
 	"os"
 
 	"github.com/elastic/assetbeat/cmd"
-
 	inputs "github.com/elastic/assetbeat/input/default-inputs"
 )
 

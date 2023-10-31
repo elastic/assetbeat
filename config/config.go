@@ -19,6 +19,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"log"
 	"os"
 	"path/filepath"
@@ -26,13 +27,12 @@ import (
 	"time"
 
 	"github.com/elastic/beats/v7/libbeat/autodiscover"
-	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/paths"
 )
 
-// Defaults for config variables which are not set
+// Defaults for config variables which are not set.
 const (
 	DefaultType = "log"
 )
@@ -51,7 +51,7 @@ var DefaultConfig = Config{
 
 // getConfigFiles returns list of config files.
 // In case path is a file, it will be directly returned.
-// In case it is a directory, it will fetch all .yml files inside this directory
+// In case it is a directory, it will fetch all .yml files inside this directory.
 func getConfigFiles(path string) (configFiles []string, err error) {
 	// Check if path is valid file or dir
 	stat, err := os.Stat(path)
@@ -69,7 +69,6 @@ func getConfigFiles(path string) (configFiles []string, err error) {
 		}
 
 		configFiles = append(configFiles, files...)
-
 	} else {
 		// Only 1 config file
 		configFiles = append(configFiles, path)
@@ -78,7 +77,7 @@ func getConfigFiles(path string) (configFiles []string, err error) {
 	return configFiles, nil
 }
 
-// mergeConfigFiles reads in all config files given by list configFiles and merges them into config
+// mergeConfigFiles reads in all config files given by list configFiles and merges them into config.
 func mergeConfigFiles(configFiles []string, config *Config) error {
 	for _, file := range configFiles {
 		logp.Info("Additional configs loaded from: %s", file)
@@ -86,19 +85,22 @@ func mergeConfigFiles(configFiles []string, config *Config) error {
 		tmpConfig := struct {
 			Assetbeat Config
 		}{}
-		//nolint:staticcheck // Let's keep the logic here
-		err := cfgfile.Read(&tmpConfig, file)
+
+		loadedConfig, err := cfgfile.Load(file, nil)
 		if err != nil {
 			return fmt.Errorf("failed to read %s: %w", file, err)
 		}
-
+		err = loadedConfig.Unpack(&tmpConfig)
+		if err != nil {
+			return fmt.Errorf("failed to unpack %s: %w", file, err)
+		}
 		config.Inputs = append(config.Inputs, tmpConfig.Assetbeat.Inputs...)
 	}
 
 	return nil
 }
 
-// Fetches and merges all config files given by configDir. All are put into one config object
+// FetchConfigs Fetches and merges all config files given by configDir. All are put into one config object.
 func (config *Config) FetchConfigs() error {
 	configDir := config.ConfigDir
 

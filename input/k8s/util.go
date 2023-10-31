@@ -27,22 +27,21 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
-
 	"github.com/elastic/elastic-agent-autodiscover/kubernetes"
 	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/pkg/errors"
 )
 
 type httpResponse interface {
 	FetchResponse(context.Context, string, map[string]string) ([]byte, error)
 }
 
-// httpFetcher struct to implement httpResponse interface
+// httpFetcher struct to implement httpResponse interface.
 type httpFetcher struct {
 	httpClient http.Client
 }
 
-// newhttpFetcher returns a new httpFetcher
+// newhttpFetcher returns a new httpFetcher.
 func newhttpFetcher() httpFetcher {
 	client := http.Client{
 		Timeout: time.Second * 10,
@@ -62,7 +61,7 @@ func newhttpFetcher() httpFetcher {
 // In case of aws the instance id is retrieved from providerId
 // which is in the form of aws:///region/instanceId for not fargate nodes.
 // In case of gcp it is retrieved by the annotation container.googleapis.com/instance_id
-// In all other cases empty string is returned
+// In all other cases empty string is returned.
 func getInstanceId(node *kubernetes.Node) string {
 	providerId := node.Spec.ProviderID
 
@@ -86,7 +85,7 @@ func getInstanceId(node *kubernetes.Node) string {
 
 // getNodeState returns the state of kubernets node
 // the state can be Ready, MemoryPressure, DiskPressure, PIDPressure,
-// NetworkUnavailable or Unknown
+// NetworkUnavailable or Unknown.
 func getNodeState(node *kubernetes.Node) string {
 	conditions := node.Status.Conditions
 	status := "Unknown"
@@ -115,7 +114,7 @@ func getCspFromProviderId(providerId string) string {
 	return ""
 }
 
-// getGKEClusterUid gets the GKE cluster uid from metadata endpoint
+// getGKEClusterUid gets the GKE cluster uid from metadata endpoint.
 func getGKEClusterUid(ctx context.Context, log *logp.Logger, hF httpResponse) (string, error) {
 	url := fmt.Sprintf("http://%s%s", metadataHost, gceMetadataURI)
 	gceHeaders := map[string]string{"Metadata-Flavor": "Google"}
@@ -124,7 +123,7 @@ func getGKEClusterUid(ctx context.Context, log *logp.Logger, hF httpResponse) (s
 	if err != nil {
 		return "", err
 	}
-	var gcpMetadataRes = map[string]interface{}{}
+	gcpMetadataRes := map[string]interface{}{}
 	if err = json.Unmarshal(response, &gcpMetadataRes); err != nil {
 		return "", err
 	}
@@ -139,10 +138,14 @@ func getGKEClusterUid(ctx context.Context, log *logp.Logger, hF httpResponse) (s
 	return "", errors.Errorf("Cluster uid not found in metadata")
 }
 
-// FetchResponse returns http response of a provided URL
-func (c httpFetcher) FetchResponse(ctx context.Context, url string, headers map[string]string) ([]byte, error) {
+// FetchResponse returns http response of a provided URL.
+func (c httpFetcher) FetchResponse(
+	ctx context.Context,
+	url string,
+	headers map[string]string,
+) ([]byte, error) {
 	var response []byte
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", url, http.NoBody)
 	if err != nil {
 		return response, errors.Wrapf(err, "failed to create http request for gcp")
 	}

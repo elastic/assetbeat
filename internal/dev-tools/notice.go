@@ -19,12 +19,13 @@ package dev_tools
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/elastic/assetbeat/version"
 	"github.com/elastic/elastic-agent-libs/dev-tools/mage"
 	"github.com/elastic/elastic-agent-libs/dev-tools/mage/gotool"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
-	"os"
 )
 
 func GenerateNotice(overrides, rules, noticeTemplate string) error {
@@ -55,7 +56,7 @@ func GenerateDependencyReport(overrides, rules, dependencyReportTemplate string,
 	generator := gotool.NoticeGenerator
 	dependencyReportFilename := fmt.Sprintf("dependencies-%s", version.GetVersion())
 	if isSnapshot {
-		dependencyReportFilename = dependencyReportFilename + "-SNAPSHOT"
+		dependencyReportFilename += "-SNAPSHOT"
 	}
 	return generator(
 		generator.Dependencies(depsFile),
@@ -68,10 +69,9 @@ func GenerateDependencyReport(overrides, rules, dependencyReportTemplate string,
 }
 
 func generateDepsFile() string {
-
 	out, _ := gotool.ListDepsForNotice()
 	depsFile, _ := os.CreateTemp("", "depsout")
-	_, _ = depsFile.Write([]byte(out))
+	_, _ = depsFile.WriteString(out)
 	depsFile.Close()
 
 	return depsFile.Name()

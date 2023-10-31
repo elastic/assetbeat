@@ -23,13 +23,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/elastic/assetbeat/input/internal"
 	"github.com/elastic/assetbeat/input/testutil"
 	v2 "github.com/elastic/beats/v7/filebeat/input/v2"
 	"github.com/elastic/elastic-agent-libs/logp"
-
-	"github.com/elastic/assetbeat/input/internal"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -123,14 +121,13 @@ func TestAssetsAWS_Run(t *testing.T) {
 		Cancelation: ctx,
 	}
 
-	input, err := newAssetsAWS(defaultConfig())
-	assert.NoError(t, err)
+	input := newAssetsAWS(defaultConfig())
 
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		err = input.Run(inputCtx, publisher)
+		err := input.Run(inputCtx, publisher)
 		assert.NoError(t, err)
 	}()
 

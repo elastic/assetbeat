@@ -19,20 +19,19 @@ package gcp
 
 import (
 	"context"
-	"github.com/elastic/assetbeat/input/internal"
 	"testing"
 
 	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"
-	"github.com/gogo/protobuf/proto"
-	"github.com/googleapis/gax-go/v2"
-	"github.com/stretchr/testify/assert"
-	"google.golang.org/api/iterator"
-
+	"github.com/elastic/assetbeat/input/internal"
 	"github.com/elastic/assetbeat/input/testutil"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
+	"github.com/gogo/protobuf/proto"
+	"github.com/googleapis/gax-go/v2"
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/api/iterator"
 )
 
 type StubNetworksListIterator struct {
@@ -42,7 +41,6 @@ type StubNetworksListIterator struct {
 }
 
 func (it *StubNetworksListIterator) Next() (*computepb.Network, error) {
-
 	if it.ReturnInstancesError != nil {
 		return &computepb.Network{}, it.ReturnInstancesError
 	}
@@ -55,14 +53,17 @@ func (it *StubNetworksListIterator) Next() (*computepb.Network, error) {
 	it.iterCounter++
 
 	return networks, nil
-
 }
 
 type NetworkClientStub struct {
 	NetworkListIterator map[string]*StubNetworksListIterator
 }
 
-func (s *NetworkClientStub) List(ctx context.Context, req *computepb.ListNetworksRequest, opts ...gax.CallOption) NetworkIterator {
+func (s *NetworkClientStub) List(
+	ctx context.Context,
+	req *computepb.ListNetworksRequest,
+	opts ...gax.CallOption,
+) NetworkIterator {
 	project := req.Project
 	return s.NetworkListIterator[project]
 }
@@ -74,7 +75,6 @@ type StubAggregatedSubnetListIterator struct {
 }
 
 func (it *StubAggregatedSubnetListIterator) Next() (compute.SubnetworksScopedListPair, error) {
-
 	if it.ReturnInstancesError != nil {
 		return compute.SubnetworksScopedListPair{}, it.ReturnInstancesError
 	}
@@ -87,14 +87,17 @@ func (it *StubAggregatedSubnetListIterator) Next() (compute.SubnetworksScopedLis
 	it.iterCounter++
 
 	return networks, nil
-
 }
 
 type SubnetClientStub struct {
 	AggregatedSubnetworkIterator map[string]*StubAggregatedSubnetListIterator
 }
 
-func (s *SubnetClientStub) AggregatedList(ctx context.Context, req *computepb.AggregatedListSubnetworksRequest, opts ...gax.CallOption) AggregatedSubnetworkIterator {
+func (s *SubnetClientStub) AggregatedList(
+	ctx context.Context,
+	req *computepb.AggregatedListSubnetworksRequest,
+	opts ...gax.CallOption,
+) AggregatedSubnetworkIterator {
 	project := req.Project
 	return s.AggregatedSubnetworkIterator[project]
 }
@@ -258,9 +261,9 @@ func TestCollectVpcAssets(t *testing.T) {
 
 			ctx := context.Background()
 			client := NetworkClientStub{NetworkListIterator: tt.networks}
-			listClient := listNetworkAPIClient{List: func(ctx context.Context, req *computepb.ListNetworksRequest, opts ...gax.CallOption) NetworkIterator {
-				return client.List(ctx, req, opts...)
-			}}
+			listClient := listNetworkAPIClient{
+				List: client.List,
+			}
 			log := logp.NewLogger("mylogger")
 			vpcAssetsCache := getVpcCache()
 			err := collectVpcAssets(ctx, tt.cfg, vpcAssetsCache, listClient, publisher, log)
@@ -290,10 +293,13 @@ func TestCollectSubnetAssets(t *testing.T) {
 							Value: &computepb.SubnetworksScopedList{
 								Subnetworks: []*computepb.Subnetwork{
 									{
-										Id:       proto.Uint64(1),
-										SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/regions/europe-west-1/subnetworks/test-subnet-1"),
-										Name:     proto.String("test-subnet-1"),
-										Region:   proto.String("europe-west-1"),
+										Id: proto.Uint64(1),
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/" +
+											"projects/elastic-observability/" +
+											"regions/europe-west-1/" +
+											"subnetworks/test-subnet-1"),
+										Name:   proto.String("test-subnet-1"),
+										Region: proto.String("europe-west-1"),
 									},
 								},
 							},
@@ -303,10 +309,13 @@ func TestCollectSubnetAssets(t *testing.T) {
 							Value: &computepb.SubnetworksScopedList{
 								Subnetworks: []*computepb.Subnetwork{
 									{
-										Id:       proto.Uint64(2),
-										SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/regions/europe-west-1/subnetworks/test-subnet-2"),
-										Name:     proto.String("test-subnet-2"),
-										Region:   proto.String("europe-west-1"),
+										Id: proto.Uint64(2),
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/" +
+											"projects/elastic-observability/" +
+											"regions/europe-west-1/" +
+											"subnetworks/test-subnet-2"),
+										Name:   proto.String("test-subnet-2"),
+										Region: proto.String("europe-west-1"),
 									},
 								},
 							},
@@ -361,10 +370,13 @@ func TestCollectSubnetAssets(t *testing.T) {
 							Value: &computepb.SubnetworksScopedList{
 								Subnetworks: []*computepb.Subnetwork{
 									{
-										Id:       proto.Uint64(1),
-										SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/regions/europe-west-1/subnetworks/test-subnet-1"),
-										Name:     proto.String("test-subnet-1"),
-										Region:   proto.String("europe-west-1"),
+										Id: proto.Uint64(1),
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/" +
+											"projects/elastic-observability/" +
+											"regions/europe-west-1/" +
+											"subnetworks/test-subnet-1"),
+										Name:   proto.String("test-subnet-1"),
+										Region: proto.String("europe-west-1"),
 									},
 								},
 							},
@@ -374,10 +386,13 @@ func TestCollectSubnetAssets(t *testing.T) {
 							Value: &computepb.SubnetworksScopedList{
 								Subnetworks: []*computepb.Subnetwork{
 									{
-										Id:       proto.Uint64(2),
-										SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/regions/europe-west-1/subnetworks/test-subnet-2"),
-										Name:     proto.String("test-subnet-2"),
-										Region:   proto.String("europe-west-1"),
+										Id: proto.Uint64(2),
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/" +
+											"projects/elastic-observability/" +
+											"regions/europe-west-1/" +
+											"subnetworks/test-subnet-2"),
+										Name:   proto.String("test-subnet-2"),
+										Region: proto.String("europe-west-1"),
 									},
 								},
 							},
@@ -391,10 +406,13 @@ func TestCollectSubnetAssets(t *testing.T) {
 							Value: &computepb.SubnetworksScopedList{
 								Subnetworks: []*computepb.Subnetwork{
 									{
-										Id:       proto.Uint64(3),
-										SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/regions/europe-west-1/subnetworks/test-subnet-3"),
-										Name:     proto.String("test-subnet-3"),
-										Region:   proto.String("europe-west-1"),
+										Id: proto.Uint64(3),
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/" +
+											"projects/elastic-observability/" +
+											"regions/europe-west-1/" +
+											"subnetworks/test-subnet-3"),
+										Name:   proto.String("test-subnet-3"),
+										Region: proto.String("europe-west-1"),
 									},
 								},
 							},
@@ -404,10 +422,13 @@ func TestCollectSubnetAssets(t *testing.T) {
 							Value: &computepb.SubnetworksScopedList{
 								Subnetworks: []*computepb.Subnetwork{
 									{
-										Id:       proto.Uint64(4),
-										SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/regions/europe-west-1/subnetworks/test-subnet-4"),
-										Name:     proto.String("test-subnet-4"),
-										Region:   proto.String("europe-west-1"),
+										Id: proto.Uint64(4),
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/" +
+											"projects/elastic-observability/" +
+											"regions/europe-west-1/" +
+											"subnetworks/test-subnet-4"),
+										Name:   proto.String("test-subnet-4"),
+										Region: proto.String("europe-west-1"),
 									},
 								},
 							},
@@ -417,10 +438,13 @@ func TestCollectSubnetAssets(t *testing.T) {
 							Value: &computepb.SubnetworksScopedList{
 								Subnetworks: []*computepb.Subnetwork{
 									{
-										Id:       proto.Uint64(5), //this should not appear in the events
-										SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/regions/us-west1/subnetworks/test-subnet-5"),
-										Name:     proto.String("test-subnet-5"),
-										Region:   proto.String("us-west1"),
+										Id: proto.Uint64(5), // this should not appear in the events
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/" +
+											"projects/elastic-observability/" +
+											"regions/us-west1/" +
+											"subnetworks/test-subnet-5"),
+										Name:   proto.String("test-subnet-5"),
+										Region: proto.String("us-west1"),
 									},
 								},
 							},
@@ -430,10 +454,13 @@ func TestCollectSubnetAssets(t *testing.T) {
 							Value: &computepb.SubnetworksScopedList{
 								Subnetworks: []*computepb.Subnetwork{
 									{
-										Id:       proto.Uint64(6),
-										SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/regions/us-central1/subnetworks/test-subnet-6"),
-										Name:     proto.String("test-subnet-6"),
-										Region:   proto.String("us-central1"),
+										Id: proto.Uint64(6),
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/" +
+											"projects/elastic-observability" +
+											"/regions/us-central1/" +
+											"subnetworks/test-subnet-6"),
+										Name:   proto.String("test-subnet-6"),
+										Region: proto.String("us-central1"),
 									},
 								},
 							},
@@ -526,13 +553,18 @@ func TestCollectSubnetAssets(t *testing.T) {
 			ctx := context.Background()
 			client := SubnetClientStub{AggregatedSubnetworkIterator: tt.subnets}
 			clientCreator := listSubnetworkAPIClient{
-				AggregatedList: func(ctx context.Context, req *computepb.AggregatedListSubnetworksRequest, opts ...gax.CallOption) AggregatedSubnetworkIterator {
-					return client.AggregatedList(ctx, req, opts...)
-				},
+				AggregatedList: client.AggregatedList,
 			}
 			log := logp.NewLogger("mylogger")
 			subnetAssetsCache := getSubnetCache()
-			err := collectSubnetAssets(ctx, tt.cfg, subnetAssetsCache, clientCreator, publisher, log)
+			err := collectSubnetAssets(
+				ctx,
+				tt.cfg,
+				subnetAssetsCache,
+				clientCreator,
+				publisher,
+				log,
+			)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedEvents, publisher.Events)
 		})

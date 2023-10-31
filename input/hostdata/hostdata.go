@@ -20,24 +20,21 @@ package hostdata
 import (
 	"context"
 	"fmt"
-	"github.com/elastic/go-sysinfo"
 	"time"
 
-	"github.com/elastic/beats/v7/libbeat/processors/add_cloud_metadata"
-
-	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/beats/v7/libbeat/processors/util"
-
 	"github.com/elastic/assetbeat/input/internal"
-
 	input "github.com/elastic/beats/v7/filebeat/input/v2"
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
+	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/feature"
+	"github.com/elastic/beats/v7/libbeat/processors/add_cloud_metadata"
+	"github.com/elastic/beats/v7/libbeat/processors/util"
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/elastic-agent-system-metrics/metric/system/host"
 	"github.com/elastic/go-concert/ctxtool"
+	"github.com/elastic/go-sysinfo"
 )
 
 const defaultCollectionPeriod = time.Minute
@@ -125,7 +122,11 @@ func (h *hostdata) Run(inputCtx input.Context, publisher stateless.Publisher) er
 	}
 }
 
-func (h *hostdata) reportHostDataAssets(_ context.Context, logger *logp.Logger, publisher stateless.Publisher) {
+func (h *hostdata) reportHostDataAssets(
+	_ context.Context,
+	logger *logp.Logger,
+	publisher stateless.Publisher,
+) {
 	logger.Debug("collecting hostdata asset information")
 
 	hostData := h.hostInfo.Clone()

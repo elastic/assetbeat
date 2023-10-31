@@ -23,22 +23,23 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/googleapis/gax-go/v2"
-
-	"google.golang.org/api/iterator"
-
 	"cloud.google.com/go/compute/apiv1/computepb"
 	"cloud.google.com/go/container/apiv1/containerpb"
-
 	"github.com/elastic/assetbeat/input/internal"
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/elastic/go-freelru"
+	"github.com/googleapis/gax-go/v2"
+	"google.golang.org/api/iterator"
 )
 
 type listClustersAPIClient interface {
-	ListClusters(ctx context.Context, req *containerpb.ListClustersRequest, opts ...gax.CallOption) (*containerpb.ListClustersResponse, error)
+	ListClusters(
+		ctx context.Context,
+		req *containerpb.ListClustersRequest,
+		opts ...gax.CallOption,
+	) (*containerpb.ListClustersResponse, error)
 }
 
 type containerCluster struct {
@@ -52,8 +53,16 @@ type containerCluster struct {
 	Name      string
 }
 
-func collectGKEAssets(ctx context.Context, cfg config, vpcAssetCache *freelru.LRU[string, *vpc], computeAssetCache *freelru.LRU[string, *computeInstance], log *logp.Logger, listInstanceClient listInstanceAPIClient, listClusterClient listClustersAPIClient, publisher stateless.Publisher) error {
-
+func collectGKEAssets(
+	ctx context.Context,
+	cfg config,
+	vpcAssetCache *freelru.LRU[string, *vpc],
+	computeAssetCache *freelru.LRU[string, *computeInstance],
+	log *logp.Logger,
+	listInstanceClient listInstanceAPIClient,
+	listClusterClient listClustersAPIClient,
+	publisher stateless.Publisher,
+) error {
 	clusters, err := getAllGKEClusters(ctx, cfg, listClusterClient, vpcAssetCache)
 	if err != nil {
 		return err
@@ -67,11 +76,18 @@ func collectGKEAssets(ctx context.Context, cfg config, vpcAssetCache *freelru.LR
 		var children []string
 
 		if len(cluster.VPC) > 0 {
-			//TODO: Amend asset_type, if required, once VPCs gets actually collected for GCP
+			// TODO: Amend asset_type, if required, once VPCs gets actually collected for GCP
 			parents = append(parents, "network:"+cluster.VPC)
 		}
 
-		instances, err := getAllInstancesForGKECluster(ctx, cluster.Account, cluster.Region, cluster.NodePools, computeAssetCache, listInstanceClient)
+		instances, err := getAllInstancesForGKECluster(
+			ctx,
+			cluster.Account,
+			cluster.Region,
+			cluster.NodePools,
+			computeAssetCache,
+			listInstanceClient,
+		)
 		// We should not fail hard here since the core information for the asset comes from the GKE cluster data
 		if err != nil {
 			log.Warnf("Error while retrieving instances for GKE cluster %s: %+v", cluster.ID, err)
@@ -104,7 +120,6 @@ func collectGKEAssets(ctx context.Context, cfg config, vpcAssetCache *freelru.LR
 func getGKEInstanceKubeLabels(rawMd *computepb.Metadata) map[string]string {
 	mappedMd := make(map[string]string)
 	for _, item := range rawMd.GetItems() {
-
 		if item.GetKey() != "kube-labels" {
 			continue
 		}
@@ -115,16 +130,22 @@ func getGKEInstanceKubeLabels(rawMd *computepb.Metadata) map[string]string {
 			}
 			mappedMd[parts[0]] = parts[1]
 		}
-
 	}
 	return mappedMd
 }
 
-func getAllInstancesForGKECluster(ctx context.Context, project string, region string, nodePools []*containerpb.NodePool, computeAssetCache *freelru.LRU[string, *computeInstance], client listInstanceAPIClient) ([]string, error) {
+func getAllInstancesForGKECluster(
+	ctx context.Context,
+	project string,
+	region string,
+	nodePools []*containerpb.NodePool,
+	computeAssetCache *freelru.LRU[string, *computeInstance],
+	client listInstanceAPIClient,
+) ([]string, error) {
 	var instanceIDs []string
 	var err error
 	if computeAssetCache.Len() != 0 {
-		instanceIDs, err = getInstancesFromCache(ctx, region, nodePools, computeAssetCache)
+		instanceIDs, err = getInstancesFromCache(region, nodePools, computeAssetCache)
 		if err != nil {
 			return instanceIDs, err
 		}
@@ -155,7 +176,12 @@ func makeListClusterRequests(project string, zones []string) []*containerpb.List
 	return requests
 }
 
-func getAllGKEClusters(ctx context.Context, cfg config, client listClustersAPIClient, vpcAssetCache *freelru.LRU[string, *vpc]) ([]containerCluster, error) {
+func getAllGKEClusters(
+	ctx context.Context,
+	cfg config,
+	client listClustersAPIClient,
+	vpcAssetCache *freelru.LRU[string, *vpc],
+) ([]containerCluster, error) {
 	var clusters []containerCluster
 	var zones []string
 	if len(cfg.Regions) > 0 {
@@ -194,7 +220,13 @@ func getAllGKEClusters(ctx context.Context, cfg config, client listClustersAPICl
 	return clusters, nil
 }
 
-func getInstancesFromApi(ctx context.Context, project string, region string, nodePools []*containerpb.NodePool, client listInstanceAPIClient) ([]string, error) {
+func getInstancesFromApi(
+	ctx context.Context,
+	project string,
+	region string,
+	nodePools []*containerpb.NodePool,
+	client listInstanceAPIClient,
+) ([]string, error) {
 	var instanceIDs []string
 	zoneFilter := fmt.Sprintf("zone eq .*%s.*", region)
 	req := &computepb.AggregatedListInstancesRequest{
@@ -219,18 +251,24 @@ func getInstancesFromApi(ctx context.Context, project string, region string, nod
 					instanceIDs = append(instanceIDs, id)
 				}
 			}
-
 		}
 	}
 	return instanceIDs, nil
 }
 
-func getInstancesFromCache(ctx context.Context, region string, nodePools []*containerpb.NodePool, computeAssetCache *freelru.LRU[string, *computeInstance]) ([]string, error) {
+func getInstancesFromCache(
+	region string,
+	nodePools []*containerpb.NodePool,
+	computeAssetCache *freelru.LRU[string, *computeInstance],
+) ([]string, error) {
 	var instanceIDs []string
 	for _, selfLink := range computeAssetCache.Keys() {
 		i, ok := computeAssetCache.Get(selfLink)
 		if !ok {
-			return instanceIDs, fmt.Errorf("compute instance with selfLink %s is not present in cache", selfLink)
+			return instanceIDs, fmt.Errorf(
+				"compute instance with selfLink %s is not present in cache",
+				selfLink,
+			)
 		}
 		if i.Region != region {
 			continue
@@ -242,7 +280,6 @@ func getInstancesFromCache(ctx context.Context, region string, nodePools []*cont
 				instanceIDs = append(instanceIDs, id)
 			}
 		}
-
 	}
 	return instanceIDs, nil
 }

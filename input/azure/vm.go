@@ -44,8 +44,14 @@ type vmScaleSet struct {
 	Name string
 }
 
-func collectAzureVMAssets(ctx context.Context, client *armcompute.VirtualMachinesClient, subscriptionId string, regions []string, log *logp.Logger, publisher stateless.Publisher) error {
-
+func collectAzureVMAssets(
+	ctx context.Context,
+	client *armcompute.VirtualMachinesClient,
+	subscriptionId string,
+	regions []string,
+	log *logp.Logger,
+	publisher stateless.Publisher,
+) error {
 	instances, err := getAllAzureVMInstances(ctx, client, subscriptionId, regions)
 	if err != nil {
 		return err
@@ -73,8 +79,20 @@ func collectAzureVMAssets(ctx context.Context, client *armcompute.VirtualMachine
 	return nil
 }
 
-func collectAzureScaleSetsVMAssets(ctx context.Context, vmClient *armcompute.VirtualMachineScaleSetVMsClient, scaleSetClient *armcompute.VirtualMachineScaleSetsClient, subscriptionId string, regions []string, log *logp.Logger, publisher stateless.Publisher) error {
-	instances, err := getAllAzureScaleSetsVMInstances(ctx, vmClient, scaleSetClient, subscriptionId, regions, log)
+func collectAzureScaleSetsVMAssets(
+	ctx context.Context,
+	vmClient *armcompute.VirtualMachineScaleSetVMsClient,
+	scaleSetClient *armcompute.VirtualMachineScaleSetsClient,
+	subscriptionId string,
+	log *logp.Logger,
+	publisher stateless.Publisher,
+) error {
+	instances, err := getAllAzureScaleSetsVMInstances(
+		ctx,
+		vmClient,
+		scaleSetClient,
+		subscriptionId,
+	)
 	if err != nil {
 		return err
 	}
@@ -100,10 +118,17 @@ func collectAzureScaleSetsVMAssets(ctx context.Context, vmClient *armcompute.Vir
 	return nil
 }
 
-func getAllAzureScaleSetsVMInstances(ctx context.Context, vmClient *armcompute.VirtualMachineScaleSetVMsClient, scaleSetClient *armcompute.VirtualMachineScaleSetsClient, subscriptionId string, regions []string, log *logp.Logger) ([]AzureVMInstance, error) {
+func getAllAzureScaleSetsVMInstances(
+	ctx context.Context,
+	vmClient *armcompute.VirtualMachineScaleSetVMsClient,
+	scaleSetClient *armcompute.VirtualMachineScaleSetsClient,
+	subscriptionId string,
+) ([]AzureVMInstance, error) {
 	var vmScaleSets []vmScaleSet
 	var vmInstances []AzureVMInstance
-	scaleSetPager := scaleSetClient.NewListAllPager(&armcompute.VirtualMachineScaleSetsClientListAllOptions{})
+	scaleSetPager := scaleSetClient.NewListAllPager(
+		&armcompute.VirtualMachineScaleSetsClientListAllOptions{},
+	)
 	for scaleSetPager.More() {
 		page, err := scaleSetPager.NextPage(ctx)
 		if err != nil {
@@ -116,13 +141,23 @@ func getAllAzureScaleSetsVMInstances(ctx context.Context, vmClient *armcompute.V
 
 	for _, vmScaleSet := range vmScaleSets {
 		resourceGroup := getResourceGroupFromId(vmScaleSet.ID)
-		pager := vmClient.NewListPager(resourceGroup, vmScaleSet.Name, &armcompute.VirtualMachineScaleSetVMsClientListOptions{})
+		pager := vmClient.NewListPager(
+			resourceGroup,
+			vmScaleSet.Name,
+			&armcompute.VirtualMachineScaleSetVMsClientListOptions{},
+		)
 		page, err := pager.NextPage(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to advance page: %v", err)
 		}
 		for _, v := range page.Value {
-			res, err := vmClient.GetInstanceView(ctx, resourceGroup, vmScaleSet.Name, *v.InstanceID, nil)
+			res, err := vmClient.GetInstanceView(
+				ctx,
+				resourceGroup,
+				vmScaleSet.Name,
+				*v.InstanceID,
+				nil,
+			)
 			if err != nil {
 				return nil, fmt.Errorf("failed get the Instance View: %v", err)
 			}
@@ -148,9 +183,16 @@ func getAllAzureScaleSetsVMInstances(ctx context.Context, vmClient *armcompute.V
 	return vmInstances, nil
 }
 
-func getAllAzureVMInstances(ctx context.Context, client *armcompute.VirtualMachinesClient, subscriptionId string, regions []string) ([]AzureVMInstance, error) {
+func getAllAzureVMInstances(
+	ctx context.Context,
+	client *armcompute.VirtualMachinesClient,
+	subscriptionId string,
+	regions []string,
+) ([]AzureVMInstance, error) {
 	var vmInstances []AzureVMInstance
-	pager := client.NewListAllPager(&armcompute.VirtualMachinesClientListAllOptions{StatusOnly: to.Ptr("true")})
+	pager := client.NewListAllPager(
+		&armcompute.VirtualMachinesClientListAllOptions{StatusOnly: to.Ptr("true")},
+	)
 	for pager.More() {
 		page, err := pager.NextPage(ctx)
 		if err != nil {
@@ -159,7 +201,8 @@ func getAllAzureVMInstances(ctx context.Context, client *armcompute.VirtualMachi
 		for _, v := range page.Value {
 			if wantRegion(v, regions) {
 				var status string
-				if v.Properties != nil && v.Properties.InstanceView != nil && len(v.Properties.InstanceView.Statuses) > 1 {
+				if v.Properties != nil && v.Properties.InstanceView != nil &&
+					len(v.Properties.InstanceView.Statuses) > 1 {
 					status = *v.Properties.InstanceView.Statuses[len(v.Properties.InstanceView.Statuses)-1].DisplayStatus
 				}
 				vmInstance := AzureVMInstance{

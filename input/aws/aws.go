@@ -21,21 +21,17 @@ import (
 	"context"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	aws_config "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
-
-	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
-
 	"github.com/elastic/assetbeat/input/internal"
 	input "github.com/elastic/beats/v7/filebeat/input/v2"
-
+	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
 	"github.com/elastic/beats/v7/libbeat/feature"
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/go-concert/ctxtool"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	aws_config "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
 )
 
 func Plugin() input.Plugin {
@@ -54,15 +50,15 @@ func configure(inputCfg *conf.C) (stateless.Input, error) {
 		return nil, err
 	}
 
-	return newAssetsAWS(cfg)
+	return newAssetsAWS(cfg), nil
 }
 
-func newAssetsAWS(cfg config) (*assetsAWS, error) {
-	return &assetsAWS{cfg}, nil
+func newAssetsAWS(cfg config) *assetsAWS {
+	return &assetsAWS{cfg}
 }
 
 type config struct {
-	internal.BaseConfig `config:",inline"`
+	internal.BaseConfig `         config:",inline"`
 	Regions             []string `config:"regions"`
 	AccessKeyId         string   `config:"access_key_id"`
 	SecretAccessKey     string   `config:"secret_access_key"`
@@ -135,7 +131,12 @@ func getAWSConfigForRegion(ctx context.Context, cfg config, region string) (aws.
 	return aws_config.LoadDefaultConfig(ctx, options...)
 }
 
-func collectAWSAssets(ctx context.Context, log *logp.Logger, cfg config, publisher stateless.Publisher) {
+func collectAWSAssets(
+	ctx context.Context,
+	log *logp.Logger,
+	cfg config,
+	publisher stateless.Publisher,
+) {
 	for _, region := range cfg.Regions {
 		awsCfg, err := getAWSConfigForRegion(ctx, cfg, region)
 		if err != nil {
@@ -156,7 +157,7 @@ func collectAWSAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 			ec2Region := region
 			go func() {
 				client := ec2.NewFromConfig(awsCfg)
-				err := collectEC2Assets(ctx, client, ec2Region, log, publisher)
+				err := collectEC2Assets(ctx, client, ec2Region, publisher)
 				if err != nil {
 					log.Errorf("error collecting EC2 assets: %w", err)
 				}
@@ -166,7 +167,7 @@ func collectAWSAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 			vpcRegion := region
 			go func() {
 				client := ec2.NewFromConfig(awsCfg)
-				err := collectVPCAssets(ctx, client, vpcRegion, log, publisher)
+				err := collectVPCAssets(ctx, client, vpcRegion, publisher)
 				if err != nil {
 					log.Errorf("error collecting VPC assets: %w", err)
 				}
@@ -176,7 +177,7 @@ func collectAWSAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 			subnetRegion := region
 			go func() {
 				client := ec2.NewFromConfig(awsCfg)
-				err := collectSubnetAssets(ctx, client, subnetRegion, log, publisher)
+				err := collectSubnetAssets(ctx, client, subnetRegion, publisher)
 				if err != nil {
 					log.Errorf("error collecting Subnet assets: %w", err)
 				}

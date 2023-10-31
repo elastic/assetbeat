@@ -21,12 +21,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"github.com/elastic/assetbeat/input/testutil"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/mapstr"
+	"github.com/stretchr/testify/assert"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var startTime = metav1.Time{Time: time.Date(2021, 8, 15, 14, 30, 45, 100, time.Local)}
@@ -47,9 +46,10 @@ func TestPublish(t *testing.T) {
 			opts: []AssetOption{
 				WithAssetCloudProvider("aws"),
 			},
-			expectedEvent: beat.Event{Fields: mapstr.M{
-				"cloud.provider": "aws",
-			},
+			expectedEvent: beat.Event{
+				Fields: mapstr.M{
+					"cloud.provider": "aws",
+				},
 				Meta: mapstr.M{"index": GetDefaultIndexName()},
 			},
 		},
@@ -59,10 +59,11 @@ func TestPublish(t *testing.T) {
 				WithAssetCloudProvider("aws"),
 				WithAssetRegion("us-east-1"),
 			},
-			expectedEvent: beat.Event{Fields: mapstr.M{
-				"cloud.provider": "aws",
-				"cloud.region":   "us-east-1",
-			},
+			expectedEvent: beat.Event{
+				Fields: mapstr.M{
+					"cloud.provider": "aws",
+					"cloud.region":   "us-east-1",
+				},
 				Meta: mapstr.M{"index": GetDefaultIndexName()},
 			},
 		},
@@ -72,10 +73,11 @@ func TestPublish(t *testing.T) {
 				WithAssetCloudProvider("aws"),
 				WithAssetAccountID("42"),
 			},
-			expectedEvent: beat.Event{Fields: mapstr.M{
-				"cloud.provider":   "aws",
-				"cloud.account.id": "42",
-			},
+			expectedEvent: beat.Event{
+				Fields: mapstr.M{
+					"cloud.provider":   "aws",
+					"cloud.account.id": "42",
+				},
 				Meta: mapstr.M{"index": GetDefaultIndexName()},
 			},
 		},
@@ -86,13 +88,14 @@ func TestPublish(t *testing.T) {
 				WithAssetKindAndID("host", "i-1234"),
 				WithAssetType("aws.ec2.instance"),
 			},
-			expectedEvent: beat.Event{Fields: mapstr.M{
-				"cloud.provider": "aws",
-				"asset.type":     "aws.ec2.instance",
-				"asset.kind":     "host",
-				"asset.id":       "i-1234",
-				"asset.ean":      "host:i-1234",
-			}, Meta: mapstr.M{"index": GetDefaultIndexName()},
+			expectedEvent: beat.Event{
+				Fields: mapstr.M{
+					"cloud.provider": "aws",
+					"asset.type":     "aws.ec2.instance",
+					"asset.kind":     "host",
+					"asset.id":       "i-1234",
+					"asset.ean":      "host:i-1234",
+				}, Meta: mapstr.M{"index": GetDefaultIndexName()},
 			},
 		},
 		{
@@ -149,7 +152,8 @@ func TestPublish(t *testing.T) {
 				"kubernetes.pod.start_time": &startTime,
 				"kubernetes.namespace":      "default",
 			}, Meta: mapstr.M{"index": GetDefaultIndexName()}},
-		}, {
+		},
+		{
 			name: "with valid container data",
 			opts: []AssetOption{
 				WithContainerData("nginx-container", "a375d24b-fa20-4ea6-a0ee-1d38671d2c09", "default", "running", &startTime),

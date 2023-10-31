@@ -26,17 +26,13 @@ import (
 	"github.com/elastic/assetbeat/input/internal"
 	input "github.com/elastic/beats/v7/filebeat/input/v2"
 	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
-
+	"github.com/elastic/beats/v7/libbeat/feature"
 	kube "github.com/elastic/elastic-agent-autodiscover/kubernetes"
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
-
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
-
-	"github.com/elastic/beats/v7/libbeat/feature"
 	"github.com/elastic/go-concert/ctxtool"
-
 	kuberntescli "k8s.io/client-go/kubernetes"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 )
 
 type config struct {
@@ -46,7 +42,7 @@ type config struct {
 }
 
 // watchersMap struct containt a sync.Map object to effectively handle
-// concurrent writes and reads of the map values
+// concurrent writes and reads of the map values.
 type watchersMap struct {
 	watchers sync.Map
 }
@@ -72,11 +68,11 @@ func configure(inputCfg *conf.C) (stateless.Input, error) {
 		log.Errorf("unable to build kubernetes clientset: %w", err)
 	}
 
-	return newAssetsK8s(cfg, client)
+	return newAssetsK8s(cfg, client), nil
 }
 
-func newAssetsK8s(cfg config, client kuberntescli.Interface) (*assetsK8s, error) {
-	return &assetsK8s{cfg, client}, nil
+func newAssetsK8s(cfg config, client kuberntescli.Interface) *assetsK8s {
+	return &assetsK8s{cfg, client}
 }
 
 func defaultConfig() config {
@@ -122,17 +118,20 @@ func (s *assetsK8s) Run(inputCtx input.Context, publisher stateless.Publisher) e
 		return nil
 	default:
 		// Init the watchers
-		if err := initK8sWatchers(ctx, client, log, cfg, publisher, watchersMap); err != nil {
+		if err := initK8sWatchers(ctx, client, log, cfg, watchersMap); err != nil {
 			return err
 		}
 		// Start the watchers
-		if err := startK8sWatchers(ctx, log, cfg, watchersMap); err != nil {
+		if err := startK8sWatchers(log, cfg, watchersMap); err != nil {
 			// stop any running watcher
-			stopK8sWatchers(ctx, log, watchersMap)
+			stopK8sWatchers(log, watchersMap)
 			return err
 		}
 		// wait 10 seconds for cache to be filled. Only applicable on first run
-		time.AfterFunc(10*time.Second, func() { collectK8sAssets(ctx, log, cfg, publisher, watchersMap) })
+		time.AfterFunc(
+			10*time.Second,
+			func() { collectK8sAssets(ctx, log, cfg, publisher, watchersMap) },
+		)
 	}
 	for {
 		select {
@@ -162,8 +161,14 @@ func getKubernetesClient(kubeconfigPath string, log *logp.Logger) (kuberntescli.
 	return client, nil
 }
 
-// collectK8sAssets collects kubernetes resources from watchers cache and publishes them
-func collectK8sAssets(ctx context.Context, log *logp.Logger, cfg config, publisher stateless.Publisher, watchersMap *watchersMap) {
+// collectK8sAssets collects kubernetes resources from watchers cache and publishes them.
+func collectK8sAssets(
+	ctx context.Context,
+	log *logp.Logger,
+	cfg config,
+	publisher stateless.Publisher,
+	watchersMap *watchersMap,
+) {
 	if internal.IsTypeEnabled(cfg.AssetTypes, "k8s.node") {
 		log.Info("Node type enabled. Starting collecting")
 		go func() {
@@ -177,7 +182,6 @@ func collectK8sAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 			} else {
 				log.Error("Node watcher not found")
 			}
-
 		}()
 	}
 	if internal.IsTypeEnabled(cfg.AssetTypes, "k8s.pod") {
@@ -195,15 +199,13 @@ func collectK8sAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 				}
 				pw, ok := podWatcher.(kube.Watcher)
 				if ok {
-					publishK8sPods(ctx, log, publisher, pw, nw)
+					publishK8sPods(log, publisher, pw, nw)
 				} else {
 					log.Error("Pod watcher type assertion failed")
 				}
-
 			} else {
 				log.Error("Pod watcher not found")
 			}
-
 		}()
 	}
 
@@ -213,22 +215,25 @@ func collectK8sAssets(ctx context.Context, log *logp.Logger, cfg config, publish
 			if podWatcher, ok := watchersMap.watchers.Load("pod"); ok {
 				pw, ok := podWatcher.(kube.Watcher)
 				if ok {
-					publishK8sContainers(ctx, log, publisher, pw)
+					publishK8sContainers(log, publisher, pw)
 				} else {
 					log.Error("Pod watcher type assertion failed")
 				}
-
 			} else {
 				log.Error("Pod watcher not found")
 			}
-
 		}()
 	}
 }
 
-// initK8sWatchers initiates and stores watchers for kubernetes nodes and pods, which watch for resources in kubernetes cluster
-func initK8sWatchers(ctx context.Context, client kuberntescli.Interface, log *logp.Logger, cfg config, publisher stateless.Publisher, watchersMap *watchersMap) error {
-
+// initK8sWatchers initiates and stores watchers for kubernetes nodes and pods, which watch for resources in kubernetes cluster.
+func initK8sWatchers(
+	ctx context.Context,
+	client kuberntescli.Interface,
+	log *logp.Logger,
+	cfg config,
+	watchersMap *watchersMap,
+) error {
 	if internal.IsTypeEnabled(cfg.AssetTypes, "k8s.node") {
 		log.Info("Node type enabled. Initiate node watcher")
 		nodeWatcher, err := getNodeWatcher(ctx, log, client, time.Second*60)
@@ -251,9 +256,12 @@ func initK8sWatchers(ctx context.Context, client kuberntescli.Interface, log *lo
 	return nil
 }
 
-// startK8sWatchers starts the given watchers
-func startK8sWatchers(ctx context.Context, log *logp.Logger, cfg config, watchersMap *watchersMap) error {
-
+// startK8sWatchers starts the given watchers.
+func startK8sWatchers(
+	log *logp.Logger,
+	cfg config,
+	watchersMap *watchersMap,
+) error {
 	if internal.IsTypeEnabled(cfg.AssetTypes, "k8s.node") {
 		log.Info("Starting node watcher")
 		if nodeWatcher, ok := watchersMap.watchers.Load("node"); ok {
@@ -291,9 +299,8 @@ func startK8sWatchers(ctx context.Context, log *logp.Logger, cfg config, watcher
 	return nil
 }
 
-// stopK8sWatchers starts the given watchers
-func stopK8sWatchers(ctx context.Context, log *logp.Logger, watchersMap *watchersMap) {
-
+// stopK8sWatchers starts the given watchers.
+func stopK8sWatchers(log *logp.Logger, watchersMap *watchersMap) {
 	log.Info("Stoping watchers")
 	if podWatcher, ok := watchersMap.watchers.Load("pod"); ok {
 		pw, ok := podWatcher.(kube.Watcher)
@@ -318,7 +325,7 @@ func stopK8sWatchers(ctx context.Context, log *logp.Logger, watchersMap *watcher
 	}
 }
 
-// SetClient sets the Kubernetes Client. Used for e2e tests
+// SetClient sets the Kubernetes Client. Used for e2e tests.
 func SetClient(client kuberntescli.Interface, s stateless.Input) error {
 	i, ok := s.(*assetsK8s)
 	if !ok {

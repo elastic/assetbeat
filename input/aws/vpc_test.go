@@ -19,36 +19,46 @@ package aws
 
 import (
 	"context"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
-	"github.com/elastic/assetbeat/input/internal"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
-	"github.com/stretchr/testify/assert"
-
+	"github.com/elastic/assetbeat/input/internal"
 	"github.com/elastic/assetbeat/input/testutil"
 	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
+	"github.com/stretchr/testify/assert"
 )
 
-var vpcId1 = "vpc-id-1"
-var vpcName1 = "vpc-name-1"
-var vpcId2 = "vpc-id-2"
-var vpcName2 = "vpc-name-2"
-var isDefaultVPC = true
-var isNotDefaultVPC = false
+var (
+	vpcId1          = "vpc-id-1"
+	vpcName1        = "vpc-name-1"
+	vpcId2          = "vpc-id-2"
+	vpcName2        = "vpc-name-2"
+	isDefaultVPC    = true
+	isNotDefaultVPC = false
+)
 
-var subnetID_1 = "subnet-id-1"
-var subnetName_1 = "subnet-name-1"
-var subnetID_2 = "subnet-id-2"
-var subnetName_2 = "subnet-name-2"
+var (
+	subnetID_1   = "subnet-id-1"
+	subnetName_1 = "subnet-name-1"
+	subnetID_2   = "subnet-id-2"
+	subnetName_2 = "subnet-name-2"
+)
 
-type mockDescribeVpcsAPI func(ctx context.Context, params *ec2.DescribeVpcsInput, optFns ...func(*ec2.Options)) (*ec2.DescribeVpcsOutput, error)
+type mockDescribeVpcsAPI func(
+	ctx context.Context,
+	params *ec2.DescribeVpcsInput,
+	optFns ...func(*ec2.Options),
+) (*ec2.DescribeVpcsOutput, error)
 
-func (m mockDescribeVpcsAPI) DescribeVpcs(ctx context.Context, params *ec2.DescribeVpcsInput, optFns ...func(*ec2.Options)) (*ec2.DescribeVpcsOutput, error) {
+func (m mockDescribeVpcsAPI) DescribeVpcs(
+	ctx context.Context,
+	params *ec2.DescribeVpcsInput,
+	optFns ...func(*ec2.Options),
+) (*ec2.DescribeVpcsOutput, error) {
 	return m(ctx, params, optFns...)
 }
 
@@ -63,41 +73,46 @@ func TestAssetsAWS_collectVPCAssets(t *testing.T) {
 			name:   "Test with multiple VPCs",
 			region: "eu-west-1",
 			client: func(t *testing.T) ec2.DescribeVpcsAPIClient {
-				return mockDescribeVpcsAPI(func(ctx context.Context, params *ec2.DescribeVpcsInput, optFns ...func(*ec2.Options)) (*ec2.DescribeVpcsOutput, error) {
-					t.Helper()
-					return &ec2.DescribeVpcsOutput{
-						NextToken: nil,
-						Vpcs: []types.Vpc{
-							{
-								OwnerId: &ownerID_1,
-								VpcId:   &vpcId1,
-								Tags: []types.Tag{
-									{
-										Key:   &tag_1_k,
-										Value: &tag_1_v,
+				return mockDescribeVpcsAPI(
+					func(
+						ctx context.Context,
+						params *ec2.DescribeVpcsInput,
+						optFns ...func(*ec2.Options),
+					) (*ec2.DescribeVpcsOutput, error) {
+						t.Helper()
+						return &ec2.DescribeVpcsOutput{
+							NextToken: nil,
+							Vpcs: []types.Vpc{
+								{
+									OwnerId: &ownerID_1,
+									VpcId:   &vpcId1,
+									Tags: []types.Tag{
+										{
+											Key:   &tag_1_k,
+											Value: &tag_1_v,
+										},
+										{
+											Key:   to.Ptr("Name"),
+											Value: &vpcName1,
+										},
 									},
-									{
-										Key:   to.Ptr("Name"),
-										Value: &vpcName1,
+									IsDefault: &isDefaultVPC,
+								},
+								{
+									OwnerId:   &ownerID_1,
+									VpcId:     &vpcId2,
+									IsDefault: &isNotDefaultVPC,
+									Tags: []types.Tag{
+										{
+											Key:   to.Ptr("Name"),
+											Value: &vpcName2,
+										},
 									},
 								},
-								IsDefault: &isDefaultVPC,
 							},
-							{
-								OwnerId:   &ownerID_1,
-								VpcId:     &vpcId2,
-								IsDefault: &isNotDefaultVPC,
-								Tags: []types.Tag{
-									{
-										Key:   to.Ptr("Name"),
-										Value: &vpcName2,
-									},
-								},
-							},
-						},
-						ResultMetadata: middleware.Metadata{},
-					}, nil
-				})
+							ResultMetadata: middleware.Metadata{},
+						}, nil
+					})
 			},
 			expectedEvents: []beat.Event{
 				{
@@ -140,18 +155,25 @@ func TestAssetsAWS_collectVPCAssets(t *testing.T) {
 			publisher := testutil.NewInMemoryPublisher()
 
 			ctx := context.Background()
-			logger := logp.NewLogger("test")
 
-			err := collectVPCAssets(ctx, tt.client(t), tt.region, logger, publisher)
+			err := collectVPCAssets(ctx, tt.client(t), tt.region, publisher)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedEvents, publisher.Events)
 		})
 	}
 }
 
-type mockDescribeSubnetsAPI func(ctx context.Context, params *ec2.DescribeSubnetsInput, optFns ...func(*ec2.Options)) (*ec2.DescribeSubnetsOutput, error)
+type mockDescribeSubnetsAPI func(
+	ctx context.Context,
+	params *ec2.DescribeSubnetsInput,
+	optFns ...func(*ec2.Options),
+) (*ec2.DescribeSubnetsOutput, error)
 
-func (m mockDescribeSubnetsAPI) DescribeSubnets(ctx context.Context, params *ec2.DescribeSubnetsInput, optFns ...func(*ec2.Options)) (*ec2.DescribeSubnetsOutput, error) {
+func (m mockDescribeSubnetsAPI) DescribeSubnets(
+	ctx context.Context,
+	params *ec2.DescribeSubnetsInput,
+	optFns ...func(*ec2.Options),
+) (*ec2.DescribeSubnetsOutput, error) {
 	return m(ctx, params, optFns...)
 }
 
@@ -166,41 +188,45 @@ func TestAssetsAWS_collectSubnetAssets(t *testing.T) {
 			name:   "Test with multiple Subnets",
 			region: "eu-west-1",
 			client: func(t *testing.T) ec2.DescribeSubnetsAPIClient {
-				return mockDescribeSubnetsAPI(func(ctx context.Context, params *ec2.DescribeSubnetsInput, optFns ...func(*ec2.Options)) (*ec2.DescribeSubnetsOutput, error) {
-					t.Helper()
-					return &ec2.DescribeSubnetsOutput{
-						Subnets: []types.Subnet{
-							{
-								OwnerId:  &ownerID_1,
-								SubnetId: &subnetID_1,
-								Tags: []types.Tag{
-									{
-										Key:   &tag_1_k,
-										Value: &tag_1_v,
+				return mockDescribeSubnetsAPI(
+					func(ctx context.Context,
+						params *ec2.DescribeSubnetsInput,
+						optFns ...func(*ec2.Options),
+					) (*ec2.DescribeSubnetsOutput, error) {
+						t.Helper()
+						return &ec2.DescribeSubnetsOutput{
+							Subnets: []types.Subnet{
+								{
+									OwnerId:  &ownerID_1,
+									SubnetId: &subnetID_1,
+									Tags: []types.Tag{
+										{
+											Key:   &tag_1_k,
+											Value: &tag_1_v,
+										},
+										{
+											Key:   to.Ptr("Name"),
+											Value: &subnetName_1,
+										},
 									},
-									{
-										Key:   to.Ptr("Name"),
-										Value: &subnetName_1,
-									},
+									VpcId: &vpcId1,
+									State: "available",
 								},
-								VpcId: &vpcId1,
-								State: "available",
-							},
-							{
-								OwnerId:  &ownerID_1,
-								SubnetId: &subnetID_2,
-								VpcId:    &vpcId1,
-								Tags: []types.Tag{
-									{
-										Key:   to.Ptr("Name"),
-										Value: &subnetName_2,
+								{
+									OwnerId:  &ownerID_1,
+									SubnetId: &subnetID_2,
+									VpcId:    &vpcId1,
+									Tags: []types.Tag{
+										{
+											Key:   to.Ptr("Name"),
+											Value: &subnetName_2,
+										},
 									},
+									State: "pending",
 								},
-								State: "pending",
 							},
-						},
-					}, nil
-				})
+						}, nil
+					})
 			},
 			expectedEvents: []beat.Event{
 				{
@@ -249,9 +275,8 @@ func TestAssetsAWS_collectSubnetAssets(t *testing.T) {
 			publisher := testutil.NewInMemoryPublisher()
 
 			ctx := context.Background()
-			logger := logp.NewLogger("test")
 
-			err := collectSubnetAssets(ctx, tt.client(t), tt.region, logger, publisher)
+			err := collectSubnetAssets(ctx, tt.client(t), tt.region, publisher)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedEvents, publisher.Events)
 		})

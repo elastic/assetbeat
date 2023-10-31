@@ -44,5 +44,5 @@ func CreateSHA512File(file string) error {
 	computedHash := hex.EncodeToString(sum.Sum(nil))
 	out := fmt.Sprintf("%v  %v", computedHash, filepath.Base(file))
 
-	return os.WriteFile(file+".sha512", []byte(out), 0644)
+	return os.WriteFile(file+".sha512", []byte(out), 0o644)
 }

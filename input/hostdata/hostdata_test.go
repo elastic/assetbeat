@@ -19,20 +19,16 @@ package hostdata
 
 import (
 	"context"
-	"github.com/elastic/assetbeat/input/internal"
 	"testing"
 
-	"github.com/elastic/go-sysinfo"
-
-	"github.com/elastic/beats/v7/libbeat/beat"
-	"github.com/elastic/elastic-agent-system-metrics/metric/system/host"
-
+	"github.com/elastic/assetbeat/input/internal"
 	"github.com/elastic/assetbeat/input/testutil"
-	"github.com/elastic/elastic-agent-libs/logp"
-
-	"github.com/stretchr/testify/assert"
-
+	"github.com/elastic/beats/v7/libbeat/beat"
 	conf "github.com/elastic/elastic-agent-libs/config"
+	"github.com/elastic/elastic-agent-libs/logp"
+	"github.com/elastic/elastic-agent-system-metrics/metric/system/host"
+	"github.com/elastic/go-sysinfo"
+	"github.com/stretchr/testify/assert"
 )
 
 type fakeCloudMetadataProcessor struct{}
@@ -53,7 +49,7 @@ func TestHostdata_configurationAndInitialization(t *testing.T) {
 	input, err := configure(conf.NewConfig())
 	assert.Nil(t, err)
 
-	hostdata := input.(*hostdata)
+	hostdata, _ := input.(*hostdata)
 	assert.Equal(t, defaultCollectionPeriod, hostdata.config.Period)
 
 	assert.NotEmpty(t, hostdata.hostInfo)
@@ -76,7 +72,7 @@ func TestHostdata_reportHostDataAssets(t *testing.T) {
 	assetKind, _ := event.Fields.GetValue("asset.kind")
 	destinationDatastream, _ := event.Meta.GetValue("index")
 
-	//assert.NotEmpty(t, hostID)
+	// assert.NotEmpty(t, hostID)
 	assert.Equal(t, hostID, assetID)
 	assert.Equal(t, "host", assetType)
 	assert.Equal(t, "host", assetKind)

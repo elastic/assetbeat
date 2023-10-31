@@ -21,17 +21,19 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/elastic/assetbeat/input/internal"
-	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
-
-	"github.com/elastic/elastic-agent-libs/logp"
-	"github.com/elastic/elastic-agent-libs/mapstr"
-
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	"github.com/elastic/assetbeat/input/internal"
+	stateless "github.com/elastic/beats/v7/filebeat/input/v2/input-stateless"
+	"github.com/elastic/elastic-agent-libs/mapstr"
 )
 
-func collectVPCAssets(ctx context.Context, client ec2.DescribeVpcsAPIClient, region string, log *logp.Logger, publisher stateless.Publisher) error {
+func collectVPCAssets(
+	ctx context.Context,
+	client ec2.DescribeVpcsAPIClient,
+	region string,
+	publisher stateless.Publisher,
+) error {
 	vpcs, err := describeVPCs(ctx, client)
 	if err != nil {
 		return err
@@ -64,7 +66,12 @@ func collectVPCAssets(ctx context.Context, client ec2.DescribeVpcsAPIClient, reg
 	return nil
 }
 
-func collectSubnetAssets(ctx context.Context, client ec2.DescribeSubnetsAPIClient, region string, log *logp.Logger, publisher stateless.Publisher) error {
+func collectSubnetAssets(
+	ctx context.Context,
+	client ec2.DescribeSubnetsAPIClient,
+	region string,
+	publisher stateless.Publisher,
+) error {
 	subnets, err := describeSubnets(ctx, client)
 	if err != nil {
 		return err
@@ -117,7 +124,10 @@ func describeVPCs(ctx context.Context, client ec2.DescribeVpcsAPIClient) ([]type
 	return vpcs, nil
 }
 
-func describeSubnets(ctx context.Context, client ec2.DescribeSubnetsAPIClient) ([]types.Subnet, error) {
+func describeSubnets(
+	ctx context.Context,
+	client ec2.DescribeSubnetsAPIClient,
+) ([]types.Subnet, error) {
 	subnets := make([]types.Subnet, 0, 100)
 	paginator := ec2.NewDescribeSubnetsPaginator(client, &ec2.DescribeSubnetsInput{})
 	for paginator.HasMorePages() {

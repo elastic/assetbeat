@@ -18,21 +18,20 @@
 package cmd
 
 import (
-	"github.com/elastic/assetbeat/version"
-	"github.com/spf13/pflag"
-
 	"github.com/elastic/assetbeat/beater"
+	"github.com/elastic/assetbeat/version"
 	"github.com/elastic/beats/v7/libbeat/cmd"
 	"github.com/elastic/beats/v7/libbeat/cmd/instance"
+	"github.com/spf13/pflag"
 )
 
-// Name of this beat
+// Name of this beat.
 const Name = "assetbeat"
 
-// RootCmd to handle beats cli
+// RootCmd to handle beats cli.
 var RootCmd *cmd.BeatsRootCmd
 
-// AssetbeatSettings contains the default settings for assetbeat
+// AssetbeatSettings contains the default settings for assetbeat.
 func AssetbeatSettings() instance.Settings {
 	runFlags := pflag.NewFlagSet(Name, pflag.ExitOnError)
 	return instance.Settings{

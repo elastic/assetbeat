@@ -20,10 +20,9 @@ package channel
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/tests/resources"
+	"github.com/stretchr/testify/assert"
 )
 
 type dummyOutletter struct {

@@ -30,10 +30,10 @@ import (
 )
 
 func Init(info beat.Info, log *logp.Logger, components beater.StateStore) []v2.Plugin {
-	return genericInputs(log, components)
+	return genericInputs()
 }
 
-func genericInputs(log *logp.Logger, components beater.StateStore) []v2.Plugin {
+func genericInputs() []v2.Plugin {
 	return []v2.Plugin{
 		aws.Plugin(),
 		gcp.Plugin(),

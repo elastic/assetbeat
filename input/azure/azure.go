@@ -51,15 +51,15 @@ func configure(inputCfg *conf.C) (stateless.Input, error) {
 		return nil, err
 	}
 
-	return newAssetsAzure(cfg)
+	return newAssetsAzure(cfg), nil
 }
 
-func newAssetsAzure(cfg config) (*assetsAzure, error) {
-	return &assetsAzure{cfg}, nil
+func newAssetsAzure(cfg config) *assetsAzure {
+	return &assetsAzure{cfg}
 }
 
 type config struct {
-	internal.BaseConfig `config:",inline"`
+	internal.BaseConfig `         config:",inline"`
 	Regions             []string `config:"regions"`
 	ClientID            string   `config:"client_id"`
 	ClientSecret        string   `config:"client_secret"`
@@ -121,14 +121,24 @@ func (s *assetsAzure) Run(inputCtx input.Context, publisher stateless.Publisher)
 func getAzureCredentials(cfg config, log *logp.Logger) (azcore.TokenCredential, error) {
 	if cfg.TenantID != "" && cfg.ClientID != "" && cfg.ClientSecret != "" {
 		log.Debug("Retrieving Azure credentials from assetbeat configuration...")
-		return azidentity.NewClientSecretCredential(cfg.TenantID, cfg.ClientID, cfg.ClientSecret, nil)
+		return azidentity.NewClientSecretCredential(
+			cfg.TenantID,
+			cfg.ClientID,
+			cfg.ClientSecret,
+			nil,
+		)
 	} else {
 		log.Debug("No Client or Tenant configuration provided. Retrieving default Azure credentials")
 		return azidentity.NewDefaultAzureCredential(nil)
 	}
 }
 
-func collectAzureAssets(ctx context.Context, log *logp.Logger, cfg config, publisher stateless.Publisher) {
+func collectAzureAssets(
+	ctx context.Context,
+	log *logp.Logger,
+	cfg config,
+	publisher stateless.Publisher,
+) {
 	cred, err := getAzureCredentials(cfg, log)
 	if err != nil {
 		log.Errorf("Error while retrieving Azure credentials: %v")
@@ -155,7 +165,14 @@ func collectAzureAssets(ctx context.Context, log *logp.Logger, cfg config, publi
 			vmClient := clientFactory.NewVirtualMachineScaleSetVMsClient()
 			scaleSetsClient := clientFactory.NewVirtualMachineScaleSetsClient()
 			go func(currentSub string) {
-				err = collectAzureScaleSetsVMAssets(ctx, vmClient, scaleSetsClient, currentSub, cfg.Regions, log, publisher)
+				err = collectAzureScaleSetsVMAssets(
+					ctx,
+					vmClient,
+					scaleSetsClient,
+					currentSub,
+					log,
+					publisher,
+				)
 				if err != nil {
 					log.Errorf("Error while collecting Azure Scale Sets VM assets: %v", err)
 				}
@@ -164,7 +181,11 @@ func collectAzureAssets(ctx context.Context, log *logp.Logger, cfg config, publi
 	}
 }
 
-func getAzureSubscriptions(ctx context.Context, cfg config, cred azcore.TokenCredential) ([]string, error) {
+func getAzureSubscriptions(
+	ctx context.Context,
+	cfg config,
+	cred azcore.TokenCredential,
+) ([]string, error) {
 	var subscriptions []string
 	if cfg.SubscriptionID != "" {
 		subscriptions = append(subscriptions, cfg.SubscriptionID)

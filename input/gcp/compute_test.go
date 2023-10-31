@@ -19,21 +19,19 @@ package gcp
 
 import (
 	"context"
-	"github.com/elastic/assetbeat/input/internal"
 	"testing"
 
 	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"
-	"github.com/gogo/protobuf/proto"
-	"github.com/googleapis/gax-go/v2"
-	"google.golang.org/api/iterator"
-
-	"github.com/stretchr/testify/assert"
-
+	"github.com/elastic/assetbeat/input/internal"
 	"github.com/elastic/assetbeat/input/testutil"
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
+	"github.com/gogo/protobuf/proto"
+	"github.com/googleapis/gax-go/v2"
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/api/iterator"
 )
 
 type StubAggregatedInstanceListIterator struct {
@@ -43,7 +41,6 @@ type StubAggregatedInstanceListIterator struct {
 }
 
 func (it *StubAggregatedInstanceListIterator) Next() (compute.InstancesScopedListPair, error) {
-
 	if it.ReturnInstancesError != nil {
 		return compute.InstancesScopedListPair{}, it.ReturnInstancesError
 	}
@@ -56,14 +53,17 @@ func (it *StubAggregatedInstanceListIterator) Next() (compute.InstancesScopedLis
 	it.iterCounter++
 
 	return instances, nil
-
 }
 
 type InstancesClientStub struct {
 	AggregatedInstanceListIterator map[string]*StubAggregatedInstanceListIterator
 }
 
-func (s *InstancesClientStub) AggregatedList(ctx context.Context, req *computepb.AggregatedListInstancesRequest, opts ...gax.CallOption) AggregatedInstanceIterator {
+func (s *InstancesClientStub) AggregatedList(
+	ctx context.Context,
+	req *computepb.AggregatedListInstancesRequest,
+	opts ...gax.CallOption,
+) AggregatedInstanceIterator {
 	project := req.Project
 	return s.AggregatedInstanceListIterator[project]
 }
@@ -95,25 +95,37 @@ func TestGetAllComputeInstances(t *testing.T) {
 
 			instances: map[string]*StubAggregatedInstanceListIterator{
 				"my_project": {
-					ReturnScopedInstancesList: []compute.InstancesScopedListPair{{
-						Key: "europe-west1-d",
-						Value: &computepb.InstancesScopedList{
-							Instances: []*computepb.Instance{
-								{
-									Id:       proto.Uint64(1),
-									SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/zones/europe-west1-d/instances/my-instance-1"),
-									Zone:     proto.String("https://www.googleapis.com/compute/v1/projects/my_project/zones/europe-west1-d"),
-									NetworkInterfaces: []*computepb.NetworkInterface{
-										{
-											Network:    proto.String("https://www.googleapis.com/compute/v1/projects/my_project/global/networks/my_network"),
-											Subnetwork: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/regions/us-central1/subnetworks/my_subnet"),
+					ReturnScopedInstancesList: []compute.InstancesScopedListPair{
+						{
+							Key: "europe-west1-d",
+							Value: &computepb.InstancesScopedList{
+								Instances: []*computepb.Instance{
+									{
+										Id: proto.Uint64(1),
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/" +
+											"projects/elastic-observability/" +
+											"zones/europe-west1-d/" +
+											"instances/my-instance-1"),
+										Zone: proto.String("https://www.googleapis.com/compute/v1/" +
+											"projects/my_project/" +
+											"zones/europe-west1-d"),
+										NetworkInterfaces: []*computepb.NetworkInterface{
+											{
+												Network: proto.String("https://www.googleapis.com/compute/v1/" +
+													"projects/my_project/" +
+													"global/networks/my_network"),
+												Subnetwork: proto.String("https://www.googleapis.com/compute/v1/" +
+													"projects/elastic-observability/" +
+													"regions/us-central1/" +
+													"subnetworks/my_subnet"),
+											},
 										},
+										Status: proto.String("RUNNING"),
+										Name:   proto.String("myInstance"),
 									},
-									Status: proto.String("RUNNING"),
-									Name:   proto.String("myInstance")},
+								},
 							},
 						},
-					},
 					},
 				},
 			},
@@ -147,35 +159,49 @@ func TestGetAllComputeInstances(t *testing.T) {
 
 			instances: map[string]*StubAggregatedInstanceListIterator{
 				"my_project": {
-					ReturnScopedInstancesList: []compute.InstancesScopedListPair{{
-						Key: "europe-west1-d",
-						Value: &computepb.InstancesScopedList{
-							Instances: []*computepb.Instance{
-								{
-									Id:       proto.Uint64(1),
-									SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/zones/europe-west1-d/instances/my-instance-1"),
-									Zone:     proto.String("https://www.googleapis.com/compute/v1/projects/my_project/zones/europe-west1-d"),
-									Status:   proto.String("PROVISIONING"),
-									Name:     proto.String("myInstance1")},
+					ReturnScopedInstancesList: []compute.InstancesScopedListPair{
+						{
+							Key: "europe-west1-d",
+							Value: &computepb.InstancesScopedList{
+								Instances: []*computepb.Instance{
+									{
+										Id: proto.Uint64(1),
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/p" +
+											"rojects/elastic-observability/" +
+											"zones/europe-west1-d/" +
+											"instances/my-instance-1"),
+										Zone: proto.String("https://www.googleapis.com/compute/v1/" +
+											"projects/my_project/" +
+											"zones/europe-west1-d"),
+										Status: proto.String("PROVISIONING"),
+										Name:   proto.String("myInstance1"),
+									},
+								},
 							},
 						},
-					},
 					},
 				},
 				"my_second_project": {
-					ReturnScopedInstancesList: []compute.InstancesScopedListPair{{
-						Key: "europe-west1-d",
-						Value: &computepb.InstancesScopedList{
-							Instances: []*computepb.Instance{
-								{
-									Id:       proto.Uint64(42),
-									SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/zones/europe-west1-d/instances/my-instance-2"),
-									Zone:     proto.String("https://www.googleapis.com/compute/v1/projects/my_project/zones/europe-west1-d"),
-									Status:   proto.String("STOPPED"),
-									Name:     proto.String("myInstance2")},
+					ReturnScopedInstancesList: []compute.InstancesScopedListPair{
+						{
+							Key: "europe-west1-d",
+							Value: &computepb.InstancesScopedList{
+								Instances: []*computepb.Instance{
+									{
+										Id: proto.Uint64(42),
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/" +
+											"projects/elastic-observability/" +
+											"zones/europe-west1-d/" +
+											"instances/my-instance-2"),
+										Zone: proto.String("https://www.googleapis.com/compute/v1/" +
+											"projects/my_project/" +
+											"zones/europe-west1-d"),
+										Status: proto.String("STOPPED"),
+										Name:   proto.String("myInstance2"),
+									},
+								},
 							},
 						},
-					},
 					},
 				},
 			},
@@ -233,17 +259,28 @@ func TestGetAllComputeInstances(t *testing.T) {
 							Value: &computepb.InstancesScopedList{
 								Instances: []*computepb.Instance{
 									{
-										Id:       proto.Uint64(1),
-										SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/zones/europe-west1-d/instances/my-instance-1"),
-										Zone:     proto.String("https://www.googleapis.com/compute/v1/projects/my_project/zones/europe-west1-d"),
+										Id: proto.Uint64(1),
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/" +
+											"projects/elastic-observability/" +
+											"zones/europe-west1-d/" +
+											"instances/my-instance-1"),
+										Zone: proto.String("https://www.googleapis.com/compute/v1/" +
+											"projects/my_project/" +
+											"zones/europe-west1-d"),
 										NetworkInterfaces: []*computepb.NetworkInterface{
 											{
-												Network:    proto.String("https://www.googleapis.com/compute/v1/projects/my_project/global/networks/my_network"),
-												Subnetwork: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/regions/us-central1/subnetworks/my_subnet"),
+												Network: proto.String("https://www.googleapis.com/compute/v1/" +
+													"projects/my_project/" +
+													"global/networks/my_network"),
+												Subnetwork: proto.String("https://www.googleapis.com/compute/v1/" +
+													"projects/elastic-observability/" +
+													"regions/us-central1/" +
+													"subnetworks/my_subnet"),
 											},
 										},
 										Status: proto.String("RUNNING"),
-										Name:   proto.String("myInstance1")},
+										Name:   proto.String("myInstance1"),
+									},
 								},
 							},
 						},
@@ -252,11 +289,16 @@ func TestGetAllComputeInstances(t *testing.T) {
 							Value: &computepb.InstancesScopedList{
 								Instances: []*computepb.Instance{
 									{
-										Id:       proto.Uint64(42),
-										SelfLink: proto.String("https://www.googleapis.com/compute/v1/projects/elastic-observability/zones/europe-west1-b/instances/my-instance-2"),
-										Zone:     proto.String("https://www.googleapis.com/compute/v1/projects/my_project/zones/us-west1-b"),
-										Status:   proto.String("RUNNING"),
-										Name:     proto.String("myInstance2")},
+										Id: proto.Uint64(42),
+										SelfLink: proto.String("https://www.googleapis.com/compute/v1/" +
+											"projects/elastic-observability/zones/" +
+											"europe-west1-b/instances/my-instance-2"),
+										Zone: proto.String("https://www.googleapis.com/compute/v1/" +
+											"projects/my_project/" +
+											"zones/us-west1-b"),
+										Status: proto.String("RUNNING"),
+										Name:   proto.String("myInstance2"),
+									},
 								},
 							},
 						},
@@ -289,12 +331,18 @@ func TestGetAllComputeInstances(t *testing.T) {
 			publisher := testutil.NewInMemoryPublisher()
 			client := InstancesClientStub{AggregatedInstanceListIterator: tt.instances}
 			clientCreator := listInstanceAPIClient{
-				AggregatedList: func(ctx context.Context, req *computepb.AggregatedListInstancesRequest, opts ...gax.CallOption) AggregatedInstanceIterator {
-					return client.AggregatedList(ctx, req, opts...)
-				},
+				AggregatedList: client.AggregatedList,
 			}
 			computeAssetsCache := getComputeCache()
-			err := collectComputeAssets(tt.ctx, tt.cfg, subnetAssetsCache, computeAssetsCache, clientCreator, publisher, log)
+			err := collectComputeAssets(
+				tt.ctx,
+				tt.cfg,
+				subnetAssetsCache,
+				computeAssetsCache,
+				clientCreator,
+				publisher,
+				log,
+			)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedEvents, publisher.Events)
 		})

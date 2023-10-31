@@ -20,6 +20,9 @@ package azure
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"testing"
+
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
 	azfake "github.com/Azure/azure-sdk-for-go/sdk/azcore/fake"
@@ -32,33 +35,59 @@ import (
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/mapstr"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"testing"
 )
 
-const resourceGroup1 = "TESTVM"
-const subscriptionId = "12cabcb4-86e8-404f-111111111111"
-const instance1Name = "instance1"
+const (
+	resourceGroup1 = "TESTVM"
+	subscriptionId = "12cabcb4-86e8-404f-111111111111"
+	instance1Name  = "instance1"
+)
 
 const instanceVMId1 = "1"
 
-var instanceid1 = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s", subscriptionId, resourceGroup1, instance1Name)
+var instanceid1 = fmt.Sprintf(
+	"/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s",
+	subscriptionId,
+	resourceGroup1,
+	instance1Name,
+)
 
-const instance2Name = "instance2"
-const instanceVMId2 = "2"
+const (
+	instance2Name = "instance2"
+	instanceVMId2 = "2"
+)
 
-var instanceid2 = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s", subscriptionId, resourceGroup1, instance2Name)
+var instanceid2 = fmt.Sprintf(
+	"/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s",
+	subscriptionId,
+	resourceGroup1,
+	instance2Name,
+)
 
-const instance3Name = "instance3"
-const instanceVMId3 = "3"
+const (
+	instance3Name = "instance3"
+	instanceVMId3 = "3"
+)
 
-var instanceid3 = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s", subscriptionId, resourceGroup1, instance3Name)
+var instanceid3 = fmt.Sprintf(
+	"/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s",
+	subscriptionId,
+	resourceGroup1,
+	instance3Name,
+)
 
-const ss1Name = "vmss1"
-const ssVm1Name = "vmss_0"
-const ssVm2Name = "vmss_1"
+const (
+	ss1Name   = "vmss1"
+	ssVm1Name = "vmss_0"
+	ssVm2Name = "vmss_1"
+)
 
-var ssID = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachineScaleSets/%s", subscriptionId, resourceGroup1, ss1Name)
+var ssID = fmt.Sprintf(
+	"/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachineScaleSets/%s",
+	subscriptionId,
+	resourceGroup1,
+	ss1Name,
+)
 
 var instance1 = armcompute.VirtualMachine{
 	Location:   to.Ptr("westeurope"),
@@ -104,6 +133,7 @@ var scaleSetVm2 = armcompute.VirtualMachineScaleSetVM{
 var status1 = armcompute.InstanceViewStatus{
 	DisplayStatus: to.Ptr("Provisioning"),
 }
+
 var status2 = armcompute.InstanceViewStatus{
 	DisplayStatus: to.Ptr("VM Running"),
 }
@@ -120,8 +150,9 @@ func TestAssetsAzure_collectAzureVMAssets(t *testing.T) {
 			name:           "Test with no regions specified",
 			subscriptionId: "12cabcb4-86e8-404f-111111111111",
 			fakeServer: fake.VirtualMachinesServer{
-				NewListAllPager: func(options *armcompute.VirtualMachinesClientListAllOptions) (resp azfake.PagerResponder[armcompute.VirtualMachinesClientListAllResponse]) {
-
+				NewListAllPager: func(options *armcompute.VirtualMachinesClientListAllOptions) (
+					resp azfake.PagerResponder[armcompute.VirtualMachinesClientListAllResponse],
+				) {
 					page := armcompute.VirtualMachinesClientListAllResponse{
 						VirtualMachineListResult: armcompute.VirtualMachineListResult{
 							Value: []*armcompute.VirtualMachine{
@@ -194,8 +225,9 @@ func TestAssetsAzure_collectAzureVMAssets(t *testing.T) {
 			regions:        []string{"westeurope", "northeurope"},
 			subscriptionId: "12cabcb4-86e8-404f-111111111111",
 			fakeServer: fake.VirtualMachinesServer{
-				NewListAllPager: func(options *armcompute.VirtualMachinesClientListAllOptions) (resp azfake.PagerResponder[armcompute.VirtualMachinesClientListAllResponse]) {
-
+				NewListAllPager: func(options *armcompute.VirtualMachinesClientListAllOptions) (
+					resp azfake.PagerResponder[armcompute.VirtualMachinesClientListAllResponse],
+				) {
 					page := armcompute.VirtualMachinesClientListAllResponse{
 						VirtualMachineListResult: armcompute.VirtualMachineListResult{
 							Value: []*armcompute.VirtualMachine{
@@ -253,18 +285,28 @@ func TestAssetsAzure_collectAzureVMAssets(t *testing.T) {
 			ctx := context.Background()
 			logger := logp.NewLogger("test")
 
-			client, err := armcompute.NewVirtualMachinesClient("subscriptionID", azfake.NewTokenCredential(), &arm.ClientOptions{
-				ClientOptions: azcore.ClientOptions{
-					Transport: fake.NewVirtualMachinesServerTransport(&tt.fakeServer),
+			client, err := armcompute.NewVirtualMachinesClient(
+				"subscriptionID",
+				azfake.NewTokenCredential(),
+				&arm.ClientOptions{
+					ClientOptions: azcore.ClientOptions{
+						Transport: fake.NewVirtualMachinesServerTransport(&tt.fakeServer),
+					},
 				},
-			})
+			)
 			assert.NoError(t, err)
 
-			err = collectAzureVMAssets(ctx, client, tt.subscriptionId, tt.regions, logger, publisher)
+			err = collectAzureVMAssets(
+				ctx,
+				client,
+				tt.subscriptionId,
+				tt.regions,
+				logger,
+				publisher,
+			)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedEvents, publisher.Events)
 		})
-
 	}
 }
 
@@ -281,8 +323,9 @@ func TestAssetsAzure_collectAzureScaleSetsVMAssets(t *testing.T) {
 			name:           "Test with one ScaleSet with tow instances",
 			subscriptionId: "12cabcb4-86e8-404f-111111111111",
 			fakeSSServer: fake.VirtualMachineScaleSetsServer{
-				NewListAllPager: func(options *armcompute.VirtualMachineScaleSetsClientListAllOptions) (resp azfake.PagerResponder[armcompute.VirtualMachineScaleSetsClientListAllResponse]) {
-
+				NewListAllPager: func(options *armcompute.VirtualMachineScaleSetsClientListAllOptions) (
+					resp azfake.PagerResponder[armcompute.VirtualMachineScaleSetsClientListAllResponse],
+				) {
 					page := armcompute.VirtualMachineScaleSetsClientListAllResponse{
 						VirtualMachineScaleSetListWithLinkResult: armcompute.VirtualMachineScaleSetListWithLinkResult{
 							Value: []*armcompute.VirtualMachineScaleSet{
@@ -295,8 +338,11 @@ func TestAssetsAzure_collectAzureScaleSetsVMAssets(t *testing.T) {
 				},
 			},
 			fakeVMServer: fake.VirtualMachineScaleSetVMsServer{
-				NewListPager: func(resourceGroup string, vmScaleSetName string, options *armcompute.VirtualMachineScaleSetVMsClientListOptions) (resp azfake.PagerResponder[armcompute.VirtualMachineScaleSetVMsClientListResponse]) {
-
+				NewListPager: func(
+					resourceGroup string,
+					vmScaleSetName string,
+					options *armcompute.VirtualMachineScaleSetVMsClientListOptions,
+				) (resp azfake.PagerResponder[armcompute.VirtualMachineScaleSetVMsClientListResponse]) {
 					page := armcompute.VirtualMachineScaleSetVMsClientListResponse{
 						VirtualMachineScaleSetVMListResult: armcompute.VirtualMachineScaleSetVMListResult{
 							Value: []*armcompute.VirtualMachineScaleSetVM{
@@ -308,8 +354,16 @@ func TestAssetsAzure_collectAzureScaleSetsVMAssets(t *testing.T) {
 					resp.AddPage(http.StatusOK, page, nil)
 					return
 				},
-				GetInstanceView: func(ctx context.Context, resourceGroupName, vmScaleSetName, instanceId string, options *armcompute.VirtualMachineScaleSetVMsClientGetInstanceViewOptions) (resp azfake.Responder[armcompute.VirtualMachineScaleSetVMsClientGetInstanceViewResponse], errResp azfake.ErrorResponder) {
-
+				GetInstanceView: func(
+					ctx context.Context,
+					resourceGroupName,
+					vmScaleSetName,
+					instanceId string,
+					options *armcompute.VirtualMachineScaleSetVMsClientGetInstanceViewOptions,
+				) (
+					resp azfake.Responder[armcompute.VirtualMachineScaleSetVMsClientGetInstanceViewResponse],
+					errResp azfake.ErrorResponder,
+				) {
 					response := armcompute.VirtualMachineScaleSetVMsClientGetInstanceViewResponse{
 						VirtualMachineScaleSetVMInstanceView: armcompute.VirtualMachineScaleSetVMInstanceView{
 							Statuses: []*armcompute.InstanceViewStatus{
@@ -366,23 +420,39 @@ func TestAssetsAzure_collectAzureScaleSetsVMAssets(t *testing.T) {
 			ctx := context.Background()
 			logger := logp.NewLogger("test")
 
-			vmclient, _ := armcompute.NewVirtualMachineScaleSetVMsClient("subscriptionID", azfake.NewTokenCredential(), &arm.ClientOptions{
-				ClientOptions: azcore.ClientOptions{
-					Transport: fake.NewVirtualMachineScaleSetVMsServerTransport(&tt.fakeVMServer),
+			vmclient, _ := armcompute.NewVirtualMachineScaleSetVMsClient(
+				"subscriptionID",
+				azfake.NewTokenCredential(),
+				&arm.ClientOptions{
+					ClientOptions: azcore.ClientOptions{
+						Transport: fake.NewVirtualMachineScaleSetVMsServerTransport(
+							&tt.fakeVMServer,
+						),
+					},
 				},
-			})
+			)
 
-			ssclient, err := armcompute.NewVirtualMachineScaleSetsClient("subscriptionID", azfake.NewTokenCredential(), &arm.ClientOptions{
-				ClientOptions: azcore.ClientOptions{
-					Transport: fake.NewVirtualMachineScaleSetsServerTransport(&tt.fakeSSServer),
+			ssclient, err := armcompute.NewVirtualMachineScaleSetsClient(
+				"subscriptionID",
+				azfake.NewTokenCredential(),
+				&arm.ClientOptions{
+					ClientOptions: azcore.ClientOptions{
+						Transport: fake.NewVirtualMachineScaleSetsServerTransport(&tt.fakeSSServer),
+					},
 				},
-			})
+			)
 			assert.NoError(t, err)
 
-			err = collectAzureScaleSetsVMAssets(ctx, vmclient, ssclient, tt.subscriptionId, tt.regions, logger, publisher)
+			err = collectAzureScaleSetsVMAssets(
+				ctx,
+				vmclient,
+				ssclient,
+				tt.subscriptionId,
+				logger,
+				publisher,
+			)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedEvents, publisher.Events)
 		})
-
 	}
 }
