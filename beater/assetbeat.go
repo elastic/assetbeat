@@ -32,9 +32,9 @@ import (
 	"github.com/elastic/beats/v7/libbeat/beat"
 	"github.com/elastic/beats/v7/libbeat/cfgfile"
 	"github.com/elastic/beats/v7/libbeat/common/reload"
-	"github.com/elastic/beats/v7/libbeat/management"
 	"github.com/elastic/beats/v7/libbeat/publisher/pipetool"
 	"github.com/elastic/beats/v7/libbeat/statestore"
+	"github.com/elastic/beats/v7/x-pack/libbeat/management"
 	conf "github.com/elastic/elastic-agent-libs/config"
 	"github.com/elastic/elastic-agent-libs/logp"
 	"github.com/elastic/elastic-agent-libs/monitoring"
@@ -201,10 +201,10 @@ func (ir *assetbeat) Run(b *beat.Beat) error {
 	}
 
 	// Register reloadable list of inputs and modules
-	inputs := cfgfile.NewRunnerList(management.DebugK, inputLoader, ir.pipeline)
+	inputs := cfgfile.NewRunnerList(management.DefaultDatasetName, inputLoader, ir.pipeline)
 	reload.RegisterV2.MustRegisterInput(inputs)
 
-	modules := cfgfile.NewRunnerList(management.DebugK, nil, ir.pipeline)
+	modules := cfgfile.NewRunnerList(management.DefaultDatasetName, nil, ir.pipeline)
 
 	var adiscover *autodiscover.Autodiscover
 	if ir.config.Autodiscover != nil {
