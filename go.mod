@@ -9,13 +9,13 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.3.1
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5 v5.3.0-beta.1
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/subscription/armsubscription v1.1.0
-	github.com/aws/aws-sdk-go-v2 v1.21.2
+	github.com/aws/aws-sdk-go-v2 v1.22.1
 	github.com/aws/aws-sdk-go-v2/config v1.19.0
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.43
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.30.6
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.126.0
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.130.0
 	github.com/aws/aws-sdk-go-v2/service/eks v1.29.5
-	github.com/aws/smithy-go v1.15.0
+	github.com/aws/smithy-go v1.16.0
 	github.com/cespare/xxhash v1.1.0
 	github.com/elastic/beats/v7 v7.0.0-alpha2.0.20230126132006-91d4be69ffd7
 	github.com/elastic/elastic-agent-autodiscover v0.5.0
@@ -49,10 +49,10 @@ require (
 	github.com/Shopify/sarama v1.38.1 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.13.13 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.43 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.37 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.2.1 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.5.1 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.45 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.37 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.10.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.15.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.17.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.23.2 // indirect
