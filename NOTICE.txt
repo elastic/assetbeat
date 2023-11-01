@@ -11,11 +11,11 @@ Third party libraries used by the Elastic Assetbeat project:
 
 --------------------------------------------------------------------------------
 Dependency : cloud.google.com/go/compute
-Version: v1.23.0
+Version: v1.23.3
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/cloud.google.com/go/compute@v1.23.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/cloud.google.com/go/compute@v1.23.3/LICENSE:
 
 
                                  Apache License
@@ -223,11 +223,11 @@ Contents of probable licence file $GOMODCACHE/cloud.google.com/go/compute@v1.23.
 
 --------------------------------------------------------------------------------
 Dependency : cloud.google.com/go/container
-Version: v1.26.0
+Version: v1.26.1
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/cloud.google.com/go/container@v1.26.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/cloud.google.com/go/container@v1.26.1/LICENSE:
 
 
                                  Apache License
@@ -4223,11 +4223,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/api
-Version: v0.148.0
+Version: v0.149.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/api@v0.148.0/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/api@v0.149.0/LICENSE:
 
 Copyright (c) 2011 Google Inc. All rights reserved.
 
@@ -13207,11 +13207,11 @@ Contents of probable licence file $GOMODCACHE/github.com/google/s2a-go@v0.1.7/LI
 
 --------------------------------------------------------------------------------
 Dependency : github.com/google/uuid
-Version: v1.3.1
+Version: v1.4.0
 Licence type (autodetected): BSD-3-Clause
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/google/uuid@v1.3.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/google/uuid@v1.4.0/LICENSE:
 
 Copyright (c) 2009,2014 Google Inc. All rights reserved.
 
@@ -13244,11 +13244,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
 Dependency : github.com/googleapis/enterprise-certificate-proxy
-Version: v0.3.1
+Version: v0.3.2
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/github.com/googleapis/enterprise-certificate-proxy@v0.3.1/LICENSE:
+Contents of probable licence file $GOMODCACHE/github.com/googleapis/enterprise-certificate-proxy@v0.3.2/LICENSE:
 
 
                                  Apache License
@@ -23031,11 +23031,11 @@ Contents of probable licence file $GOMODCACHE/google.golang.org/appengine@v1.6.7
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto
-Version: v0.0.0-20231002182017-d307bd883b97
+Version: v0.0.0-20231016165738-49dd2c1f3d0b
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20231002182017-d307bd883b97/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-20231016165738-49dd2c1f3d0b/LICENSE:
 
 
                                  Apache License
@@ -23243,11 +23243,11 @@ Contents of probable licence file $GOMODCACHE/google.golang.org/genproto@v0.0.0-
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto/googleapis/api
-Version: v0.0.0-20231002182017-d307bd883b97
+Version: v0.0.0-20231016165738-49dd2c1f3d0b
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto/googleapis/api@v0.0.0-20231002182017-d307bd883b97/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto/googleapis/api@v0.0.0-20231016165738-49dd2c1f3d0b/LICENSE:
 
 
                                  Apache License
@@ -23455,11 +23455,11 @@ Contents of probable licence file $GOMODCACHE/google.golang.org/genproto/googlea
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/genproto/googleapis/rpc
-Version: v0.0.0-20231012201019-e917dd12ba7a
+Version: v0.0.0-20231016165738-49dd2c1f3d0b
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/genproto/googleapis/rpc@v0.0.0-20231012201019-e917dd12ba7a/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/genproto/googleapis/rpc@v0.0.0-20231016165738-49dd2c1f3d0b/LICENSE:
 
 
                                  Apache License
@@ -23667,11 +23667,11 @@ Contents of probable licence file $GOMODCACHE/google.golang.org/genproto/googlea
 
 --------------------------------------------------------------------------------
 Dependency : google.golang.org/grpc
-Version: v1.58.3
+Version: v1.59.0
 Licence type (autodetected): Apache-2.0
 --------------------------------------------------------------------------------
 
-Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.58.3/LICENSE:
+Contents of probable licence file $GOMODCACHE/google.golang.org/grpc@v1.59.0/LICENSE:
 
 
                                  Apache License
